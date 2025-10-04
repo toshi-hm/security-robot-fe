@@ -1,0 +1,31 @@
+{
+  // format
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  // TS
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+  // stylelint
+  "stylelint.configFile": "stylelint.config.mjs",
+  "stylelint.validate": ["css", "scss", "vue"],
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "[scss]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.stylelint": "explicit"
+    }
+  },
+  "[vue]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.fixAll.stylelint": "explicit"
+    }
+  }
+}
