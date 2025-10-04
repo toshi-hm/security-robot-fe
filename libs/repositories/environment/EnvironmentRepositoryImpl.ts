@@ -1,7 +1,8 @@
 import { API_ENDPOINTS } from '../../../configs/api'
+
+import type { EnvironmentRepository } from './EnvironmentRepository'
 import type { EnvironmentDefinition } from '../../domains/environment/Environment'
 import type { EnvironmentStateEntity } from '../../entities/environment/EnvironmentStateEntity'
-import type { EnvironmentRepository } from './EnvironmentRepository'
 
 export class EnvironmentRepositoryImpl implements EnvironmentRepository {
   async listEnvironments(): Promise<EnvironmentDefinition[]> {

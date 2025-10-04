@@ -4,9 +4,6 @@
   </el-form>
 </template>
 
-<script setup lang="ts">
-</script>
-
 <style lang="scss" scoped>
 .configuration-panel {
   display: grid;

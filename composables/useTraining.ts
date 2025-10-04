@@ -1,7 +1,7 @@
-import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 import type { TrainingMetricsEntity } from '~/libs/entities/training/TrainingMetricsEntity'
 import type { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
+import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
 const repository = new TrainingRepositoryImpl()
 

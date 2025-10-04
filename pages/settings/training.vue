@@ -4,6 +4,3 @@
     <p>Adjust default reinforcement learning parameters.</p>
   </div>
 </template>
-
-<script setup lang="ts">
-</script>

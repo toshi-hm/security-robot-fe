@@ -6,9 +6,6 @@
   </aside>
 </template>
 
-<script setup lang="ts">
-</script>
-
 <style lang="scss" scoped>
 .app-sidebar {
   width: 240px;

@@ -1,12 +1,12 @@
+<script setup lang="ts">
+const canvas = ref<HTMLCanvasElement | null>(null)
+</script>
+
 <template>
   <div class="chart-wrapper">
     <canvas ref="canvas" />
   </div>
 </template>
-
-<script setup lang="ts">
-const canvas = ref<HTMLCanvasElement | null>(null)
-</script>
 
 <style lang="scss" scoped>
 .chart-wrapper {

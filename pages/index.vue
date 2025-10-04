@@ -4,6 +4,3 @@
     <p>Use the navigation menu to manage training sessions, playback runs, and models.</p>
   </div>
 </template>
-
-<script setup lang="ts">
-</script>

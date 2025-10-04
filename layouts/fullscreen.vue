@@ -4,9 +4,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-</script>
-
 <style scoped>
 .layout-fullscreen {
   width: 100%;

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+
 import { useWebSocket } from '~/composables/useWebSocket'
 
 export const useWebSocketStore = defineStore('websocket', () => {

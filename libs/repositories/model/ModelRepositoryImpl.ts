@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from '../../../configs/api'
-import type { ModelEntity } from '../../entities/model/ModelEntity'
+
 import type { ModelRepository } from './ModelRepository'
+import type { ModelEntity } from '../../entities/model/ModelEntity'
 
 export class ModelRepositoryImpl implements ModelRepository {
   async listModels(): Promise<ModelEntity[]> {

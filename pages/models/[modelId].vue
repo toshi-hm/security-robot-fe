@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const route = useRoute()
+const modelId = computed(() => route.params.modelId as string)
+</script>
+
 <template>
   <section class="model-detail">
     <h2 class="model-detail__title">モデル詳細: {{ modelId }}</h2>
@@ -6,13 +13,6 @@
     </p>
   </section>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const route = useRoute()
-const modelId = computed(() => route.params.modelId as string)
-</script>
 
 <style lang="scss" scoped>
 .model-detail {

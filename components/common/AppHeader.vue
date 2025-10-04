@@ -1,14 +1,14 @@
-<template>
-  <header class="app-header">
-    <h1 class="app-header__title">{{ title }}</h1>
-  </header>
-</template>
-
 <script setup lang="ts">
 import { APP_TITLE } from '~/configs/constants'
 
 const title = APP_TITLE
 </script>
+
+<template>
+  <header class="app-header">
+    <h1 class="app-header__title">{{ title }}</h1>
+  </header>
+</template>
 
 <style lang="scss" scoped>
 .app-header {

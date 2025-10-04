@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ModelRepositoryImpl } from '~/libs/repositories/model/ModelRepositoryImpl'
+
 import type { ModelEntity } from '~/libs/entities/model/ModelEntity'
+import { ModelRepositoryImpl } from '~/libs/repositories/model/ModelRepositoryImpl'
 
 const repository = new ModelRepositoryImpl()
 

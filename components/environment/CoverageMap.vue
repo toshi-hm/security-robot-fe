@@ -6,9 +6,6 @@
   </el-card>
 </template>
 
-<script setup lang="ts">
-</script>
-
 <style lang="scss" scoped>
 .coverage-map {
   display: flex;

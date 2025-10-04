@@ -1,8 +1,9 @@
 import { API_ENDPOINTS } from '../../../configs/api'
+
+import type { TrainingRepository } from './TrainingRepository'
 import type { TrainingConfig } from '../../domains/training/TrainingConfig'
 import type { TrainingMetricsEntity } from '../../entities/training/TrainingMetricsEntity'
 import type { TrainingSessionEntity } from '../../entities/training/TrainingSessionEntity'
-import type { TrainingRepository } from './TrainingRepository'
 
 export class TrainingRepositoryImpl implements TrainingRepository {
   async listSessions(): Promise<TrainingSessionEntity[]> {

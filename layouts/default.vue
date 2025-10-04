@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import AppHeader from '~/components/common/AppHeader.vue'
+import AppSidebar from '~/components/common/AppSidebar.vue'
+</script>
+
 <template>
   <div class="layout-default">
     <AppSidebar class="sidebar">
@@ -15,11 +20,6 @@
     </main>
   </div>
 </template>
-
-<script setup lang="ts">
-import AppHeader from '~/components/common/AppHeader.vue'
-import AppSidebar from '~/components/common/AppSidebar.vue'
-</script>
 
 <style scoped>
 .layout-default {

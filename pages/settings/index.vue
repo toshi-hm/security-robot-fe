@@ -4,6 +4,3 @@
     <p>Select a category from the sidebar.</p>
   </div>
 </template>
-
-<script setup lang="ts">
-</script>
