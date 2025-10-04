@@ -1,0 +1,22 @@
+{
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": [
+      "@pinia/nuxt",
+      "element-plus/global"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "~/*": ["./*"],
+      "#components/*": ["./components/*"],
+      "#composables/*": ["./composables/*"],
+      "#stores/*": ["./stores/*"],
+      "#configs/*": ["./configs/*"],
+      "#libs/*": ["./libs/*"],
+      "#types/*": ["./types/*"],
+      "#utils/*": ["./utils/*"]
+    }
+  }
+}

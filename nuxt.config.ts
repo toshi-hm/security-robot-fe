@@ -1,0 +1,40 @@
+import { defineNuxtConfig } from 'nuxt/config'
+
+export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4,
+  },
+  devtools: { enabled: true },
+  ssr: false,
+  css: ['~/assets/css/main.scss'],
+  modules: [
+    '@nuxt/ui',
+    '@element-plus/nuxt',
+    '@pinia/nuxt',
+    '@vueuse/nuxt',
+    '@vee-validate/nuxt',
+    '@nuxt/eslint',
+  ],
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
+      wsUrl: process.env.WS_URL || 'ws://localhost:8000',
+    },
+  },
+  typescript: {
+    strict: true,
+    typeCheck: true,
+    shim: false,
+  },
+  vite: {
+    define: {
+      global: 'globalThis',
+    },
+  },
+  elementPlus: {
+    icon: 'ElIcon',
+    importStyle: 'scss',
+    themes: ['dark'],
+  },
+  compatibilityDate: '2025-01-01',
+})
