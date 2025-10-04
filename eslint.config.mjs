@@ -90,6 +90,7 @@ export default [
         },
       ],
       'vue/no-empty-component-block': 'warn',
+      'vue/padding-line-between-blocks': ['error', 'always'],
 
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
