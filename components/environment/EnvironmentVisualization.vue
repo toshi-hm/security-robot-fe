@@ -10,7 +10,7 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 
 <style lang="scss" scoped>
 .environment-visualization {
-  width: 100%;
   height: 100%;
+  width: 100%;
 }
 </style>

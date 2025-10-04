@@ -11,6 +11,8 @@
     "lint": "eslint '**/*.{js,ts,vue,mjs}'",
     "lint:fix": "eslint '**/*.{js,ts,vue,mjs}' --fix",
     "lintfix": "pnpm lint:fix",
+    "stylelint": "stylelint '**/*.{css,scss,vue}'",
+    "stylelint:fix": "stylelint '**/*.{css,scss,vue}' --fix",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest",
     "e2e": "playwright test -c tests/e2e/playwright.config.ts"
@@ -46,6 +48,10 @@
     "eslint-plugin-vue": "^10.5.0",
     "prettier": "^3.4.2",
     "sass": "^1.83.0",
+    "stylelint": "^16.25.0",
+    "stylelint-config-recommended-vue": "^1.6.1",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-order": "^7.0.0",
     "typescript": "^5.7.2",
     "vitest": "^3.0.6",
     "vue-tsc": "^2.1.10"

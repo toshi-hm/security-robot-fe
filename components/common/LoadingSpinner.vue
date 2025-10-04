@@ -7,8 +7,8 @@
 
 <style lang="scss" scoped>
 .loading-spinner {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 0.5rem;
 }
 
@@ -20,6 +20,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

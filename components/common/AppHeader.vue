@@ -12,10 +12,10 @@ const title = APP_TITLE
 
 <style lang="scss" scoped>
 .app-header {
-  display: flex;
   align-items: center;
-  padding: 1rem 1.5rem;
   background-color: var(--el-color-primary-light-9);
+  display: flex;
+  padding: 1rem 1.5rem;
 
   &__title {
     font-weight: 600;

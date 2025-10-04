@@ -33,8 +33,8 @@ import AppSidebar from '~/components/common/AppSidebar.vue'
 }
 
 .content {
-  grid-column: 2 / 3;
   background-color: #f3f4f6;
+  grid-column: 2 / 3;
   min-height: 100vh;
 }
 </style>

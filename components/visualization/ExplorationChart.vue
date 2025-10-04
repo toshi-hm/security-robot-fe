@@ -10,8 +10,8 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 
 <style lang="scss" scoped>
 .chart-wrapper {
+  min-height: 240px;
   position: relative;
   width: 100%;
-  min-height: 240px;
 }
 </style>

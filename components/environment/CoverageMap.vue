@@ -8,9 +8,9 @@
 
 <style lang="scss" scoped>
 .coverage-map {
+  align-items: center;
   display: flex;
   justify-content: center;
-  align-items: center;
   min-height: 200px;
 }
 </style>
