@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    include: ['tests/unit/**/*.spec.ts'],
+    exclude: ['tests/e2e/**'],
     coverage: {
       reporter: ['text', 'html'],
     },
