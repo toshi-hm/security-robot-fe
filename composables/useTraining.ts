@@ -1,45 +1,93 @@
+import { computed, ref } from 'vue'
+
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
-import type { TrainingMetricsEntity } from '~/libs/entities/training/TrainingMetricsEntity'
-import type { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
+import type { TrainingMetrics } from '~/libs/domains/training/TrainingMetrics'
+import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
-const repository = new TrainingRepositoryImpl()
-
+/**
+ * 学習管理Composable
+ *
+ * リポジトリを使用してビジネスロジックを実装
+ */
 export const useTraining = () => {
-  const sessions = ref<TrainingSessionEntity[]>([])
-  const metrics = ref<TrainingMetricsEntity | null>(null)
-  const loading = ref(false)
+  const repository = new TrainingRepositoryImpl()
+
+  const sessions = ref<TrainingSession[]>([])
+  const currentSession = ref<TrainingSession | null>(null)
+  const metrics = ref<TrainingMetrics[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  const activeSessions = computed(() => sessions.value.filter((session) => session.isRunning))
+  const completedSessions = computed(() => sessions.value.filter((session) => session.isCompleted))
 
   const fetchSessions = async () => {
-    loading.value = true
+    isLoading.value = true
+    error.value = null
+
     try {
-      sessions.value = await repository.listSessions()
+      sessions.value = await repository.findAll()
+    } catch (err) {
+      error.value = 'Failed to fetch training sessions'
+      console.error(err)
     } finally {
-      loading.value = false
+      isLoading.value = false
     }
   }
 
-  const startSession = async (config: TrainingConfig) => {
-    loading.value = true
+  const createSession = async (config: TrainingConfig): Promise<TrainingSession | null> => {
+    isLoading.value = true
+    error.value = null
+
     try {
-      const session = await repository.startSession(config)
-      sessions.value.push(session)
-      return session
+      const newSession = await repository.create(config)
+      sessions.value.push(newSession)
+      currentSession.value = newSession
+      return newSession
+    } catch (err) {
+      error.value = 'Failed to create training session'
+      console.error(err)
+      return null
     } finally {
-      loading.value = false
+      isLoading.value = false
     }
   }
 
-  const fetchMetrics = async (sessionId: string) => {
-    metrics.value = await repository.fetchMetrics(sessionId)
+  const stopSession = async (id: number): Promise<boolean> => {
+    try {
+      const success = await repository.stop(id)
+      if (success) {
+        await fetchSessions()
+      }
+      return success
+    } catch (err) {
+      error.value = 'Failed to stop training session'
+      console.error(err)
+      return false
+    }
+  }
+
+  const fetchMetrics = async (sessionId: number) => {
+    try {
+      metrics.value = await repository.getMetrics(sessionId)
+    } catch (err) {
+      error.value = 'Failed to fetch metrics'
+      console.error(err)
+    }
   }
 
   return {
     sessions,
+    currentSession,
     metrics,
-    loading,
+    isLoading,
+    error,
+    activeSessions,
+    completedSessions,
     fetchSessions,
-    startSession,
+    createSession,
+    stopSession,
     fetchMetrics,
   }
 }
