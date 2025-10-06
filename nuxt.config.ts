@@ -10,8 +10,8 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@element-plus/nuxt', '@pinia/nuxt', '@vueuse/nuxt', '@vee-validate/nuxt', '@nuxt/eslint'],
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
-      wsUrl: process.env.WS_URL || 'ws://localhost:8000',
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
+      wsUrl: process.env.NUXT_PUBLIC_WS_URL || 'ws://localhost:8000',
     },
   },
   typescript: {

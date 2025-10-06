@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { TrainingMetricsEntity } from '~/libs/entities/training/TrainingMetricsEntity'
+import type { TrainingMetrics } from '~/libs/domains/training/TrainingMetrics'
 
-defineProps<{ metrics: TrainingMetricsEntity | null }>()
+defineProps<{ metrics: TrainingMetrics[] }>()
 </script>
 
 <template>
