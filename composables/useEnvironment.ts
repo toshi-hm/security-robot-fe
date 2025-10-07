@@ -1,10 +1,17 @@
+import { ref } from 'vue'
 import type { EnvironmentDefinition } from '~/libs/domains/environment/Environment'
 import type { EnvironmentStateEntity } from '~/libs/entities/environment/EnvironmentStateEntity'
 import { EnvironmentRepositoryImpl } from '~/libs/repositories/environment/EnvironmentRepositoryImpl'
+import type { EnvironmentRepository } from '~/libs/repositories/environment/EnvironmentRepository'
 
-const repository = new EnvironmentRepositoryImpl()
-
-export const useEnvironment = () => {
+/**
+ * Environment管理Composable
+ *
+ * @param repository - EnvironmentRepository (依存性注入、テスト時にモック可能)
+ */
+export const useEnvironment = (
+  repository: EnvironmentRepository = new EnvironmentRepositoryImpl()
+) => {
   const environments = ref<EnvironmentDefinition[]>([])
   const currentState = ref<EnvironmentStateEntity | null>(null)
 
