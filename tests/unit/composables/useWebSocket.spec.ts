@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useWebSocket } from '~/composables/useWebSocket'
+
 import type { Socket } from 'socket.io-client'
 
 describe('useWebSocket', () => {
@@ -53,9 +55,7 @@ describe('useWebSocket', () => {
       connect()
 
       // 'connect'イベントのコールバックを取得して実行
-      const onConnectCall = (mockSocket.on as any).mock.calls.find(
-        (call: any) => call[0] === 'connect'
-      )
+      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
       const onConnectCallback = onConnectCall[1]
       onConnectCallback()
 
@@ -68,15 +68,11 @@ describe('useWebSocket', () => {
       connect()
 
       // まず接続状態にする
-      const onConnectCall = (mockSocket.on as any).mock.calls.find(
-        (call: any) => call[0] === 'connect'
-      )
+      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
       onConnectCall[1]()
 
       // 切断イベントを発火
-      const onDisconnectCall = (mockSocket.on as any).mock.calls.find(
-        (call: any) => call[0] === 'disconnect'
-      )
+      const onDisconnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'disconnect')
       onDisconnectCall[1]()
 
       expect(isConnected.value).toBe(false)
@@ -99,9 +95,7 @@ describe('useWebSocket', () => {
 
       connect()
       // 接続状態にする
-      const onConnectCall = (mockSocket.on as any).mock.calls.find(
-        (call: any) => call[0] === 'connect'
-      )
+      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
       onConnectCall[1]()
 
       disconnect()

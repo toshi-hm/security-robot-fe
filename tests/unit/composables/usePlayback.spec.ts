@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { usePlayback } from '~/composables/usePlayback'
-import type { PlaybackRepository } from '~/libs/repositories/playback/PlaybackRepository'
-import type { PlaybackSession } from '~/libs/domains/playback/PlaybackSession'
 import type { PlaybackFrame } from '~/libs/domains/playback/PlaybackFrame'
+import type { PlaybackSession } from '~/libs/domains/playback/PlaybackSession'
+import type { PlaybackRepository } from '~/libs/repositories/playback/PlaybackRepository'
 
 describe('usePlayback', () => {
   let mockRepository: PlaybackRepository

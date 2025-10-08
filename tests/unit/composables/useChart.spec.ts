@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useChart } from '~/composables/useChart'
+
 import type { Chart, ChartConfiguration } from 'chart.js/auto'
 
 describe('useChart', () => {

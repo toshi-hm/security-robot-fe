@@ -50,7 +50,7 @@ describe('useTraining', () => {
       null,
       new Date('2024-01-01T00:00:00Z'),
       new Date('2024-01-01T01:00:00Z'),
-      null,
+      null
     )
 
   it('fetches sessions and populates refs', async () => {

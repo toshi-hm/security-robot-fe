@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { Environment, type SuspiciousObject } from '~/libs/domains/environment/Environment'
 
 type EnvironmentOverrides = {
@@ -16,12 +17,8 @@ describe('Environment', () => {
   const createEnvironment = (overrides: EnvironmentOverrides = {}) => {
     const width = overrides.width ?? 8
     const height = overrides.height ?? 8
-    const threatGrid = overrides.threatGrid ?? Array.from({ length: height }, () =>
-      Array(width).fill(0.0)
-    )
-    const coverageMap = overrides.coverageMap ?? Array.from({ length: height }, () =>
-      Array(width).fill(false)
-    )
+    const threatGrid = overrides.threatGrid ?? Array.from({ length: height }, () => Array(width).fill(0.0))
+    const coverageMap = overrides.coverageMap ?? Array.from({ length: height }, () => Array(width).fill(false))
 
     return new Environment(
       width,
@@ -46,35 +43,33 @@ describe('Environment', () => {
     })
 
     it('validates robot position is within bounds', () => {
-      expect(() =>
-        createEnvironment({ width: 8, height: 8, robotX: 10, robotY: 5 })
-      ).toThrow('Robot X position 10 out of bounds')
+      expect(() => createEnvironment({ width: 8, height: 8, robotX: 10, robotY: 5 })).toThrow(
+        'Robot X position 10 out of bounds'
+      )
     })
 
     it('validates robot Y position is within bounds', () => {
-      expect(() =>
-        createEnvironment({ width: 8, height: 8, robotX: 5, robotY: 10 })
-      ).toThrow('Robot Y position 10 out of bounds')
+      expect(() => createEnvironment({ width: 8, height: 8, robotX: 5, robotY: 10 })).toThrow(
+        'Robot Y position 10 out of bounds'
+      )
     })
 
     it('validates robot orientation range', () => {
-      expect(() =>
-        createEnvironment({ robotOrientation: 5 })
-      ).toThrow('Invalid robot orientation 5')
+      expect(() => createEnvironment({ robotOrientation: 5 })).toThrow('Invalid robot orientation 5')
     })
 
     it('validates threat grid dimensions', () => {
       const invalidThreatGrid = [[0, 0, 0]]
-      expect(() =>
-        createEnvironment({ width: 8, height: 8, threatGrid: invalidThreatGrid })
-      ).toThrow('Threat grid height mismatch')
+      expect(() => createEnvironment({ width: 8, height: 8, threatGrid: invalidThreatGrid })).toThrow(
+        'Threat grid height mismatch'
+      )
     })
 
     it('validates coverage map dimensions', () => {
       const invalidCoverageMap = [[false, false]]
-      expect(() =>
-        createEnvironment({ width: 8, height: 8, coverageMap: invalidCoverageMap })
-      ).toThrow('Coverage map height mismatch')
+      expect(() => createEnvironment({ width: 8, height: 8, coverageMap: invalidCoverageMap })).toThrow(
+        'Coverage map height mismatch'
+      )
     })
   })
 

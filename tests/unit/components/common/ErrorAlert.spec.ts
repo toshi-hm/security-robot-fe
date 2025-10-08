@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import ErrorAlert from '~/components/common/ErrorAlert.vue'
 
 describe('ErrorAlert', () => {
@@ -10,7 +11,8 @@ describe('ErrorAlert', () => {
         stubs: {
           'el-alert': {
             name: 'ElAlert',
-            template: '<div class="el-alert el-alert--error"><div class="el-alert__content">{{ title }}<div class="el-alert__icon"></div></div></div>',
+            template:
+              '<div class="el-alert el-alert--error"><div class="el-alert__content">{{ title }}<div class="el-alert__icon"></div></div></div>',
             props: ['title', 'type', 'showIcon'],
           },
         },

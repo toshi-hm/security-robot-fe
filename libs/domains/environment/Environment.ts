@@ -50,7 +50,7 @@ export class Environment {
    * カバレッジ率 (0.0-1.0)
    */
   get coverageRatio(): number {
-    const covered = this.coverageMap.flat().filter(v => v).length
+    const covered = this.coverageMap.flat().filter((v) => v).length
     return covered / (this.width * this.height)
   }
 

@@ -4,7 +4,6 @@ import { API_ENDPOINTS } from '~/configs/api'
 import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
 declare global {
-  // eslint-disable-next-line no-var
   var $fetch: typeof fetch
 }
 

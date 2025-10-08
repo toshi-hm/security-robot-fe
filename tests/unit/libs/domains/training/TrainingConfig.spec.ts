@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_TRAINING_CONFIG, createTrainingConfig, validateTrainingConfig } from '~/libs/domains/training/TrainingConfig'
+import {
+  DEFAULT_TRAINING_CONFIG,
+  createTrainingConfig,
+  validateTrainingConfig,
+} from '~/libs/domains/training/TrainingConfig'
 
 describe('TrainingConfig utilities', () => {
   it('creates config with overrides', () => {
@@ -13,7 +17,7 @@ describe('TrainingConfig utilities', () => {
 
   it('validates required name', () => {
     expect(() => validateTrainingConfig({ ...DEFAULT_TRAINING_CONFIG, name: '   ' })).toThrow(
-      'Training session name is required',
+      'Training session name is required'
     )
   })
 
@@ -23,7 +27,7 @@ describe('TrainingConfig utilities', () => {
         ...DEFAULT_TRAINING_CONFIG,
         name: 'Valid Name',
         coverageWeight: 20,
-      }),
+      })
     ).toThrow('Coverage weight must be between 0 and 10')
   })
 })

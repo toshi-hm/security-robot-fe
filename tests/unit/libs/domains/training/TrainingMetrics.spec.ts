@@ -25,7 +25,7 @@ describe('TrainingMetrics', () => {
       overrides.loss ?? 0.02,
       overrides.coverageRatio ?? 0.75,
       overrides.explorationScore ?? 0.5,
-      overrides.timestamp ?? new Date('2024-01-01T00:00:00Z'),
+      overrides.timestamp ?? new Date('2024-01-01T00:00:00Z')
     )
 
   it('returns coverage percentage rounded', () => {

@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process'
 import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
+
 import type { FullConfig } from '@playwright/test'
 
 const PID_FILE = join(process.cwd(), 'tests', 'e2e', '.nuxt-dev.pid')
@@ -30,10 +31,7 @@ async function waitForServer(url: string, timeoutMs = 120_000) {
 }
 
 export default async function globalSetup(_config: FullConfig) {
-  const port = Number.parseInt(
-    process.env.PLAYWRIGHT_PORT ?? process.env.NUXT_PORT ?? `${DEFAULT_PORT}`,
-    10,
-  )
+  const port = Number.parseInt(process.env.PLAYWRIGHT_PORT ?? process.env.NUXT_PORT ?? `${DEFAULT_PORT}`, 10)
   const host = process.env.PLAYWRIGHT_HOST ?? DEFAULT_HOST
   const baseURL = process.env.BASE_URL ?? `http://${host}:${port}`
 

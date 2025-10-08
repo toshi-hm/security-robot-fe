@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { Chart, type ChartConfiguration } from 'chart.js/auto'
+import { ref } from 'vue'
 
 /**
  * Chart管理Composable
@@ -8,10 +8,7 @@ import { Chart, type ChartConfiguration } from 'chart.js/auto'
  * @param config - Chart.js設定
  * @param ChartConstructor - Chartコンストラクタ (テスト時はモック注入可能)
  */
-export const useChart = (
-  config: ChartConfiguration,
-  ChartConstructor: typeof Chart = Chart
-) => {
+export const useChart = (config: ChartConfiguration, ChartConstructor: typeof Chart = Chart) => {
   const canvas = ref<HTMLCanvasElement | null>(null)
   let chart: Chart | null = null
 

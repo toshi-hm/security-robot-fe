@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+
 import { NUXT_WELCOME_CHROMIUM_BASE64 } from './baselines'
 import { ensureSnapshotBaseline } from './utils/snapshot'
 

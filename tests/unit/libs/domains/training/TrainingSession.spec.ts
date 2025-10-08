@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { TrainingSession, type TrainingAlgorithm, type TrainingEnvironmentType, type TrainingStatus } from '~/libs/domains/training/TrainingSession'
+import {
+  TrainingSession,
+  type TrainingAlgorithm,
+  type TrainingEnvironmentType,
+  type TrainingStatus,
+} from '~/libs/domains/training/TrainingSession'
 
 type SessionOverrides = {
   id?: number
@@ -43,7 +48,7 @@ describe('TrainingSession', () => {
       overrides.config ?? null,
       overrides.createdAt ?? new Date('2024-01-01T00:00:00Z'),
       overrides.startedAt ?? new Date('2024-01-02T00:00:00Z'),
-      overrides.completedAt ?? null,
+      overrides.completedAt ?? null
     )
   }
 
@@ -90,7 +95,7 @@ describe('TrainingSession', () => {
     expect(() =>
       createSession({
         totalTimesteps: 500,
-      }),
+      })
     ).toThrow('Total timesteps must be at least 1000')
   })
 
@@ -98,7 +103,7 @@ describe('TrainingSession', () => {
     expect(() =>
       createSession({
         envWidth: 3,
-      }),
+      })
     ).toThrow('Environment width must be between 5 and 50')
   })
 
@@ -106,7 +111,7 @@ describe('TrainingSession', () => {
     expect(() =>
       createSession({
         coverageWeight: 20,
-      }),
+      })
     ).toThrow('Coverage weight must be between 0 and 10')
   })
 })

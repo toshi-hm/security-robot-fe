@@ -4,11 +4,7 @@ import { dirname } from 'node:path'
 
 import type { TestInfo } from '@playwright/test'
 
-export async function ensureSnapshotBaseline(
-  testInfo: TestInfo,
-  fileName: string,
-  base64: string,
-) {
+export async function ensureSnapshotBaseline(testInfo: TestInfo, fileName: string, base64: string) {
   const snapshotPath = testInfo.snapshotPath(fileName)
   await mkdir(dirname(snapshotPath), { recursive: true })
 
