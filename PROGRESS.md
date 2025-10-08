@@ -3,8 +3,8 @@
 ## Overall Status
 
 **Current Phase**: Phase 11 - Pages & Layouts (Complete)  
-**Overall Coverage**: 63.2% (Target: 85%)  
-**Tests Passing**: 257/257 (100%)
+**Overall Coverage**: 63.91% (Target: 85%)  
+**Tests Passing**: 265/265 (100%)
 
 ---
 
@@ -73,12 +73,14 @@
 - ✅ CoverageChart (100%, 5 tests)
 - ✅ ExplorationChart (100%, 5 tests)
 
-### ✅ Phase 8: Pages (Simple pages tested - 5/11)
+### ✅ Phase 8: Pages (Simple pages tested - 7/11)
 - ✅ Index page (100%, 4 tests)
 - ✅ Training index (100%, 5 tests)
 - ✅ Playback index (100%, 4 tests)
 - ✅ Models index (100%, 4 tests)
 - ✅ Settings index (100%, 4 tests)
+- ✅ Settings/Environment (100%, 4 tests)
+- ✅ Settings/Training (100%, 4 tests)
 
 ### ✅ Phase 8.5: Layouts (100% - 2/2)
 - ✅ Default layout (100%, 8 tests)
@@ -107,14 +109,14 @@
 ## Test Statistics
 
 ### Test Counts
-- **Total Tests**: 257
-- **Passing**: 257 (100%)
-- **Test Files**: 47
+- **Total Tests**: 265
+- **Passing**: 265 (100%)
+- **Test Files**: 49
 
 ### Coverage by Layer
 | Layer | Coverage | Files | Tests |
 |-------|----------|-------|-------|
-| Pages | 45.45% | 5 | 21 |
+| Pages | 63.63% | 7 | 29 |
 | Layouts | 100% | 2 | 13 |
 | Stores | 100% | 6 | 22 |
 | Utils | 100% | 3 | 20 |
@@ -136,7 +138,7 @@
 5. ✅ Missing `ref` import in stores/models.ts
 
 ### Remaining Issues
-1. Dynamic pages coverage: 0% (6 pages with route params not tested)
+1. Dynamic pages coverage: 0% (4 pages with route params not tested)
 2. Plugins coverage: 0% (3 plugins not tested)
 3. Config files: 0% (nuxt.config, eslint.config not testable)
 
@@ -146,7 +148,7 @@
 
 1. Consider testing dynamic pages (with route params)
 2. Consider testing plugins (chart, element-plus, socket)
-3. Current coverage (63.2%) is limited by:
+3. Current coverage (63.91%) is limited by:
    - Config files (untestable)
    - Dynamic route pages (require router mocking)
    - Plugin initialization (client-only code)

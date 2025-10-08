@@ -4,7 +4,7 @@
 
 **Date**: 2025-01-09  
 **Focus**: Phase 8-11 - Complete component, store, utility, page, and layout tests  
-**Result**: ✅ All 19 components, 6 stores, 3 utils, 2 layouts, and 5 pages now tested
+**Result**: ✅ All 19 components, 6 stores, 3 utils, 2 layouts, and 7 pages now tested
 
 ### Accomplishments
 
@@ -184,7 +184,7 @@ import { ref, computed } from 'vue' // Always explicit imports
 7. **Utils need comprehensive edge case testing**: Cover negative, zero, and extreme values
 8. **Pinia testing is straightforward**: setActivePinia + createPinia pattern works reliably
 
-#### 7. Pages Tests (5 simple pages completed)
+#### 7. Pages Tests (7 simple pages completed)
 - ✅ **Index page** (4 tests, 100% coverage)
   - Dashboard title and instructions
   - Navigation guidance
@@ -199,6 +199,12 @@ import { ref, computed } from 'vue' // Always explicit imports
   - Japanese text display
 - ✅ **Settings index** (4 tests, 100% coverage)
   - Settings navigation instructions
+- ✅ **Settings/Environment** (4 tests, 100% coverage)
+  - Environment settings page
+  - Configuration instructions
+- ✅ **Settings/Training** (4 tests, 100% coverage)
+  - Training settings page
+  - Reinforcement learning parameters
 
 #### 8. Layouts Tests (2 layouts completed)
 - ✅ **Default layout** (8 tests, 100% coverage)
@@ -213,35 +219,34 @@ import { ref, computed } from 'vue' // Always explicit imports
 
 ### Remaining Work (Not Critical)
 
-Dynamic pages with route parameters (6 pages):
+Dynamic pages with route parameters (4 pages):
 1. `/training/[sessionId]` pages (2 pages)
 2. `/playback/[sessionId]` page (1 page)
 3. `/models/[modelId]` page (1 page)
-4. Settings subpages (2 pages)
 
 These require router mocking and are less critical for unit test coverage.
 
 ### Session Metrics
 
-- **Duration**: ~2 hours total
-- **Files Created**: 28 test files + 2 documentation files
-- **Files Modified**: 10 source files (import fixes)
-- **Tests Added**: 174 tests (98 components + 22 stores + 20 utils + 21 pages + 13 layouts)
-- **Issues Fixed**: 9 (import errors, useVModel removal, store imports)
-- **Coverage Improvement**: +9.6 percentage points (53.6% → 63.2%)
+- **Duration**: ~2.5 hours total
+- **Files Created**: 30 test files + 2 documentation files
+- **Files Modified**: 11 source files (import fixes + test fix)
+- **Tests Added**: 182 tests (98 components + 22 stores + 20 utils + 29 pages + 13 layouts)
+- **Issues Fixed**: 10 (import errors, useVModel removal, store imports, test assertion fix)
+- **Coverage Improvement**: +10.31 percentage points (53.6% → 63.91%)
 
 ### Final Statistics
 
-- **Test Files**: 47
-- **Total Tests**: 257 (100% passing)
+- **Test Files**: 49
+- **Total Tests**: 265 (100% passing)
 - **Layers with 100% coverage**: Stores, Utils, Layouts, Entities
 - **Well-tested layers (>80%)**: Composables (92.47%), Domain (87.75%), Repositories (80.7%)
 
 ### Coverage Analysis
 
-**Why 63.2% instead of 85%?**
+**Why 63.91% instead of 85%?**
 1. **Config files**: nuxt.config, eslint.config (untestable, 0% coverage)
-2. **Dynamic pages**: 6 pages with route params not tested (require router mocking)
+2. **Dynamic pages**: 4 pages with route params not tested (require router mocking)
 3. **Plugins**: 3 client-only plugins not tested (chart, element-plus, socket)
 4. **Complex pages**: Some pages with deep component integration skipped
 
