@@ -3,8 +3,8 @@
 ## Overall Status
 
 **Current Phase**: Phase 11 - Pages & Layouts (Complete)  
-**Overall Coverage**: 63.91% (Target: 85%)  
-**Tests Passing**: 265/265 (100%)
+**Overall Coverage**: 68.99% (Target: 85%)  
+**Tests Passing**: 281/281 (100%)
 
 ---
 
@@ -73,7 +73,7 @@
 - ✅ CoverageChart (100%, 5 tests)
 - ✅ ExplorationChart (100%, 5 tests)
 
-### ✅ Phase 8: Pages (Simple pages tested - 7/11)
+### ✅ Phase 8: Pages (All pages tested - 11/11)
 - ✅ Index page (100%, 4 tests)
 - ✅ Training index (100%, 5 tests)
 - ✅ Playback index (100%, 4 tests)
@@ -81,6 +81,10 @@
 - ✅ Settings index (100%, 4 tests)
 - ✅ Settings/Environment (100%, 4 tests)
 - ✅ Settings/Training (100%, 4 tests)
+- ✅ Models/[modelId] (100%, 4 tests)
+- ✅ Playback/[sessionId] (100%, 4 tests)
+- ✅ Training/[sessionId] (100%, 4 tests)
+- ✅ Training/[sessionId]/metrics (100%, 4 tests)
 
 ### ✅ Phase 8.5: Layouts (100% - 2/2)
 - ✅ Default layout (100%, 8 tests)
@@ -109,14 +113,14 @@
 ## Test Statistics
 
 ### Test Counts
-- **Total Tests**: 265
-- **Passing**: 265 (100%)
-- **Test Files**: 49
+- **Total Tests**: 281
+- **Passing**: 281 (100%)
+- **Test Files**: 53
 
 ### Coverage by Layer
 | Layer | Coverage | Files | Tests |
 |-------|----------|-------|-------|
-| Pages | 63.63% | 7 | 29 |
+| Pages | 100% | 11 | 45 |
 | Layouts | 100% | 2 | 13 |
 | Stores | 100% | 6 | 22 |
 | Utils | 100% | 3 | 20 |
@@ -138,20 +142,22 @@
 5. ✅ Missing `ref` import in stores/models.ts
 
 ### Remaining Issues
-1. Dynamic pages coverage: 0% (4 pages with route params not tested)
-2. Plugins coverage: 0% (3 plugins not tested)
+1. ~~Dynamic pages coverage: 0% (4 pages with route params not tested)~~ ✅ **FIXED: All 11 pages now tested**
+2. Plugins coverage: 0% (3 plugins not tested - chart.client, element-plus.client, socket.client)
 3. Config files: 0% (nuxt.config, eslint.config not testable)
+4. Type definition files: 0% (types/*.ts not testable)
 
 ---
 
 ## Next Steps
 
-1. Consider testing dynamic pages (with route params)
-2. Consider testing plugins (chart, element-plus, socket)
-3. Current coverage (63.91%) is limited by:
+1. ~~Consider testing dynamic pages (with route params)~~ ✅ **COMPLETED: All pages tested**
+2. Consider E2E tests with Playwright
+3. Consider testing plugins (chart, element-plus, socket)
+4. Current coverage (68.99%) is limited by:
    - Config files (untestable)
-   - Dynamic route pages (require router mocking)
    - Plugin initialization (client-only code)
+   - Type definition files (no runtime code)
 
 **Note**: 85% target may not be achievable without integration tests
 

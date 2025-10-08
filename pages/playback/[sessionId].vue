@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
 
 const route = useRoute()
