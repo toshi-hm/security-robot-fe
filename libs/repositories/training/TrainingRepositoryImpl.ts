@@ -10,13 +10,25 @@ import type { TrainingRepository } from './TrainingRepository'
 /**
  * 学習リポジトリ実装
  *
- * 実際のAPI通信を行う
+ * Backend API実装に基づいて実装
+ * API responses follow pagination pattern: { total, page, page_size, data: [...] }
  */
 export class TrainingRepositoryImpl implements TrainingRepository {
   async findAll(): Promise<TrainingSession[]> {
     try {
-      const response = await $fetch<TrainingSessionDTO[]>(API_ENDPOINTS.training.sessions)
-      return response.map((dto) => TrainingSessionEntity.toDomain(dto))
+      // Backend: GET /api/v1/training/list?page=1&page_size=20
+      const response = await $fetch<{
+        total: number
+        page: number
+        page_size: number
+        sessions: TrainingSessionDTO[]
+      }>(API_ENDPOINTS.training.list, {
+        params: {
+          page: 1,
+          page_size: 100, // Get more sessions at once
+        },
+      })
+      return response.sessions.map((dto) => TrainingSessionEntity.toDomain(dto))
     } catch (error) {
       console.error('Failed to fetch training sessions:', error)
       throw error
@@ -25,6 +37,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
 
   async findById(id: number): Promise<TrainingSession | null> {
     try {
+      // Backend: GET /api/v1/training/{session_id}/status
       const response = await $fetch<TrainingSessionDTO>(API_ENDPOINTS.training.status(id))
       return TrainingSessionEntity.toDomain(response)
     } catch (error) {
@@ -35,6 +48,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
 
   async create(config: TrainingConfig): Promise<TrainingSession> {
     try {
+      // Backend: POST /api/v1/training/start
       const response = await $fetch<TrainingSessionDTO>(API_ENDPOINTS.training.start, {
         method: 'POST',
         body: config,
@@ -48,6 +62,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
 
   async stop(id: number): Promise<boolean> {
     try {
+      // Backend: POST /api/v1/training/{session_id}/stop
       await $fetch(API_ENDPOINTS.training.stop(id), {
         method: 'POST',
       })
@@ -60,10 +75,19 @@ export class TrainingRepositoryImpl implements TrainingRepository {
 
   async getMetrics(id: number, limit: number = 100): Promise<TrainingMetrics[]> {
     try {
-      const response = await $fetch<TrainingMetricsDTO[]>(API_ENDPOINTS.training.metrics(id), {
-        params: { limit },
+      // Backend: GET /api/v1/training/sessions/{session_id}/metrics?page=1&page_size=50
+      const response = await $fetch<{
+        total: number
+        page: number
+        page_size: number
+        metrics: TrainingMetricsDTO[]
+      }>(API_ENDPOINTS.training.metrics(id), {
+        params: {
+          page: 1,
+          page_size: limit,
+        },
       })
-      return response.map((dto) => TrainingMetricsEntity.toDomain(dto))
+      return response.metrics.map((dto) => TrainingMetricsEntity.toDomain(dto))
     } catch (error) {
       console.error(`Failed to fetch metrics for session ${id}:`, error)
       throw error

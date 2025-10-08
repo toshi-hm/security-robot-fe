@@ -21,29 +21,37 @@ describe('TrainingRepositoryImpl', () => {
   })
 
   it('fetches all training sessions', async () => {
-    fetchMock.mockResolvedValue([
-      {
-        id: 1,
-        name: 'Session 1',
-        algorithm: 'ppo',
-        environment_type: 'standard',
-        status: 'running',
-        total_timesteps: 10_000,
-        current_timestep: 5_000,
-        episodes_completed: 10,
-        env_width: 10,
-        env_height: 10,
-        coverage_weight: 1,
-        exploration_weight: 2,
-        diversity_weight: 3,
-      },
-    ])
+    // Backend returns paginated response
+    fetchMock.mockResolvedValue({
+      total: 1,
+      page: 1,
+      page_size: 100,
+      sessions: [
+        {
+          id: 1,
+          name: 'Session 1',
+          algorithm: 'ppo',
+          environment_type: 'standard',
+          status: 'running',
+          total_timesteps: 10_000,
+          current_timestep: 5_000,
+          episodes_completed: 10,
+          env_width: 10,
+          env_height: 10,
+          coverage_weight: 1,
+          exploration_weight: 2,
+          diversity_weight: 3,
+        },
+      ],
+    })
 
     const sessions = await repository.findAll()
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.sessions)
+    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.list, {
+      params: { page: 1, page_size: 100 },
+    })
     expect(sessions).toHaveLength(1)
-    expect(sessions[0].name).toBe('Session 1')
+    expect(sessions[0]!.name).toBe('Session 1')
   })
 
   it('returns null when findById fails', async () => {
@@ -118,24 +126,30 @@ describe('TrainingRepositoryImpl', () => {
   })
 
   it('retrieves training metrics with limit parameter', async () => {
-    fetchMock.mockResolvedValue([
-      {
-        id: 1,
-        session_id: 1,
-        timestep: 100,
-        episode: 10,
-        reward: 50,
-        loss: 0.1,
-        coverage_ratio: 0.8,
-        exploration_score: 0.7,
-      },
-    ])
+    // Backend returns paginated response
+    fetchMock.mockResolvedValue({
+      total: 1,
+      page: 1,
+      page_size: 50,
+      metrics: [
+        {
+          id: 1,
+          session_id: 1,
+          timestep: 100,
+          episode: 10,
+          reward: 50,
+          loss: 0.1,
+          coverage_ratio: 0.8,
+          exploration_score: 0.7,
+        },
+      ],
+    })
 
     const metrics = await repository.getMetrics(1, 50)
 
     expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.metrics(1), {
-      params: { limit: 50 },
+      params: { page: 1, page_size: 50 },
     })
-    expect(metrics[0].coverageRatio).toBe(0.8)
+    expect(metrics[0]!.coverageRatio).toBe(0.8)
   })
 })

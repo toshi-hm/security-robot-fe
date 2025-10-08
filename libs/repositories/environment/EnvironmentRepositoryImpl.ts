@@ -4,12 +4,34 @@ import type { EnvironmentRepository } from './EnvironmentRepository'
 import type { EnvironmentDefinition } from '../../domains/environment/Environment'
 import type { EnvironmentStateEntity } from '../../entities/environment/EnvironmentStateEntity'
 
+/**
+ * Environment Repository Implementation
+ *
+ * Backend API実装に基づいて実装
+ * API responses are wrapped in { data: ... } pattern
+ */
 export class EnvironmentRepositoryImpl implements EnvironmentRepository {
   async listEnvironments(): Promise<EnvironmentDefinition[]> {
-    return await $fetch(`${API_ENDPOINTS.environment}/definitions`)
+    try {
+      // Backend: GET /api/v1/environment/definitions
+      const response = await $fetch<{ data: EnvironmentDefinition[] }>(API_ENDPOINTS.environment.definitions)
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch environment definitions:', error)
+      throw error
+    }
   }
 
   async fetchState(environmentId: string): Promise<EnvironmentStateEntity> {
-    return await $fetch(`${API_ENDPOINTS.environment}/definitions/${environmentId}/state`)
+    try {
+      // Backend: GET /api/v1/environment/definitions/{environment_id}/state
+      const response = await $fetch<{ data: EnvironmentStateEntity }>(
+        API_ENDPOINTS.environment.state(environmentId)
+      )
+      return response.data
+    } catch (error) {
+      console.error(`Failed to fetch environment state for ${environmentId}:`, error)
+      throw error
+    }
   }
 }
