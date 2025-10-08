@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import type { TrainingMetrics as TrainingMetricsType } from '~/libs/domains/training/TrainingMetrics'
 

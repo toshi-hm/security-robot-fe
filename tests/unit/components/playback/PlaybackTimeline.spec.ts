@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
 
 // Element Plus stubs
@@ -7,18 +8,18 @@ const ElSliderStub = {
   name: 'ElSlider',
   template: '<input type="range" class="el-slider" :value="modelValue" :max="max" />',
   props: ['modelValue', 'max'],
-  emits: ['change']
+  emits: ['change'],
 }
 
 describe('PlaybackTimeline', () => {
   const globalStubs = {
-    ElSlider: ElSliderStub
+    ElSlider: ElSliderStub,
   }
 
   it('renders slider element', () => {
     const wrapper = mount(PlaybackTimeline, {
       props: { modelValue: 0, max: 100 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.findComponent(ElSliderStub).exists()).toBe(true)
@@ -27,7 +28,7 @@ describe('PlaybackTimeline', () => {
   it('passes modelValue to slider', () => {
     const wrapper = mount(PlaybackTimeline, {
       props: { modelValue: 50, max: 100 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const slider = wrapper.findComponent(ElSliderStub)
@@ -37,7 +38,7 @@ describe('PlaybackTimeline', () => {
   it('passes max value to slider', () => {
     const wrapper = mount(PlaybackTimeline, {
       props: { modelValue: 0, max: 200 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const slider = wrapper.findComponent(ElSliderStub)
@@ -47,7 +48,7 @@ describe('PlaybackTimeline', () => {
   it('emits update:modelValue when slider changes', async () => {
     const wrapper = mount(PlaybackTimeline, {
       props: { modelValue: 0, max: 100 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const vm = wrapper.vm as any
@@ -60,7 +61,7 @@ describe('PlaybackTimeline', () => {
   it('updates internal value when modelValue prop changes', async () => {
     const wrapper = mount(PlaybackTimeline, {
       props: { modelValue: 0, max: 100 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     await wrapper.setProps({ modelValue: 60 })

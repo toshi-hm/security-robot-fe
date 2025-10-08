@@ -1,28 +1,29 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import DefaultLayout from '~/layouts/default.vue'
 
 // Mock components
 const AppHeaderStub = {
   name: 'AppHeader',
-  template: '<header class="app-header">Header</header>'
+  template: '<header class="app-header">Header</header>',
 }
 
 const AppSidebarStub = {
   name: 'AppSidebar',
-  template: '<aside class="app-sidebar"><slot /></aside>'
+  template: '<aside class="app-sidebar"><slot /></aside>',
 }
 
 const ElMenuStub = {
   name: 'ElMenu',
   template: '<ul class="el-menu"><slot /></ul>',
-  props: ['router']
+  props: ['router'],
 }
 
 const ElMenuItemStub = {
   name: 'ElMenuItem',
   template: '<li class="el-menu-item"><slot /></li>',
-  props: ['index']
+  props: ['index'],
 }
 
 describe('Default Layout', () => {
@@ -30,12 +31,12 @@ describe('Default Layout', () => {
     AppHeader: AppHeaderStub,
     AppSidebar: AppSidebarStub,
     ElMenu: ElMenuStub,
-    ElMenuItem: ElMenuItemStub
+    ElMenuItem: ElMenuItemStub,
   }
 
   it('renders the layout', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.find('.layout-default').exists()).toBe(true)
@@ -43,7 +44,7 @@ describe('Default Layout', () => {
 
   it('renders AppSidebar component', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.findComponent(AppSidebarStub).exists()).toBe(true)
@@ -51,7 +52,7 @@ describe('Default Layout', () => {
 
   it('renders AppHeader component', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.findComponent(AppHeaderStub).exists()).toBe(true)
@@ -59,7 +60,7 @@ describe('Default Layout', () => {
 
   it('renders navigation menu', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const menu = wrapper.findComponent(ElMenuStub)
@@ -68,7 +69,7 @@ describe('Default Layout', () => {
 
   it('renders all menu items', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const menuItems = wrapper.findAllComponents(ElMenuItemStub)
@@ -77,7 +78,7 @@ describe('Default Layout', () => {
 
   it('has correct menu item routes', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const menuItems = wrapper.findAllComponents(ElMenuItemStub)
@@ -90,7 +91,7 @@ describe('Default Layout', () => {
 
   it('has correct layout structure with grid', () => {
     const wrapper = mount(DefaultLayout, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.find('.sidebar').exists()).toBe(true)
@@ -101,8 +102,8 @@ describe('Default Layout', () => {
     const wrapper = mount(DefaultLayout, {
       global: { stubs: globalStubs },
       slots: {
-        default: '<div class="test-slot">Test Content</div>'
-      }
+        default: '<div class="test-slot">Test Content</div>',
+      },
     })
 
     expect(wrapper.find('.test-slot').exists()).toBe(true)

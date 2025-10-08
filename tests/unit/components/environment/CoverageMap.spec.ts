@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import CoverageMap from '~/components/environment/CoverageMap.vue'
 
 // Element Plus card component stub
 const ElCardStub = {
   name: 'ElCard',
-  template: '<div class="el-card"><slot /></div>'
+  template: '<div class="el-card"><slot /></div>',
 }
 
 describe('CoverageMap', () => {
@@ -13,9 +14,9 @@ describe('CoverageMap', () => {
     const wrapper = mount(CoverageMap, {
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(ElCardStub).exists()).toBe(true)
@@ -25,9 +26,9 @@ describe('CoverageMap', () => {
     const wrapper = mount(CoverageMap, {
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     expect(wrapper.find('.coverage-map').exists()).toBe(true)
@@ -37,12 +38,12 @@ describe('CoverageMap', () => {
     const wrapper = mount(CoverageMap, {
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
+          ElCard: ElCardStub,
+        },
       },
       slots: {
-        default: '<div class="test-content">Coverage Data</div>'
-      }
+        default: '<div class="test-content">Coverage Data</div>',
+      },
     })
 
     expect(wrapper.find('.test-content').exists()).toBe(true)
@@ -53,9 +54,9 @@ describe('CoverageMap', () => {
     const wrapper = mount(CoverageMap, {
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     const container = wrapper.find('.coverage-map')
@@ -66,12 +67,12 @@ describe('CoverageMap', () => {
     const wrapper = mount(CoverageMap, {
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
+          ElCard: ElCardStub,
+        },
       },
       slots: {
-        default: '<p class="custom-map">Map Visualization</p>'
-      }
+        default: '<p class="custom-map">Map Visualization</p>',
+      },
     })
 
     const card = wrapper.findComponent(ElCardStub)

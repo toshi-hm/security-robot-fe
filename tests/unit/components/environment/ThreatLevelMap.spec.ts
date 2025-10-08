@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import ThreatLevelMap from '~/components/environment/ThreatLevelMap.vue'
 
 // Element Plus card component stub
 const ElCardStub = {
   name: 'ElCard',
-  template: '<div class="el-card"><slot /></div>'
+  template: '<div class="el-card"><slot /></div>',
 }
 
 describe('ThreatLevelMap', () => {
@@ -13,8 +14,8 @@ describe('ThreatLevelMap', () => {
     threatMap: [
       [0.1, 0.2, 0.3],
       [0.4, 0.5, 0.6],
-      [0.7, 0.8, 0.9]
-    ]
+      [0.7, 0.8, 0.9],
+    ],
   }
 
   it('renders the card wrapper', () => {
@@ -22,9 +23,9 @@ describe('ThreatLevelMap', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(ElCardStub).exists()).toBe(true)
@@ -35,9 +36,9 @@ describe('ThreatLevelMap', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     const preElement = wrapper.find('pre')
@@ -49,9 +50,9 @@ describe('ThreatLevelMap', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     const text = wrapper.text()
@@ -65,13 +66,16 @@ describe('ThreatLevelMap', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     await wrapper.setProps({
-      threatMap: [[1.0, 0.0], [0.5, 0.5]]
+      threatMap: [
+        [1.0, 0.0],
+        [0.5, 0.5],
+      ],
     })
 
     const text = wrapper.text()
@@ -84,9 +88,9 @@ describe('ThreatLevelMap', () => {
       props: { threatMap: [] },
       global: {
         stubs: {
-          ElCard: ElCardStub
-        }
-      }
+          ElCard: ElCardStub,
+        },
+      },
     })
 
     expect(wrapper.find('pre').exists()).toBe(true)

@@ -1,12 +1,13 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import ConfigurationPanel from '~/components/training/ConfigurationPanel.vue'
 
 // Element Plus form component stub
 const ElFormStub = {
   name: 'ElForm',
   template: '<form class="el-form"><slot /></form>',
-  props: ['labelPosition']
+  props: ['labelPosition'],
 }
 
 describe('ConfigurationPanel', () => {
@@ -14,9 +15,9 @@ describe('ConfigurationPanel', () => {
     const wrapper = mount(ConfigurationPanel, {
       global: {
         stubs: {
-          ElForm: ElFormStub
-        }
-      }
+          ElForm: ElFormStub,
+        },
+      },
     })
 
     expect(wrapper.find('.el-form').exists()).toBe(true)
@@ -26,9 +27,9 @@ describe('ConfigurationPanel', () => {
     const wrapper = mount(ConfigurationPanel, {
       global: {
         stubs: {
-          ElForm: ElFormStub
-        }
-      }
+          ElForm: ElFormStub,
+        },
+      },
     })
 
     const form = wrapper.findComponent(ElFormStub)
@@ -39,9 +40,9 @@ describe('ConfigurationPanel', () => {
     const wrapper = mount(ConfigurationPanel, {
       global: {
         stubs: {
-          ElForm: ElFormStub
-        }
-      }
+          ElForm: ElFormStub,
+        },
+      },
     })
 
     expect(wrapper.find('.configuration-panel').exists()).toBe(true)
@@ -51,12 +52,12 @@ describe('ConfigurationPanel', () => {
     const wrapper = mount(ConfigurationPanel, {
       global: {
         stubs: {
-          ElForm: ElFormStub
-        }
+          ElForm: ElFormStub,
+        },
       },
       slots: {
-        default: '<div class="test-content">Test Content</div>'
-      }
+        default: '<div class="test-content">Test Content</div>',
+      },
     })
 
     expect(wrapper.find('.test-content').exists()).toBe(true)
@@ -68,12 +69,12 @@ describe('ConfigurationPanel', () => {
     const wrapper = mount(ConfigurationPanel, {
       global: {
         stubs: {
-          ElForm: ElFormStub
-        }
+          ElForm: ElFormStub,
+        },
       },
       slots: {
-        default: slotContent
-      }
+        default: slotContent,
+      },
     })
 
     const form = wrapper.findComponent(ElFormStub)

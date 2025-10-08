@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+
 import ModelDetailPage from '~/pages/models/[modelId].vue'
 
 // Mock useRoute globally
 const mockRoute = {
   params: {
-    modelId: 'test-model-123'
-  }
+    modelId: 'test-model-123',
+  },
 }
 
 vi.stubGlobal('useRoute', () => mockRoute)

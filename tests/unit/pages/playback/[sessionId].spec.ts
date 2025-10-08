@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+
 import PlaybackSessionPage from '~/pages/playback/[sessionId].vue'
 
 // Mock useRoute globally
 const mockRoute = {
   params: {
-    sessionId: 'session-456'
-  }
+    sessionId: 'session-456',
+  },
 }
 
 vi.stubGlobal('useRoute', () => mockRoute)
@@ -15,7 +16,7 @@ vi.stubGlobal('useRoute', () => mockRoute)
 const PlaybackTimelineStub = {
   name: 'PlaybackTimeline',
   template: '<div class="playback-timeline-stub"></div>',
-  props: ['modelValue', 'max']
+  props: ['modelValue', 'max'],
 }
 
 describe('Playback Session Page', () => {
@@ -23,9 +24,9 @@ describe('Playback Session Page', () => {
     const wrapper = mount(PlaybackSessionPage, {
       global: {
         stubs: {
-          PlaybackTimeline: PlaybackTimelineStub
-        }
-      }
+          PlaybackTimeline: PlaybackTimelineStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').exists()).toBe(true)
@@ -35,9 +36,9 @@ describe('Playback Session Page', () => {
     const wrapper = mount(PlaybackSessionPage, {
       global: {
         stubs: {
-          PlaybackTimeline: PlaybackTimelineStub
-        }
-      }
+          PlaybackTimeline: PlaybackTimelineStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').text()).toBe('Playback session-456')
@@ -47,9 +48,9 @@ describe('Playback Session Page', () => {
     const wrapper = mount(PlaybackSessionPage, {
       global: {
         stubs: {
-          PlaybackTimeline: PlaybackTimelineStub
-        }
-      }
+          PlaybackTimeline: PlaybackTimelineStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(PlaybackTimelineStub).exists()).toBe(true)
@@ -59,9 +60,9 @@ describe('Playback Session Page', () => {
     const wrapper = mount(PlaybackSessionPage, {
       global: {
         stubs: {
-          PlaybackTimeline: PlaybackTimelineStub
-        }
-      }
+          PlaybackTimeline: PlaybackTimelineStub,
+        },
+      },
     })
 
     const timeline = wrapper.findComponent(PlaybackTimelineStub)

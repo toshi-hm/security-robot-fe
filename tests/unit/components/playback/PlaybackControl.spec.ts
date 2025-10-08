@@ -1,28 +1,29 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import PlaybackControl from '~/components/playback/PlaybackControl.vue'
 
 // Element Plus stubs
 const ElSpaceStub = {
   name: 'ElSpace',
-  template: '<div class="el-space"><slot /></div>'
+  template: '<div class="el-space"><slot /></div>',
 }
 
 const ElButtonStub = {
   name: 'ElButton',
   template: '<button class="el-button"><slot /></button>',
-  props: ['type']
+  props: ['type'],
 }
 
 describe('PlaybackControl', () => {
   const globalStubs = {
     ElSpace: ElSpaceStub,
-    ElButton: ElButtonStub
+    ElButton: ElButtonStub,
   }
 
   it('renders all control buttons', () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -31,7 +32,7 @@ describe('PlaybackControl', () => {
 
   it('renders play button with primary type', () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -42,7 +43,7 @@ describe('PlaybackControl', () => {
 
   it('renders pause button', () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -52,7 +53,7 @@ describe('PlaybackControl', () => {
 
   it('renders stop button with danger type', () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -63,7 +64,7 @@ describe('PlaybackControl', () => {
 
   it('emits play event when play button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -75,7 +76,7 @@ describe('PlaybackControl', () => {
 
   it('emits pause event when pause button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
@@ -87,7 +88,7 @@ describe('PlaybackControl', () => {
 
   it('emits stop event when stop button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)

@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { usePlaybackStore } from '~/stores/playback'
 
 // Mock usePlayback composable
@@ -10,8 +12,8 @@ vi.mock('~/composables/usePlayback', () => ({
     isLoading: false,
     error: null,
     fetchSessions: vi.fn(),
-    fetchFrames: vi.fn()
-  })
+    fetchFrames: vi.fn(),
+  }),
 }))
 
 describe('Playback Store', () => {

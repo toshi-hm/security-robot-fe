@@ -3,8 +3,7 @@
   "compilerOptions": {
     "composite": true,
     "types": [
-      "@pinia/nuxt",
-      "element-plus/global"
+      "@pinia/nuxt"
     ],
     "baseUrl": ".",
     "paths": {

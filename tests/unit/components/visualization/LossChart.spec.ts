@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import LossChart from '~/components/visualization/LossChart.vue'
 
 describe('LossChart', () => {

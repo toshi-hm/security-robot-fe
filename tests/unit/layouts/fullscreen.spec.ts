@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import FullscreenLayout from '~/layouts/fullscreen.vue'
 
 describe('Fullscreen Layout', () => {
@@ -12,8 +13,8 @@ describe('Fullscreen Layout', () => {
   it('renders slot content', () => {
     const wrapper = mount(FullscreenLayout, {
       slots: {
-        default: '<div class="test-content">Test Content</div>'
-      }
+        default: '<div class="test-content">Test Content</div>',
+      },
     })
 
     expect(wrapper.find('.test-content').exists()).toBe(true)
@@ -39,8 +40,8 @@ describe('Fullscreen Layout', () => {
     const slotContent = '<p class="custom">Custom Page Content</p>'
     const wrapper = mount(FullscreenLayout, {
       slots: {
-        default: slotContent
-      }
+        default: slotContent,
+      },
     })
 
     expect(wrapper.find('.custom').exists()).toBe(true)

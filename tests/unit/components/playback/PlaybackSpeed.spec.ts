@@ -1,30 +1,31 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import PlaybackSpeed from '~/components/playback/PlaybackSpeed.vue'
 
 // Element Plus stubs
 const ElSelectStub = {
   name: 'ElSelect',
   template: '<select class="el-select"><slot /></select>',
-  props: ['modelValue', 'placeholder']
+  props: ['modelValue', 'placeholder'],
 }
 
 const ElOptionStub = {
   name: 'ElOption',
   template: '<option class="el-option">{{ label }}</option>',
-  props: ['label', 'value']
+  props: ['label', 'value'],
 }
 
 describe('PlaybackSpeed', () => {
   const globalStubs = {
     ElSelect: ElSelectStub,
-    ElOption: ElOptionStub
+    ElOption: ElOptionStub,
   }
 
   it('renders select element', () => {
     const wrapper = mount(PlaybackSpeed, {
       props: { modelValue: 1 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.findComponent(ElSelectStub).exists()).toBe(true)
@@ -33,7 +34,7 @@ describe('PlaybackSpeed', () => {
   it('uses default speed options when not provided', () => {
     const wrapper = mount(PlaybackSpeed, {
       props: { modelValue: 1 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const options = wrapper.findAllComponents(ElOptionStub)
@@ -47,7 +48,7 @@ describe('PlaybackSpeed', () => {
   it('uses custom speed options when provided', () => {
     const wrapper = mount(PlaybackSpeed, {
       props: { modelValue: 1, options: [1, 3, 5] },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const options = wrapper.findAllComponents(ElOptionStub)
@@ -60,7 +61,7 @@ describe('PlaybackSpeed', () => {
   it('passes modelValue to select', () => {
     const wrapper = mount(PlaybackSpeed, {
       props: { modelValue: 2 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const select = wrapper.findComponent(ElSelectStub)
@@ -70,7 +71,7 @@ describe('PlaybackSpeed', () => {
   it('has placeholder text', () => {
     const wrapper = mount(PlaybackSpeed, {
       props: { modelValue: 1 },
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const select = wrapper.findComponent(ElSelectStub)

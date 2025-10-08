@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useModelsStore } from '~/stores/models'
 
 // Mock ModelRepositoryImpl
@@ -7,9 +9,9 @@ vi.mock('~/libs/repositories/model/ModelRepositoryImpl', () => ({
   ModelRepositoryImpl: vi.fn().mockImplementation(() => ({
     listModels: vi.fn().mockResolvedValue([
       { id: 1, name: 'Model 1' },
-      { id: 2, name: 'Model 2' }
-    ])
-  }))
+      { id: 2, name: 'Model 2' },
+    ]),
+  })),
 }))
 
 describe('Models Store', () => {

@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useTrainingStore } from '~/stores/training'
 
 // Mock useTraining composable
@@ -15,8 +17,8 @@ vi.mock('~/composables/useTraining', () => ({
     fetchSessions: vi.fn(),
     createSession: vi.fn(),
     stopSession: vi.fn(),
-    fetchMetrics: vi.fn()
-  })
+    fetchMetrics: vi.fn(),
+  }),
 }))
 
 describe('Training Store', () => {

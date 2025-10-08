@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useEnvironmentStore } from '~/stores/environment'
 
 // Mock useEnvironment composable
@@ -10,8 +12,8 @@ vi.mock('~/composables/useEnvironment', () => ({
     isLoading: false,
     error: null,
     fetchEnvironments: vi.fn(),
-    fetchState: vi.fn()
-  })
+    fetchState: vi.fn(),
+  }),
 }))
 
 describe('Environment Store', () => {

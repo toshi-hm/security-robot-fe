@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+
 import RewardChart from '~/components/visualization/RewardChart.vue'
 
 const route = useRoute()

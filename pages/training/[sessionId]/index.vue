@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 
 const route = useRoute()

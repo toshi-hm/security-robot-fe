@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ modelValue: number; max: number }>()
+defineProps<{ modelValue: number; max: number }>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: number): void }>()
 
 const onChange = (value: number) => {

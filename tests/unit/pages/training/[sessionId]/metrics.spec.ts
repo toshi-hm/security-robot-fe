@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+
 import TrainingMetricsPage from '~/pages/training/[sessionId]/metrics.vue'
 
 // Mock useRoute globally
 const mockRoute = {
   params: {
-    sessionId: 'metrics-999'
-  }
+    sessionId: 'metrics-999',
+  },
 }
 
 vi.stubGlobal('useRoute', () => mockRoute)
@@ -14,7 +15,7 @@ vi.stubGlobal('useRoute', () => mockRoute)
 // Mock RewardChart component
 const RewardChartStub = {
   name: 'RewardChart',
-  template: '<div class="reward-chart-stub"></div>'
+  template: '<div class="reward-chart-stub"></div>',
 }
 
 describe('Training Metrics Page', () => {
@@ -22,9 +23,9 @@ describe('Training Metrics Page', () => {
     const wrapper = mount(TrainingMetricsPage, {
       global: {
         stubs: {
-          RewardChart: RewardChartStub
-        }
-      }
+          RewardChart: RewardChartStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').exists()).toBe(true)
@@ -34,9 +35,9 @@ describe('Training Metrics Page', () => {
     const wrapper = mount(TrainingMetricsPage, {
       global: {
         stubs: {
-          RewardChart: RewardChartStub
-        }
-      }
+          RewardChart: RewardChartStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').text()).toBe('Metrics for Session metrics-999')
@@ -46,9 +47,9 @@ describe('Training Metrics Page', () => {
     const wrapper = mount(TrainingMetricsPage, {
       global: {
         stubs: {
-          RewardChart: RewardChartStub
-        }
-      }
+          RewardChart: RewardChartStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(RewardChartStub).exists()).toBe(true)
@@ -58,9 +59,9 @@ describe('Training Metrics Page', () => {
     const wrapper = mount(TrainingMetricsPage, {
       global: {
         stubs: {
-          RewardChart: RewardChartStub
-        }
-      }
+          RewardChart: RewardChartStub,
+        },
+      },
     })
 
     expect(wrapper.find('div').exists()).toBe(true)

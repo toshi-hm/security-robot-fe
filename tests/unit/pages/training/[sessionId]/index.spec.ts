@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+
 import TrainingSessionPage from '~/pages/training/[sessionId]/index.vue'
 
 // Mock useRoute globally
 const mockRoute = {
   params: {
-    sessionId: 'training-789'
-  }
+    sessionId: 'training-789',
+  },
 }
 
 vi.stubGlobal('useRoute', () => mockRoute)
@@ -15,7 +16,7 @@ vi.stubGlobal('useRoute', () => mockRoute)
 const TrainingMetricsStub = {
   name: 'TrainingMetrics',
   template: '<div class="training-metrics-stub"></div>',
-  props: ['metrics']
+  props: ['metrics'],
 }
 
 describe('Training Session Page', () => {
@@ -23,9 +24,9 @@ describe('Training Session Page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
-          TrainingMetrics: TrainingMetricsStub
-        }
-      }
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').exists()).toBe(true)
@@ -35,9 +36,9 @@ describe('Training Session Page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
-          TrainingMetrics: TrainingMetricsStub
-        }
-      }
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').text()).toBe('Training Session training-789')
@@ -47,9 +48,9 @@ describe('Training Session Page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
-          TrainingMetrics: TrainingMetricsStub
-        }
-      }
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(TrainingMetricsStub).exists()).toBe(true)
@@ -59,9 +60,9 @@ describe('Training Session Page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
-          TrainingMetrics: TrainingMetricsStub
-        }
-      }
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
     })
 
     const metricsComponent = wrapper.findComponent(TrainingMetricsStub)

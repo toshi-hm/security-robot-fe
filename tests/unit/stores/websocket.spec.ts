@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useWebSocketStore } from '~/stores/websocket'
 
 // Mock useWebSocket composable
@@ -7,8 +9,8 @@ vi.mock('~/composables/useWebSocket', () => ({
   useWebSocket: () => ({
     socket: { value: null },
     connect: vi.fn(),
-    disconnect: vi.fn()
-  })
+    disconnect: vi.fn(),
+  }),
 }))
 
 describe('WebSocket Store', () => {

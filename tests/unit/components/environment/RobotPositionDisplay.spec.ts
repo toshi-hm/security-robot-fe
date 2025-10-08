@@ -1,17 +1,18 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 
 // Element Plus tag component stub
 const ElTagStub = {
   name: 'ElTag',
   template: '<span class="el-tag"><slot /></span>',
-  props: ['type']
+  props: ['type'],
 }
 
 describe('RobotPositionDisplay', () => {
   const defaultProps = {
-    position: { row: 5, col: 3 }
+    position: { row: 5, col: 3 },
   }
 
   it('renders the container element', () => {
@@ -19,9 +20,9 @@ describe('RobotPositionDisplay', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElTag: ElTagStub
-        }
-      }
+          ElTag: ElTagStub,
+        },
+      },
     })
 
     expect(wrapper.find('.robot-position').exists()).toBe(true)
@@ -32,9 +33,9 @@ describe('RobotPositionDisplay', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElTag: ElTagStub
-        }
-      }
+          ElTag: ElTagStub,
+        },
+      },
     })
 
     expect(wrapper.text()).toContain('Robot Position: (5, 3)')
@@ -45,9 +46,9 @@ describe('RobotPositionDisplay', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElTag: ElTagStub
-        }
-      }
+          ElTag: ElTagStub,
+        },
+      },
     })
 
     const tag = wrapper.findComponent(ElTagStub)
@@ -60,9 +61,9 @@ describe('RobotPositionDisplay', () => {
       props: defaultProps,
       global: {
         stubs: {
-          ElTag: ElTagStub
-        }
-      }
+          ElTag: ElTagStub,
+        },
+      },
     })
 
     await wrapper.setProps({ position: { row: 10, col: 7 } })
@@ -75,9 +76,9 @@ describe('RobotPositionDisplay', () => {
       props: { position: { row: 0, col: 0 } },
       global: {
         stubs: {
-          ElTag: ElTagStub
-        }
-      }
+          ElTag: ElTagStub,
+        },
+      },
     })
 
     expect(wrapper.text()).toContain('Robot Position: (0, 0)')

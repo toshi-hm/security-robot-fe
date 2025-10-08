@@ -15,8 +15,8 @@ test.describe('Training Workflow', () => {
     await page.goto('/training')
 
     // Check if progress component is present
-    const progressComponent = page.locator('.training-progress')
-    
+    const _progressComponent = page.locator('.training-progress')
+
     // Note: Actual visibility depends on session state
     // In a real test, we would mock the backend or create a session first
   })
@@ -44,7 +44,7 @@ test.describe('Training Workflow', () => {
 
     // Check main container
     await expect(page.locator('main, [role="main"]')).toBeVisible()
-    
+
     // Check heading exists
     const heading = page.getByRole('heading', { level: 2 })
     await expect(heading).toBeVisible()

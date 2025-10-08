@@ -1,29 +1,30 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import TrainingIndexPage from '~/pages/training/index.vue'
 
 // Mock components
 const TrainingControlStub = {
   name: 'TrainingControl',
   template: '<div class="training-control"><slot /></div>',
-  emits: ['start']
+  emits: ['start'],
 }
 
 const TrainingProgressStub = {
   name: 'TrainingProgress',
   template: '<div class="training-progress">Progress: {{ progress }}%</div>',
-  props: ['progress']
+  props: ['progress'],
 }
 
 describe('Training Index Page', () => {
   const globalStubs = {
     TrainingControl: TrainingControlStub,
-    TrainingProgress: TrainingProgressStub
+    TrainingProgress: TrainingProgressStub,
   }
 
   it('renders the page', () => {
     const wrapper = mount(TrainingIndexPage, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.find('h2').exists()).toBe(true)
@@ -31,7 +32,7 @@ describe('Training Index Page', () => {
 
   it('displays the page title', () => {
     const wrapper = mount(TrainingIndexPage, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.find('h2').text()).toBe('Training Sessions')
@@ -39,7 +40,7 @@ describe('Training Index Page', () => {
 
   it('renders TrainingControl component', () => {
     const wrapper = mount(TrainingIndexPage, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     expect(wrapper.findComponent(TrainingControlStub).exists()).toBe(true)
@@ -47,7 +48,7 @@ describe('Training Index Page', () => {
 
   it('renders TrainingProgress component with initial progress', () => {
     const wrapper = mount(TrainingIndexPage, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
 
     const progress = wrapper.findComponent(TrainingProgressStub)
@@ -57,7 +58,7 @@ describe('Training Index Page', () => {
 
   it('has handleStart method', () => {
     const wrapper = mount(TrainingIndexPage, {
-      global: { stubs: globalStubs }
+      global: { stubs: globalStubs },
     })
     const vm = wrapper.vm as any
 

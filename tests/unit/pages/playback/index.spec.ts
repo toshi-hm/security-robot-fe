@@ -1,12 +1,13 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import PlaybackIndexPage from '~/pages/playback/index.vue'
 
 // Mock component
 const PlaybackControlStub = {
   name: 'PlaybackControl',
   template: '<div class="playback-control"><slot /></div>',
-  emits: ['play', 'pause', 'stop']
+  emits: ['play', 'pause', 'stop'],
 }
 
 describe('Playback Index Page', () => {
@@ -14,9 +15,9 @@ describe('Playback Index Page', () => {
     const wrapper = mount(PlaybackIndexPage, {
       global: {
         stubs: {
-          PlaybackControl: PlaybackControlStub
-        }
-      }
+          PlaybackControl: PlaybackControlStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').exists()).toBe(true)
@@ -26,9 +27,9 @@ describe('Playback Index Page', () => {
     const wrapper = mount(PlaybackIndexPage, {
       global: {
         stubs: {
-          PlaybackControl: PlaybackControlStub
-        }
-      }
+          PlaybackControl: PlaybackControlStub,
+        },
+      },
     })
 
     expect(wrapper.find('h2').text()).toBe('Playback Sessions')
@@ -38,9 +39,9 @@ describe('Playback Index Page', () => {
     const wrapper = mount(PlaybackIndexPage, {
       global: {
         stubs: {
-          PlaybackControl: PlaybackControlStub
-        }
-      }
+          PlaybackControl: PlaybackControlStub,
+        },
+      },
     })
 
     expect(wrapper.findComponent(PlaybackControlStub).exists()).toBe(true)
@@ -50,9 +51,9 @@ describe('Playback Index Page', () => {
     const wrapper = mount(PlaybackIndexPage, {
       global: {
         stubs: {
-          PlaybackControl: PlaybackControlStub
-        }
-      }
+          PlaybackControl: PlaybackControlStub,
+        },
+      },
     })
     const vm = wrapper.vm as any
 

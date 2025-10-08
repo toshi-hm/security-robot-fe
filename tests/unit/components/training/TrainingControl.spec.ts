@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+
 import TrainingControl from '~/components/training/TrainingControl.vue'
 
 const mountComponent = (options = {}) => {

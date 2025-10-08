@@ -38,7 +38,7 @@ test.describe('Playback Workflow', () => {
 
     // Check main container
     await expect(page.locator('main, [role="main"]')).toBeVisible()
-    
+
     // Check heading exists
     const heading = page.getByRole('heading', { level: 2 })
     await expect(heading).toBeVisible()
