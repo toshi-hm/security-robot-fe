@@ -173,8 +173,18 @@
 - [x] Phase 11: Utils/Layouts完成 (100%カバレッジ)
 - [x] Phase 12: E2E Tests完成 (5 workflows, 28テスト)
 
+### Phase 13: Backend Integration ✅
+- [x] Backend repository探索 (`/home/maya/work/security-robot-be/`)
+- [x] FastAPI endpoint特定 (Health, Training, Environment, Files)
+- [x] API configuration完全更新 (configs/api.ts)
+- [x] Repository実装修正 (Pagination, Data wrapping対応)
+- [x] Test suite修正 (Mock responses更新)
+- [x] API test page作成 (pages/api-test.vue)
+- [x] Backend接続テスト成功 (http://127.0.0.1:8000)
+
 ### 次フェーズ候補
-- [ ] Backend統合 - 実APIとの接続
+- [ ] WebSocket統合 - Real-time training updates
+- [ ] Files API実装 - Upload/Download機能
 - [ ] Visual regression tests - スクリーンショット比較
 - [ ] Performance tests - ロード時間測定
 
@@ -319,7 +329,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-09 04:23 (Session 011 - Lint/TypeScript修正、Build成功)
+**最終更新**: 2025-10-09 04:44 (Session 012 - Backend API統合完了)
 **次回更新予定**: 次セッション開始時
 
 ---
@@ -333,6 +343,7 @@ export const useEnvironment = (
 - **Code Quality**: ✅ Lint clean, TypeScript strict
 
 ### 次のステップ
-- Backend API統合 (実API接続)
+- WebSocket integration (Real-time training updates)
+- Files API implementation (Upload/Download)
 - Visual regression tests
 - Performance optimization
