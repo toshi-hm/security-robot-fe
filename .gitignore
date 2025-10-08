@@ -4,7 +4,8 @@ node_modules/
 # Build outputs
 dist/
 build/
-.nuxt/
+.nuxt/*
+!.nuxt/tsconfig.json
 .output/
 *.log
 
