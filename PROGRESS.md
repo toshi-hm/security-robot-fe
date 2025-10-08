@@ -105,8 +105,13 @@
 
 
 
-### ⏳ Phase 12: Integration Tests (0%)
-- Not started yet
+### ✅ Phase 12: E2E Tests (Playwright)
+- ✅ Dashboard workflow (5 tests)
+- ✅ Training workflow (5 tests)
+- ✅ Playback workflow (5 tests)
+- ✅ Models workflow (6 tests)
+- ✅ Settings workflow (7 tests)
+- **Total**: 28 E2E tests covering critical user flows
 
 ---
 
