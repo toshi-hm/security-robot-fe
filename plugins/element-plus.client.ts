@@ -1,6 +1,5 @@
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-
-export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(ElementPlus)
+// Element Plus is auto-imported by @element-plus/nuxt module
+// This file can be removed or used for additional Element Plus configuration
+export default defineNuxtPlugin(() => {
+  // Element Plus configuration can be added here if needed
 })

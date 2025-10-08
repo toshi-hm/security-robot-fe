@@ -10,6 +10,6 @@ const sessionId = computed(() => route.params.sessionId as string)
 <template>
   <div>
     <h2>Training Session {{ sessionId }}</h2>
-    <TrainingMetrics :metrics="null" />
+    <TrainingMetrics :metrics="[]" />
   </div>
 </template>

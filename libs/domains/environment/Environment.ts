@@ -7,6 +7,18 @@ export interface SuspiciousObject {
 }
 
 /**
+ * 環境定義型
+ * 環境の基本的な定義情報
+ */
+export interface EnvironmentDefinition {
+  id: string
+  name: string
+  width: number
+  height: number
+  description?: string
+}
+
+/**
  * 環境状態ドメインモデル
  *
  * 表現するもの:
@@ -68,7 +80,7 @@ export class Environment {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
       return 0
     }
-    return this.threatGrid[y][x]
+    return this.threatGrid[y]?.[x] ?? 0
   }
 
   /**
@@ -78,7 +90,7 @@ export class Environment {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
       return false
     }
-    return this.coverageMap[y][x]
+    return this.coverageMap[y]?.[x] ?? false
   }
 
   private validateRobotPosition(): void {

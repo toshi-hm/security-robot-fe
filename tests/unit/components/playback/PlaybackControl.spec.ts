@@ -36,7 +36,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    const playButton = buttons[0]
+    const playButton = buttons[0]!
     expect(playButton.props('type')).toBe('primary')
     expect(playButton.text()).toBe('Play')
   })
@@ -47,7 +47,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    const pauseButton = buttons[1]
+    const pauseButton = buttons[1]!
     expect(pauseButton.text()).toBe('Pause')
   })
 
@@ -57,7 +57,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    const stopButton = buttons[2]
+    const stopButton = buttons[2]!
     expect(stopButton.props('type')).toBe('danger')
     expect(stopButton.text()).toBe('Stop')
   })
@@ -68,7 +68,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    await buttons[0].trigger('click')
+    await buttons[0]!.trigger('click')
 
     expect(wrapper.emitted('play')).toBeTruthy()
     expect(wrapper.emitted('play')).toHaveLength(1)
@@ -80,7 +80,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    await buttons[1].trigger('click')
+    await buttons[1]!.trigger('click')
 
     expect(wrapper.emitted('pause')).toBeTruthy()
     expect(wrapper.emitted('pause')).toHaveLength(1)
@@ -92,7 +92,7 @@ describe('PlaybackControl', () => {
     })
 
     const buttons = wrapper.findAllComponents(ElButtonStub)
-    await buttons[2].trigger('click')
+    await buttons[2]!.trigger('click')
 
     expect(wrapper.emitted('stop')).toBeTruthy()
     expect(wrapper.emitted('stop')).toHaveLength(1)

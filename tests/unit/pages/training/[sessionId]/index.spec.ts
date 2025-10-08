@@ -66,6 +66,6 @@ describe('Training Session Page', () => {
     })
 
     const metricsComponent = wrapper.findComponent(TrainingMetricsStub)
-    expect(metricsComponent.props('metrics')).toBeNull()
+    expect(metricsComponent.props('metrics')).toEqual([])
   })
 })

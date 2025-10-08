@@ -39,10 +39,10 @@ describe('PlaybackSpeed', () => {
 
     const options = wrapper.findAllComponents(ElOptionStub)
     expect(options).toHaveLength(4)
-    expect(options[0].props('label')).toBe('0.5x')
-    expect(options[1].props('label')).toBe('1x')
-    expect(options[2].props('label')).toBe('2x')
-    expect(options[3].props('label')).toBe('4x')
+    expect(options[0]!.props('label')).toBe('0.5x')
+    expect(options[1]!.props('label')).toBe('1x')
+    expect(options[2]!.props('label')).toBe('2x')
+    expect(options[3]!.props('label')).toBe('4x')
   })
 
   it('uses custom speed options when provided', () => {
@@ -53,9 +53,9 @@ describe('PlaybackSpeed', () => {
 
     const options = wrapper.findAllComponents(ElOptionStub)
     expect(options).toHaveLength(3)
-    expect(options[0].props('label')).toBe('1x')
-    expect(options[1].props('label')).toBe('3x')
-    expect(options[2].props('label')).toBe('5x')
+    expect(options[0]!.props('label')).toBe('1x')
+    expect(options[1]!.props('label')).toBe('3x')
+    expect(options[2]!.props('label')).toBe('5x')
   })
 
   it('passes modelValue to select', () => {

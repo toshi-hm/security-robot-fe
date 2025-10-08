@@ -28,32 +28,36 @@ describe('TrainingMetrics.vue', () => {
   })
 
   it('displays metrics as JSON string', () => {
-    const mockMetrics: TrainingMetricsType[] = [
+    const mockMetrics: Partial<TrainingMetricsType>[] = [
       {
+        id: 1,
+        sessionId: 1,
+        timestep: 100,
         episode: 1,
-        totalReward: 100.5,
-        averageReward: 10.05,
+        reward: 100.5,
         loss: 0.25,
-        coverage: 0.8,
-        collisions: 2,
+        coverageRatio: 0.8,
+        explorationScore: 0.7,
       },
     ]
     const wrapper = mountComponent({ metrics: mockMetrics })
     const pre = wrapper.find('pre')
     expect(pre.exists()).toBe(true)
     expect(pre.text()).toContain('"episode": 1')
-    expect(pre.text()).toContain('"totalReward": 100.5')
+    expect(pre.text()).toContain('"reward": 100.5')
   })
 
   it('formats JSON with indentation', () => {
-    const mockMetrics: TrainingMetricsType[] = [
+    const mockMetrics: Partial<TrainingMetricsType>[] = [
       {
+        id: 1,
+        sessionId: 1,
+        timestep: 100,
         episode: 1,
-        totalReward: 50,
-        averageReward: 5,
+        reward: 50,
         loss: 0.1,
-        coverage: 0.9,
-        collisions: 0,
+        coverageRatio: 0.9,
+        explorationScore: 0.8,
       },
     ]
     const wrapper = mountComponent({ metrics: mockMetrics })
@@ -70,22 +74,26 @@ describe('TrainingMetrics.vue', () => {
   })
 
   it('displays multiple metrics', () => {
-    const mockMetrics: TrainingMetricsType[] = [
+    const mockMetrics: Partial<TrainingMetricsType>[] = [
       {
+        id: 1,
+        sessionId: 1,
+        timestep: 100,
         episode: 1,
-        totalReward: 50,
-        averageReward: 5,
+        reward: 50,
         loss: 0.1,
-        coverage: 0.9,
-        collisions: 0,
+        coverageRatio: 0.9,
+        explorationScore: 0.8,
       },
       {
+        id: 2,
+        sessionId: 1,
+        timestep: 200,
         episode: 2,
-        totalReward: 60,
-        averageReward: 6,
+        reward: 60,
         loss: 0.08,
-        coverage: 0.95,
-        collisions: 1,
+        coverageRatio: 0.95,
+        explorationScore: 0.85,
       },
     ]
     const wrapper = mountComponent({ metrics: mockMetrics })

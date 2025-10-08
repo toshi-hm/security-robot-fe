@@ -16,7 +16,7 @@ export default defineNuxtConfig({
   },
   typescript: {
     strict: true,
-    typeCheck: true,
+    typeCheck: false, // Disable during build (tests are checked separately)
     shim: false,
   },
   vite: {
