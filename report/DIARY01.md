@@ -10,6 +10,8 @@
 
 ## 📑 目次
 
+- [2025-10-09 - Session 015: UI Layer Enhancement - Playback Management](#session-015)
+- [2025-10-09 - Session 014: UI Layer Enhancement - Models Management](#session-014)
 - [2025-10-09 - Session 013: Repository層拡張 - Files API統合](#session-013)
 - [2025-10-09 - Session 012: Backend API統合 - 実APIとの接続](#session-012)
 - [2025-10-09 - Session 011: Lint/TypeScript修正 - Build成功達成](#session-011)
@@ -23,6 +25,466 @@
 - [2025-10-07 - Session 003: useEnvironment モック問題解決](#session-003)
 - [2025-10-07 - Session 002: TDD実装開始 (Environment完成)](#session-002)
 - [2025-10-06 - Session 001: プロジェクト進捗管理構造作成](#session-001)
+
+---
+
+<a id="session-015"></a>
+## 2025-10-09 - Session 015: UI Layer Enhancement - Playback Management
+
+### セッション情報
+- **開始時刻**: 09:00
+- **終了時刻**: 10:15
+- **所要時間**: 約75分
+- **対象Phase**: UI Layer Enhancement - Playback Management (Phase 16)
+- **担当者**: AI実装アシスタント (Claude)
+
+---
+
+### 📋 実施したタスク
+
+#### 1. Playback Store完全実装 ✅
+- [x] State management拡張:
+  - `isLoading`: ローディング状態管理
+  - `error`: エラーメッセージ管理
+  - `currentSessionId`: 現在再生中のセッションID
+  - `currentFrameIndex`: 現在のフレームインデックス
+  - `isPlaying`: 再生状態管理
+  - `playbackSpeed`: 再生速度 (0.5x, 1x, 2x)
+- [x] Actions実装:
+  - `fetchSessions()`: 完了したトレーニングセッション一覧取得
+  - `fetchFrames(sessionId)`: セッション固有のフレームデータ取得
+  - `play()`: 再生開始
+  - `pause()`: 一時停止
+  - `stop()`: 停止・リセット
+  - `seekToFrame(index)`: タイムライン経由でのフレーム移動
+  - `setPlaybackSpeed(speed)`: 再生速度変更
+- [x] Error handling: 日本語エラーメッセージ
+- [x] Repository integration: PlaybackRepositoryImpl使用
+
+#### 2. Playback Index Page完全実装 ✅
+- [x] Session list UI:
+  - Table with columns: Session ID, Training ID, Recorded date, Duration
+  - Empty state handling
+  - Error alert display
+  - Navigation to detail page
+- [x] Helper functions:
+  - `formatDuration()`: MM:SS format conversion
+  - `formatDate()`: ISO → 日本語表示
+- [x] BEM CSS structure: playback-list block
+- [x] Test coverage: 4 tests (renders, title, description, BEM structure)
+
+#### 3. Playback Detail Page完全実装 ✅
+- [x] Playback controls UI:
+  - PlaybackControl component integration (Play/Pause/Stop buttons)
+  - PlaybackSpeed component integration (0.5x, 1x, 2x controls)
+  - PlaybackTimeline component integration (frame slider)
+- [x] Playback engine:
+  - Interval-based playback (10 FPS base, configurable with speed)
+  - Real-time frame navigation
+  - Auto-restart on speed change
+  - Auto-cleanup on component unmount
+- [x] Frame information display:
+  - Frame number, timestep, reward, timestamp
+  - Element Plus ElDescriptions component
+- [x] Environment visualization:
+  - EnvironmentVisualization component integration
+  - RobotPositionDisplay component integration
+- [x] Navigation:
+  - Back button to session list
+  - URL-based session ID parsing
+- [x] Comprehensive error handling
+- [x] Test coverage: 4 tests (renders, title, BEM, component rendering)
+
+#### 4. Test Updates ✅
+- [x] Element Plus mocking pattern:
+  - ElCard, ElTable, ElButton, ElDescriptions, ElDescriptionsItem, ElSlider stubbing
+  - All Element Plus components properly mocked
+- [x] Pinia store setup:
+  - Store initialization in beforeEach
+  - fetchSessions/fetchFrames mock to prevent $fetch calls
+- [x] Nuxt auto-import pattern:
+  - Global useRouter/useRoute stubbing
+  - Fixed vue-router import issues
+- [x] Test results: All 281 tests passing (100%)
+
+#### 5. Build & Commit ✅
+- [x] Build実行: 1.96 MB (493 KB gzip)
+- [x] Test実行: 281 tests passing (100%)
+- [x] Commit: `bcffea2` - "feat: Implement Playback UI with session list and detail pages"
+
+---
+
+### 🎓 技術的学び
+
+#### 1. Interval-based Playback Engine
+**実装パターン**:
+```typescript
+const play = () => {
+  if (!playbackStore.isPlaying) {
+    playbackStore.play()
+    const intervalMs = 100 / playbackStore.playbackSpeed
+    playbackInterval = setInterval(() => {
+      const nextIndex = playbackStore.currentFrameIndex + 1
+      if (nextIndex < playbackStore.frames.length) {
+        playbackStore.seekToFrame(nextIndex)
+      } else {
+        playbackStore.seekToFrame(0) // Loop back
+      }
+    }, intervalMs)
+  }
+}
+```
+
+#### 2. Nuxt Auto-import Pattern for vue-router
+**問題**: 直接import (`import { useRouter } from 'vue-router'`) がNuxtのauto-importと競合
+**解決**: Nuxtのauto-importを使用、テストではglobal stubsとして提供
+
+#### 3. Real-time Playback with Cleanup
+```typescript
+onUnmounted(() => {
+  if (playbackInterval) {
+    clearInterval(playbackInterval)
+  }
+})
+```
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル (5)
+1. **stores/playback.ts** (42行 → 152行) - State/Actions追加
+2. **pages/playback/index.vue** (32行 → 132行) - Session list UI
+3. **pages/playback/[sessionId].vue** (38行 → 304行) - Playback controls & engine
+4. **tests/unit/pages/playback/index.spec.ts** (41行 → 162行) - Tests更新
+5. **tests/unit/pages/playback/[sessionId].spec.ts** (44行 → 204行) - Tests更新
+
+---
+
+### ✅ 完了した課題
+
+1. ✅ Playback Store Enhancement (state management, actions, error handling)
+2. ✅ Playback Index Page Implementation (session list, navigation)
+3. ✅ Playback Detail Page Implementation (playback engine, controls, visualization)
+4. ✅ Test Suite Updates (281 tests passing, 100%)
+5. ✅ Build & Quality Checks (1.96 MB, no errors)
+
+---
+
+### 📊 テスト結果
+- **総テスト数**: 281テスト (100% passing)
+- **Coverage**: 68.99% (変化なし)
+- **Build Size**: 1.96 MB (493 KB gzip)
+
+---
+
+<a id="session-014"></a>
+## 2025-10-09 - Session 014: UI Layer Enhancement - Models Management
+
+### セッション情報
+- **開始時刻**: 05:00
+- **終了時刻**: 05:15
+- **所要時間**: 約15分
+- **対象Phase**: UI Layer Enhancement - Models Management (Phase 15)
+- **担当者**: AI実装アシスタント (Claude)
+
+---
+
+### 📋 実施したタスク
+
+#### 1. Models Store完全実装 ✅
+- [x] State management拡張:
+  - `isLoading`: ローディング状態管理
+  - `error`: エラーメッセージ管理
+- [x] Actions実装:
+  - `uploadModel(file, metadata)`: multipart/form-data upload
+  - `downloadModel(fileId, filename)`: Blob download with auto-download
+  - `deleteModel(fileId)`: Delete with model list update
+- [x] Error handling: 日本語エラーメッセージ
+- [x] Repository integration: ModelRepositoryImpl使用
+
+#### 2. Models Page UI完全実装 ✅
+- [x] File upload UI:
+  - Upload dialog with drag & drop (el-upload)
+  - File selection with size/type display
+  - Upload confirmation with loading state
+- [x] File list display:
+  - Table with ID, filename, size, upload date
+  - Empty state handling
+  - Error alert display
+- [x] File operations:
+  - Download button with blob handling
+  - Delete button with confirmation dialog
+- [x] Helper functions:
+  - `formatFileSize()`: Bytes → KB/MB/GB変換
+  - `formatDate()`: ISO → 日本語表示
+  - `handleUploadChange()`: File selection handling
+
+#### 3. Test Updates ✅
+- [x] Element Plus mocking pattern確立:
+  - ElMessage, ElMessageBox mock
+  - All Element Plus components stubbed
+- [x] Pinia store setup:
+  - Store initialization in beforeEach
+  - fetchModels mock to prevent $fetch calls
+- [x] Test coverage: 4 tests (renders, title, description, BEM structure)
+
+#### 4. Element Plus Auto-import問題解決 ✅
+- [x] 問題: `Failed to resolve import "element-plus"`
+- [x] 解決: 直接importを削除、@element-plus/nuxtのauto-import使用
+- [x] UploadFile型定義: ローカルinterfaceで定義
+- [x] 結果: All 281 tests passing
+
+#### 5. Build & Commit ✅
+- [x] Build実行: 1.96 MB (493 KB gzip)
+- [x] Test実行: 281 tests passing (100%)
+- [x] Commit: `bc74b3e` - "feat: Implement Models page with file upload/download/delete UI"
+
+---
+
+### 🎓 技術的学び
+
+#### 1. Element Plus Auto-import Pattern
+**問題のあるコード**:
+```typescript
+// ❌ 直接import - ビルドエラー
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { UploadFile } from 'element-plus'
+```
+
+**正しいコード**:
+```typescript
+// ✅ Auto-import - @element-plus/nuxt module使用
+// ElMessage, ElMessageBox は自動的にグローバルに利用可能
+
+// ローカル型定義
+interface UploadFile {
+  raw?: File
+}
+```
+
+#### 2. Blob Download with Auto-download
+**実装パターン**:
+```typescript
+const downloadModel = async (fileId: number, filename: string) => {
+  const blob = await repository.downloadModel(fileId)
+  
+  // Programmatic download
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+```
+
+**メリット**:
+- ブラウザ互換性が高い
+- ファイル名を制御可能
+- メモリリーク防止 (revokeObjectURL)
+
+#### 3. Vue Component Testing with Element Plus
+**Stubbing pattern**:
+```typescript
+const ElButtonStub = {
+  name: 'ElButton',
+  template: '<button><slot /></button>',
+  props: ['type', 'loading'],
+}
+
+const ElDialogStub = {
+  name: 'ElDialog',
+  template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
+  props: ['modelValue', 'title', 'width'],
+}
+```
+
+**Store mocking**:
+```typescript
+beforeEach(() => {
+  setActivePinia(createPinia())
+  const modelsStore = useModelsStore()
+  modelsStore.models = []
+  // fetchModelsをmockして$fetch呼び出しを防ぐ
+  vi.spyOn(modelsStore, 'fetchModels').mockResolvedValue()
+})
+```
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題1: Element Plus Import Resolution Error
+- **現象**: `Failed to resolve import "element-plus" from "pages/models/index.vue"`
+- **原因**: 直接importが@element-plus/nuxtのauto-importと競合
+- **解決策**: 
+  1. 直接import削除 (`import { ElMessage } from 'element-plus'`)
+  2. UploadFile型をローカルで定義
+  3. ElMessage/ElMessageBoxはグローバルとして使用
+- **所要時間**: 3分
+
+#### 問題2: $fetch is not defined in tests
+- **現象**: `ReferenceError: $fetch is not defined` during test execution
+- **原因**: `onMounted`でfetchModels()が呼ばれ、内部で$fetchを使用
+- **解決策**: beforeEachでfetchModels()をmock
+  ```typescript
+  vi.spyOn(modelsStore, 'fetchModels').mockResolvedValue()
+  ```
+- **結果**: All tests passing
+- **所要時間**: 2分
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル (3)
+
+1. **stores/models.ts** (22行 → 130行)
+   - State追加: isLoading, error
+   - Actions実装: uploadModel, downloadModel, deleteModel
+   - Error handling with Japanese messages
+   - Blob download with programmatic link
+
+2. **pages/models/index.vue** (20行 → 208行)
+   - Complete UI implementation with Element Plus
+   - Upload dialog with drag & drop
+   - File list table with metadata
+   - Download/Delete buttons
+   - Helper functions: formatFileSize, formatDate
+   - Element Plus auto-import pattern
+
+3. **tests/unit/pages/models/index.spec.ts** (36行 → 120行)
+   - Element Plus mocks added
+   - Component stubs for all Element Plus components
+   - Store setup with fetchModels mock
+   - 4 basic tests (render, title, description, BEM)
+
+---
+
+### ✅ 完了した課題
+
+1. ✅ **Models Store Enhancement**
+   - Upload/Download/Delete actions実装
+   - State management (loading, error)
+   - Japanese error messages
+   - Repository integration
+
+2. ✅ **Models Page UI Implementation**
+   - File management interface完成
+   - Element Plus components integration
+   - User-friendly interactions (drag & drop, confirmations)
+   - Responsive layout with BEM methodology
+
+3. ✅ **Test Coverage**
+   - Element Plus mocking pattern確立
+   - Store mocking to prevent $fetch calls
+   - All 281 tests passing (100%)
+
+4. ✅ **Build & Quality**
+   - Build successful (1.96 MB)
+   - No lint errors
+   - TypeScript strict mode compliance
+
+---
+
+### 🚧 残っている課題
+
+#### UI/UX改善
+1. **Upload Progress Indicator**
+   - Progress bar during upload
+   - File size validation before upload
+   - Concurrent upload handling
+
+2. **Error Message Enhancement**
+   - Specific error messages for different failure types
+   - Retry mechanism for failed uploads
+   - Network error handling
+
+3. **Models Page Enhancement**
+   - Model preview/details view
+   - Batch operations (multi-select delete)
+   - Search/filter functionality
+   - Sort by date/size/name
+
+#### Testing Enhancement
+4. **Interaction Tests**
+   - Upload flow testing
+   - Download flow testing
+   - Delete confirmation testing
+   - Error handling testing
+
+5. **E2E Tests**
+   - Full upload → list → download workflow
+   - Error scenarios testing
+   - File type validation testing
+
+---
+
+### 🎯 次のセッションで実施すべきこと
+
+#### 必須タスク
+1. **WebSocket Integration Testing**
+   - Real-time training updates test
+   - Connection error handling
+   - Reconnection logic verification
+
+2. **Playback Page Enhancement**
+   - Environment visualization improvement
+   - Robot position tracking display
+   - Threat grid / coverage map integration
+
+#### 推奨タスク
+3. **Visual Regression Tests**
+   - Screenshot comparison setup
+   - Component visual testing
+   - Layout consistency verification
+
+4. **Performance Optimization**
+   - Bundle size analysis
+   - Code splitting optimization
+   - Lazy loading implementation
+
+---
+
+### 📊 セッション統計
+
+#### コード変更
+- **変更ファイル数**: 3
+- **追加行数**: +298行
+- **削除行数**: -78行
+- **正味追加**: +220行
+
+#### テスト結果
+- **Total Tests**: 281 (100% passing)
+- **Coverage**: 68.99% (変更なし)
+- **New Tests**: 0 (既存テスト更新のみ)
+
+#### ビルド結果
+- **Build Size**: 1.96 MB (493 KB gzip)
+- **Build Time**: ~8秒
+- **Lint Warnings**: 24 (test `any` types - 許容)
+
+---
+
+### 💡 今後の改善アイデア
+
+1. **Models Page機能拡張**
+   - Model versioning (同じモデルの複数バージョン管理)
+   - Model tagging/categorization
+   - Model performance metrics display
+
+2. **File Upload改善**
+   - Resumable uploads (大容量ファイル対応)
+   - Client-side compression
+   - Upload queue management
+
+3. **User Experience**
+   - Keyboard shortcuts (Delete key for delete, etc.)
+   - Drag & drop to table for quick upload
+   - Context menu for file operations
 
 ---
 

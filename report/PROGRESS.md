@@ -193,12 +193,56 @@
 - [x] All 281 tests passing (100%)
 - [x] Build successful (1.95 MB)
 
+### Phase 15: UI Layer Enhancement - Models Management ✅
+- [x] Models Store enhancement (stores/models.ts)
+  - uploadModel action with multipart/form-data
+  - downloadModel action with blob download
+  - deleteModel action with list update
+  - Error handling with Japanese messages
+  - Loading/error state management
+- [x] Models Page UI implementation (pages/models/index.vue)
+  - File upload dialog with drag & drop
+  - File list table with metadata (ID, filename, size, upload date)
+  - Download/Delete buttons with confirmation
+  - Helper functions: formatFileSize(), formatDate()
+  - Element Plus auto-import pattern
+- [x] Test updates (Element Plus mocking)
+  - Component stubbing pattern
+  - Store action mocking to prevent $fetch
+  - All 281 tests passing (100%)
+- [x] Build successful (1.96 MB)
+
+### Phase 16: UI Layer Enhancement - Playback Management ✅
+- [x] Playback Store enhancement (stores/playback.ts)
+  - State management: isLoading, error, currentSessionId, currentFrameIndex, isPlaying, playbackSpeed
+  - fetchSessions/fetchFrames actions with error handling
+  - Playback controls: play(), pause(), stop(), seekToFrame(), setPlaybackSpeed()
+  - Japanese error messages
+- [x] Playback Index Page (pages/playback/index.vue)
+  - Session list table with completed training sessions
+  - Columns: Session ID, Training ID, Recorded date, Duration
+  - formatDuration() and formatDate() helpers
+  - Navigation to detail page
+  - Empty state and error handling
+- [x] Playback Detail Page (pages/playback/[sessionId].vue)
+  - Full playback controls with PlaybackControl, PlaybackSpeed, PlaybackTimeline
+  - Interval-based playback engine (10 FPS base, configurable speed)
+  - Real-time frame navigation with timeline slider
+  - Frame information display (timestep, reward, timestamp)
+  - Environment visualization and robot position display
+  - Auto-cleanup on unmount
+- [x] Test updates (Nuxt auto-import pattern)
+  - Global useRouter/useRoute stubbing
+  - Element Plus component mocking
+  - All 281 tests passing (100%)
+- [x] Build successful (1.96 MB)
+
 ### 次フェーズ候補
 - [ ] WebSocket統合 - Real-time training updates (Backend接続テスト)
-- [ ] UI enhancement - Model upload/download UI実装
+- [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
 - [ ] Performance tests - ロード時間測定
-- [ ] Error handling improvement - User-friendly error messages
+- [ ] Upload progress indicator - Progress bar実装
 
 ---
 
@@ -341,7 +385,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-09 04:55 (Session 013 - Repository層拡張完了)
+**最終更新**: 2025-10-09 10:15 (Session 015 - UI Layer Enhancement - Playback Management完了)
 **次回更新予定**: 次セッション開始時
 
 ---
