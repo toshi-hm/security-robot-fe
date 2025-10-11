@@ -25,8 +25,7 @@ export class ModelRepositoryImpl implements ModelRepository {
         },
       })
       return response.files
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Failed to fetch model list:', error)
       throw error
     }
@@ -36,8 +35,7 @@ export class ModelRepositoryImpl implements ModelRepository {
     try {
       // Backend: GET /api/v1/files/{file_id}
       return await $fetch<ModelEntity>(API_ENDPOINTS.files.metadata(fileId))
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Failed to fetch model ${fileId}:`, error)
       throw error
     }
@@ -56,8 +54,7 @@ export class ModelRepositoryImpl implements ModelRepository {
         method: 'POST',
         body: formData,
       })
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Failed to upload model:', error)
       throw error
     }
@@ -69,8 +66,7 @@ export class ModelRepositoryImpl implements ModelRepository {
       return await $fetch<Blob>(API_ENDPOINTS.files.download(fileId), {
         responseType: 'blob',
       })
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Failed to download model ${fileId}:`, error)
       throw error
     }
@@ -83,8 +79,7 @@ export class ModelRepositoryImpl implements ModelRepository {
         method: 'DELETE',
       })
       return true
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Failed to delete model ${fileId}:`, error)
       return false
     }

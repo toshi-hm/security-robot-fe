@@ -28,8 +28,7 @@ export const API_ENDPOINTS = {
   // Environment API
   environment: {
     definitions: `${API_BASE_URL}/api/v1/environment/definitions`, // GET - list all environments
-    state: (environmentId: string) =>
-      `${API_BASE_URL}/api/v1/environment/definitions/${environmentId}/state`, // GET
+    state: (environmentId: string) => `${API_BASE_URL}/api/v1/environment/definitions/${environmentId}/state`, // GET
   },
 
   // Files API (used for models/logs/config files)

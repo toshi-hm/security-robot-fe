@@ -35,8 +35,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
           recordedAt: s.completed_at || s.created_at || new Date().toISOString(),
           durationSeconds: s.total_timesteps / 10, // Estimate based on timesteps
         }))
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Failed to fetch playback sessions:', error)
       throw error
     }
@@ -71,8 +70,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
         reward: m.reward,
         timestamp: m.timestamp || new Date().toISOString(),
       }))
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Failed to fetch playback frames for session ${sessionId}:`, error)
       throw error
     }

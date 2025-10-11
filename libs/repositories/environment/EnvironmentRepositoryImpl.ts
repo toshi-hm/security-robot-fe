@@ -25,9 +25,7 @@ export class EnvironmentRepositoryImpl implements EnvironmentRepository {
   async fetchState(environmentId: string): Promise<EnvironmentStateEntity> {
     try {
       // Backend: GET /api/v1/environment/definitions/{environment_id}/state
-      const response = await $fetch<{ data: EnvironmentStateEntity }>(
-        API_ENDPOINTS.environment.state(environmentId)
-      )
+      const response = await $fetch<{ data: EnvironmentStateEntity }>(API_ENDPOINTS.environment.state(environmentId))
       return response.data
     } catch (error) {
       console.error(`Failed to fetch environment state for ${environmentId}:`, error)

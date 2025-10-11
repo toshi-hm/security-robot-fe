@@ -1,6 +1,7 @@
+import { createPinia, setActivePinia } from 'pinia'
+
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
 
 import ModelsIndexPage from '~/pages/models/index.vue'
 import { useModelsStore } from '~/stores/models'

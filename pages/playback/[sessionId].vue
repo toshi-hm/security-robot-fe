@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { usePlaybackStore } from '~/stores/playback'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
+
+import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
+import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import PlaybackControl from '~/components/playback/PlaybackControl.vue'
 import PlaybackSpeed from '~/components/playback/PlaybackSpeed.vue'
 import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
-import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
-import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
+import { usePlaybackStore } from '~/stores/playback'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,8 +24,7 @@ let playbackInterval: ReturnType<typeof setInterval> | null = null
 onMounted(async () => {
   try {
     await playbackStore.fetchFrames(sessionId.value)
-  }
-  catch (error) {
+  } catch {
     ElMessage.error('セッションデータの読み込みに失敗しました')
   }
 })
@@ -37,14 +37,16 @@ onUnmounted(() => {
 })
 
 // Watch for playback state changes
-watch(() => playbackStore.isPlaying, (isPlaying) => {
-  if (isPlaying) {
-    startPlayback()
+watch(
+  () => playbackStore.isPlaying,
+  (isPlaying) => {
+    if (isPlaying) {
+      startPlayback()
+    } else {
+      stopPlayback()
+    }
   }
-  else {
-    stopPlayback()
-  }
-})
+)
 
 const startPlayback = () => {
   if (playbackInterval) {
@@ -61,8 +63,7 @@ const startPlayback = () => {
     if (nextIndex >= playbackStore.frames.length) {
       // End of playback
       playbackStore.stop()
-    }
-    else {
+    } else {
       playbackStore.seekToFrame(nextIndex)
     }
   }, interval)
@@ -103,14 +104,6 @@ const handleTimelineChange = (value: number) => {
 const handleBack = () => {
   router.push('/playback')
 }
-
-const formatTimestep = (timestep: number): string => {
-  return `Timestep: ${timestep}`
-}
-
-const formatReward = (reward: number): string => {
-  return `Reward: ${reward.toFixed(2)}`
-}
 </script>
 
 <template>
@@ -143,10 +136,7 @@ const formatReward = (reward: number): string => {
             @pause="handlePause"
             @stop="handleStop"
           />
-          <PlaybackSpeed
-            :speed="playbackStore.playbackSpeed"
-            @update:speed="handleSpeedChange"
-          />
+          <PlaybackSpeed :speed="playbackStore.playbackSpeed" @update:speed="handleSpeedChange" />
         </div>
 
         <!-- Timeline -->
@@ -180,19 +170,13 @@ const formatReward = (reward: number): string => {
         <div class="playback-detail__visualization">
           <div class="playback-detail__environment">
             <h3>環境状態</h3>
-            <EnvironmentVisualization
-              v-if="currentFrame?.state"
-              :environment-state="currentFrame.state"
-            />
+            <EnvironmentVisualization v-if="currentFrame?.state" :environment-state="currentFrame.state" />
             <el-empty v-else description="環境データがありません" />
           </div>
 
           <div class="playback-detail__robot">
             <h3>ロボット位置</h3>
-            <RobotPositionDisplay
-              v-if="currentFrame?.state?.robot"
-              :position="currentFrame.state.robot"
-            />
+            <RobotPositionDisplay v-if="currentFrame?.state?.robot" :position="currentFrame.state.robot" />
             <el-empty v-else description="ロボットデータがありません" />
           </div>
         </div>

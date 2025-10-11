@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+
 import { ref } from 'vue'
 
 import { usePlayback } from '~/composables/usePlayback'
@@ -23,13 +24,11 @@ export const usePlaybackStore = defineStore('playback', () => {
 
     try {
       await service.fetchSessions()
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'セッション一覧の取得に失敗しました'
       console.error('Failed to fetch playback sessions:', err)
       throw err
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }
@@ -45,13 +44,11 @@ export const usePlaybackStore = defineStore('playback', () => {
 
     try {
       await service.fetchFrames(sessionId)
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'フレームデータの取得に失敗しました'
       console.error(`Failed to fetch frames for session ${sessionId}:`, err)
       throw err
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }

@@ -1,6 +1,7 @@
+import { createPinia, setActivePinia } from 'pinia'
+
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
 
 import PlaybackIndexPage from '~/pages/playback/index.vue'
 import { usePlaybackStore } from '~/stores/playback'

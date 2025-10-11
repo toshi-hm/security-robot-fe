@@ -27,13 +27,11 @@ export const useModelsStore = defineStore('models', () => {
 
     try {
       models.value = await repository.listModels()
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'モデル一覧の取得に失敗しました'
       console.error('Failed to fetch models:', err)
       throw err
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }
@@ -49,13 +47,11 @@ export const useModelsStore = defineStore('models', () => {
       const newModel = await repository.uploadModel(file, metadata)
       models.value.push(newModel)
       return newModel
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'モデルのアップロードに失敗しました'
       console.error('Failed to upload model:', err)
       throw err
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }
@@ -79,13 +75,11 @@ export const useModelsStore = defineStore('models', () => {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'モデルのダウンロードに失敗しました'
       console.error('Failed to download model:', err)
       throw err
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }
@@ -100,16 +94,14 @@ export const useModelsStore = defineStore('models', () => {
     try {
       const success = await repository.deleteModel(fileId)
       if (success) {
-        models.value = models.value.filter(m => m.id !== fileId)
+        models.value = models.value.filter((m) => m.id !== fileId)
       }
       return success
-    }
-    catch (err) {
+    } catch (err) {
       error.value = 'モデルの削除に失敗しました'
       console.error('Failed to delete model:', err)
       return false
-    }
-    finally {
+    } finally {
       isLoading.value = false
     }
   }

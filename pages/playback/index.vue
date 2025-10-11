@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+
 import { usePlaybackStore } from '~/stores/playback'
 
 const router = useRouter()
@@ -43,7 +44,10 @@ const formatDate = (date: string | Date): string => {
         class="playback__error"
       />
 
-      <el-empty v-if="playbackStore.sessions.length === 0 && !playbackStore.isLoading" description="再生可能なセッションがありません" />
+      <el-empty
+        v-if="playbackStore.sessions.length === 0 && !playbackStore.isLoading"
+        description="再生可能なセッションがありません"
+      />
 
       <el-table v-else :data="playbackStore.sessions" stripe style="width: 100%">
         <el-table-column prop="id" label="セッションID" width="120" />
@@ -60,9 +64,7 @@ const formatDate = (date: string | Date): string => {
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="handleViewSession(row.id)">
-              再生
-            </el-button>
+            <el-button size="small" type="primary" @click="handleViewSession(row.id)"> 再生 </el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -237,8 +237,24 @@
   - All 281 tests passing (100%)
 - [x] Build successful (1.96 MB)
 
+### Phase 17: WebSocket Integration - Start ✅
+- [x] Backend WebSocket endpoint analysis
+  - Endpoint: `/ws/v1/training/{session_id}`
+  - Message types: training_progress, training_status, training_error, environment_update, connection_ack, ping/pong
+- [x] WebSocket test page creation (pages/websocket-test.vue)
+  - Native WebSocket implementation (not Socket.IO)
+  - Real-time message display
+  - Connection management (connect/disconnect)
+  - Ping/Pong testing
+  - JSON message sending
+- [x] Code quality fixes
+  - Remove unused variables (wsUrl, formatTimestep, formatReward)
+  - Fix ESLint errors (0 errors, 36 warnings)
+- [x] Build successful (1.97 MB)
+
 ### 次フェーズ候補
-- [ ] WebSocket統合 - Real-time training updates (Backend接続テスト)
+- [ ] WebSocket integration - useWebSocket refactoring (Socket.IO → Native WebSocket)
+- [ ] Real-time training updates UI - Connect training page with WebSocket
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
 - [ ] Performance tests - ロード時間測定
@@ -385,7 +401,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-09 10:15 (Session 015 - UI Layer Enhancement - Playback Management完了)
+**最終更新**: 2025-10-11 18:05 (Session 016 - WebSocket Integration Start)
 **次回更新予定**: 次セッション開始時
 
 ---
