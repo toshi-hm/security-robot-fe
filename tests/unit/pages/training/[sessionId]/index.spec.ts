@@ -6,11 +6,21 @@ import TrainingSessionPage from '~/pages/training/[sessionId]/index.vue'
 // Mock useRoute globally
 const mockRoute = {
   params: {
-    sessionId: 'training-789',
+    sessionId: '789',
   },
 }
 
 vi.stubGlobal('useRoute', () => mockRoute)
+
+// Mock useWebSocket
+vi.stubGlobal('useWebSocket', () => ({
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  isConnected: { value: false },
+  error: { value: null },
+  on: vi.fn(),
+  off: vi.fn(),
+}))
 
 // Mock TrainingMetrics component
 const TrainingMetricsStub = {
@@ -41,7 +51,7 @@ describe('Training Session Page', () => {
       },
     })
 
-    expect(wrapper.find('h2').text()).toBe('Training Session training-789')
+    expect(wrapper.find('h2').text()).toBe('Training Session 789')
   })
 
   it('renders TrainingMetrics component', () => {

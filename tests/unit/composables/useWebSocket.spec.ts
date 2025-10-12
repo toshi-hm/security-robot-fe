@@ -2,136 +2,205 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { useWebSocket } from '~/composables/useWebSocket'
 
-import type { Socket } from 'socket.io-client'
+// Mock useRuntimeConfig globally
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: {
+    wsUrl: 'ws://localhost:8000',
+  },
+}))
 
 describe('useWebSocket', () => {
-  let mockSocket: Partial<Socket>
-  let mockIo: any
+  let mockWebSocket: any
 
   beforeEach(() => {
-    // モックSocketの作成
-    mockSocket = {
-      connected: false,
-      on: vi.fn(),
-      emit: vi.fn(),
-      disconnect: vi.fn(),
+    // Native WebSocketのモック作成
+    mockWebSocket = {
+      readyState: 0,
+      send: vi.fn(),
+      close: vi.fn(),
+      onopen: null,
+      onmessage: null,
+      onerror: null,
+      onclose: null,
     }
 
-    // モックio関数の作成
-    mockIo = vi.fn(() => mockSocket)
+    // グローバルWebSocketのモック設定
+    const MockWebSocket = vi.fn(() => mockWebSocket)
+    MockWebSocket.CONNECTING = 0
+    MockWebSocket.OPEN = 1
+    MockWebSocket.CLOSING = 2
+    MockWebSocket.CLOSED = 3
+
+    global.WebSocket = MockWebSocket as any
   })
 
   describe('connect', () => {
-    it('creates socket connection with runtime config URL', () => {
-      const { connect } = useWebSocket(mockIo)
+    it('creates WebSocket connection with session ID', () => {
+      const { connect } = useWebSocket()
 
-      connect()
+      connect(1)
 
-      expect(mockIo).toHaveBeenCalled()
+      expect(global.WebSocket).toHaveBeenCalledWith(expect.stringContaining('/ws/v1/training/1'))
     })
 
-    it('does not create multiple connections if already connected', () => {
-      mockSocket.connected = true
-      const { connect } = useWebSocket(mockIo)
+    it('does not create multiple connections if already open', () => {
+      mockWebSocket.readyState = 1 // OPEN
+      const { connect } = useWebSocket()
 
-      connect()
-      connect()
+      connect(1)
+      connect(1)
 
-      expect(mockIo).toHaveBeenCalledTimes(1)
+      expect(global.WebSocket).toHaveBeenCalledTimes(1)
     })
 
-    it('sets up connection event listeners', () => {
-      const { connect } = useWebSocket(mockIo)
+    it('updates isConnected when socket opens', () => {
+      const { connect, isConnected } = useWebSocket()
 
-      connect()
-
-      expect(mockSocket.on).toHaveBeenCalledWith('connect', expect.any(Function))
-      expect(mockSocket.on).toHaveBeenCalledWith('disconnect', expect.any(Function))
-    })
-
-    it('updates isConnected when socket connects', () => {
-      const { connect, isConnected } = useWebSocket(mockIo)
-
-      connect()
-
-      // 'connect'イベントのコールバックを取得して実行
-      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
-      const onConnectCallback = onConnectCall[1]
-      onConnectCallback()
+      connect(1)
+      mockWebSocket.onopen()
 
       expect(isConnected.value).toBe(true)
     })
 
-    it('updates isConnected when socket disconnects', () => {
-      const { connect, isConnected } = useWebSocket(mockIo)
+    it('handles incoming messages', () => {
+      const { connect, on } = useWebSocket()
+      const handler = vi.fn()
 
-      connect()
+      connect(1)
+      on('test_message', handler)
 
-      // まず接続状態にする
-      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
-      onConnectCall[1]()
+      const messageEvent = {
+        data: JSON.stringify({ type: 'test_message', data: 'hello' }),
+      }
+      mockWebSocket.onmessage(messageEvent)
 
-      // 切断イベントを発火
-      const onDisconnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'disconnect')
-      onDisconnectCall[1]()
+      expect(handler).toHaveBeenCalledWith({ type: 'test_message', data: 'hello' })
+    })
+
+    it('sets error on WebSocket error', () => {
+      const { connect, error } = useWebSocket()
+
+      connect(1)
+      mockWebSocket.onerror(new Error('Connection failed'))
+
+      expect(error.value).toBe('WebSocket connection error')
+    })
+
+    it('updates isConnected to false on close', () => {
+      const { connect, isConnected } = useWebSocket()
+
+      connect(1)
+      mockWebSocket.onopen()
+      mockWebSocket.onclose({ code: 1000, reason: 'Normal closure' })
 
       expect(isConnected.value).toBe(false)
     })
   })
 
   describe('disconnect', () => {
-    it('disconnects socket and sets it to null', () => {
-      const { connect, disconnect, socket } = useWebSocket(mockIo)
+    it('closes WebSocket connection', () => {
+      const { connect, disconnect } = useWebSocket()
 
-      connect()
+      connect(1)
       disconnect()
 
-      expect(mockSocket.disconnect).toHaveBeenCalled()
-      expect(socket.value).toBeNull()
+      expect(mockWebSocket.close).toHaveBeenCalledWith(1000, 'Client initiated disconnect')
     })
 
-    it('sets isConnected to false', () => {
-      const { connect, disconnect, isConnected } = useWebSocket(mockIo)
+    it('resets state after disconnect', () => {
+      const { connect, disconnect, isConnected, socket } = useWebSocket()
 
-      connect()
-      // 接続状態にする
-      const onConnectCall = (mockSocket.on as any).mock.calls.find((call: any) => call[0] === 'connect')
-      onConnectCall[1]()
-
+      connect(1)
+      mockWebSocket.onopen()
       disconnect()
 
       expect(isConnected.value).toBe(false)
+      expect(socket.value).toBeNull()
+    })
+  })
+
+  describe('send', () => {
+    it('sends JSON message when connected', () => {
+      mockWebSocket.readyState = 1 // OPEN
+      const { connect, send } = useWebSocket()
+
+      connect(1)
+      send({ type: 'test', data: 'hello' })
+
+      expect(mockWebSocket.send).toHaveBeenCalledWith('{"type":"test","data":"hello"}')
     })
 
-    it('does nothing if socket is already null', () => {
-      const { disconnect } = useWebSocket(mockIo)
+    it('does not send when not connected', () => {
+      const { send } = useWebSocket()
 
-      // disconnectを呼んでもエラーにならない
-      expect(() => disconnect()).not.toThrow()
+      send({ type: 'test' })
+
+      expect(mockWebSocket.send).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('sendPing', () => {
+    it('sends ping message', () => {
+      mockWebSocket.readyState = 1 // OPEN
+      const { connect, sendPing } = useWebSocket()
+
+      connect(1)
+      sendPing()
+
+      expect(mockWebSocket.send).toHaveBeenCalledWith('{"type":"ping"}')
+    })
+  })
+
+  describe('message handlers', () => {
+    it('registers and calls message handler', () => {
+      const { connect, on } = useWebSocket()
+      const handler = vi.fn()
+
+      on('training_progress', handler)
+      connect(1)
+
+      const messageEvent = {
+        data: JSON.stringify({ type: 'training_progress', timestep: 100 }),
+      }
+      mockWebSocket.onmessage(messageEvent)
+
+      expect(handler).toHaveBeenCalledWith({ type: 'training_progress', timestep: 100 })
+    })
+
+    it('removes message handler with off', () => {
+      const { connect, on, off } = useWebSocket()
+      const handler = vi.fn()
+
+      on('test', handler)
+      off('test')
+      connect(1)
+
+      const messageEvent = {
+        data: JSON.stringify({ type: 'test' }),
+      }
+      mockWebSocket.onmessage(messageEvent)
+
+      expect(handler).not.toHaveBeenCalled()
     })
   })
 
   describe('initial state', () => {
     it('has null socket initially', () => {
-      const { socket } = useWebSocket(mockIo)
+      const { socket } = useWebSocket()
 
       expect(socket.value).toBeNull()
     })
 
     it('has isConnected false initially', () => {
-      const { isConnected } = useWebSocket(mockIo)
+      const { isConnected } = useWebSocket()
 
       expect(isConnected.value).toBe(false)
     })
-  })
 
-  describe('auto connect/disconnect lifecycle', () => {
-    it('does not auto-connect when created', () => {
-      useWebSocket(mockIo)
+    it('has null error initially', () => {
+      const { error } = useWebSocket()
 
-      // onMountedは実際のコンポーネントマウント時にのみ動作
-      // テスト環境では手動connectが必要
-      expect(mockIo).not.toHaveBeenCalled()
+      expect(error.value).toBeNull()
     })
   })
 })
