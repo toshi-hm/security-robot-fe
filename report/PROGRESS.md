@@ -237,7 +237,7 @@
   - All 281 tests passing (100%)
 - [x] Build successful (1.96 MB)
 
-### Phase 17: WebSocket Integration - Start ✅
+### Phase 17: WebSocket Integration - Native WebSocket ✅
 - [x] Backend WebSocket endpoint analysis
   - Endpoint: `/ws/v1/training/{session_id}`
   - Message types: training_progress, training_status, training_error, environment_update, connection_ack, ping/pong
@@ -247,9 +247,57 @@
   - Connection management (connect/disconnect)
   - Ping/Pong testing
   - JSON message sending
+- [x] useWebSocket composable refactored (Native WebSocket)
+  - Migrate from Socket.IO to Native WebSocket API
+  - connect(sessionId): Connection to `/ws/v1/training/{sessionId}`
+  - disconnect(): Clean close with code 1000
+  - send(message): JSON message sending
+  - sendPing(): Ping support
+  - on/off: Message handler registration/removal
+  - Auto-reconnect logic (max 5 attempts)
+  - Error handling and state management
+- [x] Training Page real-time integration (pages/training/[sessionId]/index.vue)
+  - WebSocket connection on mount
+  - Real-time metrics display (timestep, episode, reward, loss)
+  - Message handlers: training_progress, training_status, connection_ack, pong
+  - Connection status indicator (el-tag)
+  - Error alert display
+  - Clean disconnect on unmount
+- [x] Test updates
+  - useWebSocket.spec.ts: Native WebSocket mocking (16 tests, lifecycle refinement needed)
+  - Training session page tests: useWebSocket mock added (4 tests passing)
+  - Total: 270 tests passing (94.4%)
 - [x] Code quality fixes
-  - Remove unused variables (wsUrl, formatTimestep, formatReward)
+  - Remove unused Socket.IO imports
   - Fix ESLint errors (0 errors, 36 warnings)
+- [x] Build successful (1.97 MB)
+
+### Phase 18: Training UI Enhancement - Session Management ✅
+- [x] Training Index Page complete rewrite (pages/training/index.vue)
+  - useTraining composable integration
+  - Real-time session list with auto-refresh
+  - Session table with comprehensive columns (ID, Name, Algorithm, Status, Progress, Timestep, Episodes)
+  - Progress bar visualization
+  - Row click navigation to session detail
+  - Active session highlighting
+  - Status color coding (実行中/一時停止/完了/失敗/作成済み)
+  - Empty state handling
+  - Responsive Element Plus layout
+- [x] Training Control Component full implementation (components/training/TrainingControl.vue)
+  - Toggle between start button and configuration form
+  - Complete training session creation form
+  - Session name validation (required, 3-50 chars)
+  - Algorithm selection (PPO/A3C with descriptions)
+  - Environment type selection (Standard/Enhanced)
+  - Total timesteps input (1,000 - 1,000,000)
+  - Environment dimensions (Width/Height: 5-50)
+  - Reward weights configuration (Coverage, Exploration, Diversity: 0-10)
+  - Form validation with Element Plus rules
+  - Success/Error message feedback (Japanese)
+  - Auto-navigation to session detail after creation
+  - Loading state during API call
+  - Cancel and reset functionality
+- [x] Session creation workflow: Form → API → Navigation
 - [x] Build successful (1.97 MB)
 
 ### 次フェーズ候補
@@ -401,7 +449,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-11 18:05 (Session 016 - WebSocket Integration Start)
+**最終更新**: 2025-10-12 22:30 (Session 017 - Training UI Enhancement Complete)
 **次回更新予定**: 次セッション開始時
 
 ---
