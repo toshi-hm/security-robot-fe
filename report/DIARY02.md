@@ -18,6 +18,82 @@
 
 ## 📝 セッション記録
 
+### Session 020 - Phase 20 Coverage & Exploration Charts (2025-10-13)
+
+**目的**: Phase 20完全達成 - Coverage & Exploration チャートの追加実装
+
+**実施内容**:
+1. **RealtimeMetrics Interface拡張**
+   - 問題: CoverageとExplorationメトリクスが表示されていない
+   - 解決: 
+     - `coverageRatio: number | null` フィールド追加
+     - `explorationScore: number | null` フィールド追加
+
+2. **TrainingMetrics.vue拡張**
+   - Coverage Chart追加 (青色テーマ、0-1スケール)
+     - borderColor: 'rgb(54, 162, 235)'
+     - y軸: min: 0, max: 1 (固定範囲)
+   - Exploration Chart追加 (黄色テーマ)
+     - borderColor: 'rgb(255, 206, 86)'
+   - watch関数更新: 4チャート対応 (Reward, Loss, Coverage, Exploration)
+   - 条件付き更新: null値の場合はチャート更新スキップ
+   - Summary stats拡張: 4メトリクス → 6メトリクス
+     - Coverage: パーセント表示 (0-100%)
+     - Exploration: スコア表示 (0-1範囲)
+   - レイアウト変更: span="6" → span="4" (6カラムグリッド)
+   - カラースタイリング追加:
+     - Coverage: #409eff (青)
+     - Exploration: #e6a23c (黄)
+
+3. **Training Session Page更新**
+   - WebSocketハンドラー拡張
+     - `coverage_ratio` 受信処理追加
+     - `exploration_score` 受信処理追加
+     - message.data.* と message.* の両フォーマット対応
+   - currentMetrics型拡張
+
+4. **Test更新**
+   - TrainingMetrics.spec.ts:
+     - モックデータに coverageRatio と explorationScore 追加
+     - canvas要素数の assertion 更新: 2 → 4
+   - Training Session Page tests:
+     - props検証に新フィールド追加
+   - 全289テストパス (100%)
+
+5. **Code Quality**
+   - Lint fix実行: 0 errors, 44 warnings (acceptable)
+   - Build: 1.97 MB成功
+   - Tests: 289 unit tests passing (100%)
+
+**成果物**:
+- ✅ TrainingMetrics.vue: 4チャート対応 (Reward, Loss, Coverage, Exploration)
+- ✅ Training Session Page: WebSocket統合完全版
+- ✅ RealtimeMetrics interface: 6メトリクス完全対応
+- ✅ Total: 289 tests passing (100%)
+
+**技術的発見**:
+1. **Chart.js スケール設定**
+   - Coverage Ratio は 0-1 の固定範囲が望ましい
+   - y軸に min: 0, max: 1 を設定することで視覚的に把握しやすい
+
+2. **条件付きチャート更新**
+   - null値の場合はupdateData()を呼ばない設計が重要
+   - Loss, Coverage, Explorationは初期値がnullの可能性があるため
+
+3. **レスポンシブグリッド設計**
+   - 6メトリクスを等幅表示: span="4" (24/6=4)
+   - Element Plusの24グリッドシステム活用
+
+**次のステップ**:
+- [ ] Phase 21以降の継続 (次の要件に従う)
+- [ ] Additional WebSocket event handlers (training_status, training_error等)
+- [ ] Chart export functionality (PNG/CSV)
+
+**時間**: 約30分
+**コミット**: Phase 20完全達成
+
+---
+
 ### Session 017 - Phase 17 WebSocket Integration Complete (2025-10-12)
 
 **目的**: Phase 17完全達成 - useWebSocket refactoring、テスト修正、Training UI統合

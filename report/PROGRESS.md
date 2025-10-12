@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-09
+最終更新日: 2025-10-13
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,8 +21,8 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 313テスト (285 unit + 28 E2E)
-  - ✅ パス: 313テスト (100%)
+- **総テスト数**: 317テスト (289 unit + 28 E2E)
+  - ✅ パス: 317テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 68.99% (目標: 85%以上)
   - Lines: 68.99%
@@ -305,9 +305,57 @@
 - [x] Session creation workflow: Form → API → Navigation
 - [x] Build successful (1.97 MB)
 
+### Phase 19: Real-time Chart Updates ✅
+- [x] useChart.ts enhancement - Real-time update functions
+  - updateData(): Add single data point with auto-scrolling (max 100 points)
+  - replaceData(): Replace entire dataset
+  - clearData(): Clear all chart data
+  - getChart(): Return chart instance for testing
+- [x] TrainingMetrics.vue complete rewrite
+  - Reward Chart: Line chart with real-time updates
+  - Loss Chart: Line chart with real-time updates
+  - watch() function for reactive metric updates
+  - Summary stats computed property (Timestep, Episode, Reward, Loss)
+  - Chart configurations with Chart.js
+  - Animation disabled for performance (animation: false)
+- [x] Training Session Page integration
+  - Pass realtimeMetrics to TrainingMetrics component
+  - WebSocket data binding to charts
+- [x] Test updates
+  - useChart.spec.ts: 7 tests for new functions (86.66% coverage)
+  - TrainingMetrics.spec.ts: Complete rewrite for new interface
+  - tests/setup.ts: Global useChart mock added
+  - All 289 tests passing (100%)
+- [x] Build successful (1.97 MB)
+
+### Phase 20: Coverage & Exploration Charts ✅
+- [x] RealtimeMetrics interface extension
+  - coverageRatio: number | null
+  - explorationScore: number | null
+- [x] TrainingMetrics.vue enhancement - 4 charts total
+  - Coverage Chart: Blue theme, 0-1 fixed scale (min/max)
+  - Exploration Chart: Yellow/orange theme
+  - watch() updated for 4 charts (Reward, Loss, Coverage, Exploration)
+  - Conditional updates (skip null values)
+  - Summary stats: 6 metrics (Timestep, Episode, Reward, Loss, Coverage %, Exploration)
+  - Layout: 6-column grid (span="4")
+  - Color styling: Coverage (#409eff blue), Exploration (#e6a23c yellow)
+- [x] Training Session Page WebSocket handler
+  - coverage_ratio reception added
+  - exploration_score reception added
+  - Support both message.data.* and message.* formats
+- [x] Test updates
+  - TrainingMetrics.spec.ts: Mock data with new fields
+  - Canvas assertion: 4 canvases (reward, loss, coverage, exploration)
+  - All 289 tests passing (100%)
+- [x] Build successful (1.97 MB)
+
 ### 次フェーズ候補
-- [ ] WebSocket integration - useWebSocket refactoring (Socket.IO → Native WebSocket)
-- [ ] Real-time training updates UI - Connect training page with WebSocket
+- [ ] Phase 21: Additional WebSocket Features
+  - training_status message handler enhancement
+  - training_error message handler with user feedback
+  - environment_update visualization
+- [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
 - [ ] Performance tests - ロード時間測定
@@ -454,7 +502,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-12 23:00 (Session 017 - Phase 17 WebSocket Integration Complete)
+**最終更新**: 2025-10-13 (Session 020 - Phase 20 Coverage & Exploration Charts Complete)
 **次回更新予定**: 次セッション開始時
 
 ---
