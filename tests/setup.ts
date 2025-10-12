@@ -40,3 +40,13 @@ global.ElMessage = {
 }
 
 global.navigateTo = vi.fn()
+
+global.useChart = vi.fn(() => ({
+  canvas: ref(null),
+  render: vi.fn(),
+  destroy: vi.fn(),
+  updateData: vi.fn(),
+  replaceData: vi.fn(),
+  clearData: vi.fn(),
+  getChart: vi.fn(),
+}))

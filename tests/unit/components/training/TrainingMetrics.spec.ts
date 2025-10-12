@@ -1,20 +1,49 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
-import type { TrainingMetrics as TrainingMetricsType } from '~/libs/domains/training/TrainingMetrics'
+
+// Mock useChart composable
+vi.mock('~/composables/useChart', () => ({
+  useChart: vi.fn(() => ({
+    canvas: { value: null },
+    render: vi.fn(),
+    destroy: vi.fn(),
+    updateData: vi.fn(),
+    replaceData: vi.fn(),
+    clearData: vi.fn(),
+    getChart: vi.fn(),
+  })),
+}))
 
 const mountComponent = (props = {}) => {
+  const defaultProps = {
+    realtimeMetrics: {
+      timestep: 0,
+      episode: 0,
+      reward: 0,
+      loss: null,
+    },
+  }
+
   return mount(TrainingMetrics, {
     props: {
-      metrics: [],
+      ...defaultProps,
       ...props,
     },
     global: {
       stubs: {
         'el-card': {
           name: 'ElCard',
-          template: '<div class="el-card"><slot /></div>',
+          template: '<div class="el-card"><slot name="header"></slot><slot /></div>',
+        },
+        'el-row': {
+          name: 'ElRow',
+          template: '<div class="el-row"><slot /></div>',
+        },
+        'el-col': {
+          name: 'ElCol',
+          template: '<div class="el-col"><slot /></div>',
         },
       },
     },
@@ -22,83 +51,61 @@ const mountComponent = (props = {}) => {
 }
 
 describe('TrainingMetrics.vue', () => {
-  it('renders el-card container', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders summary card with current metrics', () => {
     const wrapper = mountComponent()
-    expect(wrapper.find('.el-card').exists()).toBe(true)
+    expect(wrapper.find('.training-metrics__summary').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Timestep')
+    expect(wrapper.text()).toContain('Episode')
+    expect(wrapper.text()).toContain('Reward')
+    expect(wrapper.text()).toContain('Loss')
   })
 
-  it('displays metrics as JSON string', () => {
-    const mockMetrics: Partial<TrainingMetricsType>[] = [
-      {
-        id: 1,
-        sessionId: 1,
-        timestep: 100,
-        episode: 1,
-        reward: 100.5,
-        loss: 0.25,
-        coverageRatio: 0.8,
-        explorationScore: 0.7,
-      },
-    ]
-    const wrapper = mountComponent({ metrics: mockMetrics })
-    const pre = wrapper.find('pre')
-    expect(pre.exists()).toBe(true)
-    expect(pre.text()).toContain('"episode": 1')
-    expect(pre.text()).toContain('"reward": 100.5')
+  it('displays realtime metrics values', () => {
+    const mockMetrics = {
+      timestep: 1000,
+      episode: 10,
+      reward: 123.456,
+      loss: 0.0234,
+    }
+    const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
+
+    expect(wrapper.text()).toContain('1000')
+    expect(wrapper.text()).toContain('10')
+    expect(wrapper.text()).toContain('123.456')
+    expect(wrapper.text()).toContain('0.0234')
   })
 
-  it('formats JSON with indentation', () => {
-    const mockMetrics: Partial<TrainingMetricsType>[] = [
-      {
-        id: 1,
-        sessionId: 1,
-        timestep: 100,
-        episode: 1,
-        reward: 50,
-        loss: 0.1,
-        coverageRatio: 0.9,
-        explorationScore: 0.8,
-      },
-    ]
-    const wrapper = mountComponent({ metrics: mockMetrics })
-    const pre = wrapper.find('pre')
-    const text = pre.text()
-    // Check for newlines (formatted JSON)
-    expect(text.split('\n').length).toBeGreaterThan(1)
+  it('handles null loss value', () => {
+    const mockMetrics = {
+      timestep: 500,
+      episode: 5,
+      reward: 50.5,
+      loss: null,
+    }
+    const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
+
+    expect(wrapper.text()).toContain('N/A')
   })
 
-  it('handles empty metrics array', () => {
-    const wrapper = mountComponent({ metrics: [] })
-    const pre = wrapper.find('pre')
-    expect(pre.text()).toBe('[]')
+  it('renders reward and loss chart containers', () => {
+    const wrapper = mountComponent()
+    const cards = wrapper.findAll('.el-card')
+
+    // Summary card + Reward chart card + Loss chart card
+    expect(cards.length).toBeGreaterThanOrEqual(3)
+    expect(wrapper.text()).toContain('Reward Chart')
+    expect(wrapper.text()).toContain('Loss Chart')
   })
 
-  it('displays multiple metrics', () => {
-    const mockMetrics: Partial<TrainingMetricsType>[] = [
-      {
-        id: 1,
-        sessionId: 1,
-        timestep: 100,
-        episode: 1,
-        reward: 50,
-        loss: 0.1,
-        coverageRatio: 0.9,
-        explorationScore: 0.8,
-      },
-      {
-        id: 2,
-        sessionId: 1,
-        timestep: 200,
-        episode: 2,
-        reward: 60,
-        loss: 0.08,
-        coverageRatio: 0.95,
-        explorationScore: 0.85,
-      },
-    ]
-    const wrapper = mountComponent({ metrics: mockMetrics })
-    const pre = wrapper.find('pre')
-    expect(pre.text()).toContain('"episode": 1')
-    expect(pre.text()).toContain('"episode": 2')
+  it('contains canvas elements for charts', () => {
+    const wrapper = mountComponent()
+    const canvases = wrapper.findAll('canvas')
+
+    // Should have 2 canvas elements (reward and loss)
+    expect(canvases.length).toBe(2)
   })
 })

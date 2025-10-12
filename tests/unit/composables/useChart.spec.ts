@@ -140,4 +140,93 @@ describe('useChart', () => {
       expect(canvas.value).toBeNull()
     })
   })
+
+  describe('updateData', () => {
+    it('updates chart data and calls update', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: {
+          labels: ['A', 'B'],
+          datasets: [{ label: 'Test', data: [1, 2] }],
+        },
+      }
+
+      mockChart.data = {
+        labels: ['A', 'B'],
+        datasets: [{ label: 'Test', data: [1, 2] }],
+      } as any
+
+      const { canvas, render, updateData } = useChart(mockConfig, mockChartConstructor)
+      canvas.value = mockCanvas
+      render()
+
+      updateData(0, 3, 'C')
+
+      expect(mockChart.data?.labels).toContain('C')
+      expect(mockChart.update).toHaveBeenCalledWith('none')
+    })
+
+    it('does nothing if chart is not initialized', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      const { updateData } = useChart(mockConfig, mockChartConstructor)
+
+      expect(() => updateData(0, 5, 'X')).not.toThrow()
+    })
+  })
+
+  describe('replaceData', () => {
+    it('replaces chart data completely', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{ data: [] }],
+        },
+      }
+
+      mockChart.data = {
+        labels: [],
+        datasets: [{ data: [] }],
+      } as any
+
+      const { canvas, render, replaceData } = useChart(mockConfig, mockChartConstructor)
+      canvas.value = mockCanvas
+      render()
+
+      replaceData(['X', 'Y'], [{ data: [10, 20] }])
+
+      expect(mockChart.data?.labels).toEqual(['X', 'Y'])
+      expect(mockChart.update).toHaveBeenCalled()
+    })
+  })
+
+  describe('clearData', () => {
+    it('clears all chart data', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: {
+          labels: ['A'],
+          datasets: [{ data: [1] }],
+        },
+      }
+
+      mockChart.data = {
+        labels: ['A'],
+        datasets: [{ data: [1] }],
+      } as any
+
+      const { canvas, render, clearData } = useChart(mockConfig, mockChartConstructor)
+      canvas.value = mockCanvas
+      render()
+
+      clearData()
+
+      expect(mockChart.data?.labels).toEqual([])
+      expect(mockChart.update).toHaveBeenCalled()
+    })
+  })
 })

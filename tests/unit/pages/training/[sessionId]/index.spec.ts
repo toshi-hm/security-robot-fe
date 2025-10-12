@@ -26,7 +26,7 @@ vi.stubGlobal('useWebSocket', () => ({
 const TrainingMetricsStub = {
   name: 'TrainingMetrics',
   template: '<div class="training-metrics-stub"></div>',
-  props: ['metrics'],
+  props: ['realtimeMetrics'],
 }
 
 describe('Training Session Page', () => {
@@ -66,7 +66,7 @@ describe('Training Session Page', () => {
     expect(wrapper.findComponent(TrainingMetricsStub).exists()).toBe(true)
   })
 
-  it('passes null metrics to TrainingMetrics', () => {
+  it('passes realtime metrics to TrainingMetrics', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
@@ -76,6 +76,12 @@ describe('Training Session Page', () => {
     })
 
     const metricsComponent = wrapper.findComponent(TrainingMetricsStub)
-    expect(metricsComponent.props('metrics')).toEqual([])
+    const props = metricsComponent.props('realtimeMetrics')
+
+    expect(props).toBeDefined()
+    expect(props).toHaveProperty('timestep')
+    expect(props).toHaveProperty('episode')
+    expect(props).toHaveProperty('reward')
+    expect(props).toHaveProperty('loss')
   })
 })

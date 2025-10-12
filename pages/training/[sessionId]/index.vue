@@ -21,10 +21,10 @@ const currentMetrics = ref({
 const handleTrainingProgress = (message: any) => {
   if (message.session_id === sessionId.value) {
     currentMetrics.value = {
-      timestep: message.timestep || 0,
-      episode: message.episode || 0,
-      reward: message.reward || 0,
-      loss: message.loss || null,
+      timestep: message.data?.timestep || message.timestep || 0,
+      episode: message.data?.episode || message.episode || 0,
+      reward: message.data?.reward || message.reward || 0,
+      loss: message.data?.loss ?? message.loss ?? null,
     }
   }
 }
@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
       </el-descriptions>
     </el-card>
 
-    <TrainingMetrics :metrics="[]" />
+    <TrainingMetrics :realtime-metrics="currentMetrics" />
   </div>
 </template>
 
