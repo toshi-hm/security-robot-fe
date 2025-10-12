@@ -19,6 +19,17 @@ const currentMetrics = ref({
   explorationScore: null as number | null,
 })
 
+// Training status and notifications
+const trainingStatus = ref<string>('')
+const statusMessage = ref<string>('')
+const statusType = ref<'success' | 'info' | 'warning' | 'error'>('info')
+const showStatusAlert = ref(false)
+
+// Environment update state
+const robotPosition = ref<{ x: number; y: number } | null>(null)
+const lastAction = ref<string>('')
+const lastReward = ref<number>(0)
+
 // WebSocket message handlers
 const handleTrainingProgress = (message: any) => {
   if (message.session_id === sessionId.value) {
@@ -35,7 +46,30 @@ const handleTrainingProgress = (message: any) => {
 
 const handleTrainingStatus = (message: any) => {
   if (message.session_id === sessionId.value) {
-    console.log('Training status:', message.status, message.message)
+    trainingStatus.value = message.status || ''
+    statusMessage.value = message.message || ''
+
+    // Determine alert type based on status
+    if (message.status === 'running' || message.status === 'started') {
+      statusType.value = 'success'
+    } else if (message.status === 'completed') {
+      statusType.value = 'success'
+    } else if (message.status === 'paused') {
+      statusType.value = 'warning'
+    } else if (message.status === 'failed' || message.status === 'error') {
+      statusType.value = 'error'
+    } else {
+      statusType.value = 'info'
+    }
+
+    showStatusAlert.value = true
+
+    // Auto-hide after 5 seconds (except for errors)
+    if (statusType.value !== 'error') {
+      setTimeout(() => {
+        showStatusAlert.value = false
+      }, 5000)
+    }
   }
 }
 
@@ -47,10 +81,40 @@ const handlePong = () => {
   console.log('Pong received')
 }
 
+const handleTrainingError = (message: any) => {
+  if (message.session_id === sessionId.value) {
+    const errorMsg = message.error_message || message.message || 'Unknown error occurred'
+    const errorType = message.error_type || 'unknown'
+
+    trainingStatus.value = 'error'
+    statusMessage.value = `Error (${errorType}): ${errorMsg}`
+    statusType.value = 'error'
+    showStatusAlert.value = true
+  }
+}
+
+const handleEnvironmentUpdate = (message: any) => {
+  if (message.session_id === sessionId.value) {
+    // Update robot position
+    if (message.robot_position) {
+      robotPosition.value = {
+        x: message.robot_position.x ?? message.robot_position[0] ?? 0,
+        y: message.robot_position.y ?? message.robot_position[1] ?? 0,
+      }
+    }
+
+    // Update action and reward
+    lastAction.value = message.action_taken || message.action || ''
+    lastReward.value = message.reward_received ?? message.reward ?? 0
+  }
+}
+
 onMounted(() => {
   // Register message handlers
   on('training_progress', handleTrainingProgress)
   on('training_status', handleTrainingStatus)
+  on('training_error', handleTrainingError)
+  on('environment_update', handleEnvironmentUpdate)
   on('connection_ack', handleConnectionAck)
   on('pong', handlePong)
 
@@ -62,6 +126,8 @@ onBeforeUnmount(() => {
   // Cleanup
   off('training_progress')
   off('training_status')
+  off('training_error')
+  off('environment_update')
   off('connection_ack')
   off('pong')
   disconnect()
@@ -81,6 +147,18 @@ onBeforeUnmount(() => {
       {{ error }}
     </el-alert>
 
+    <el-alert
+      v-if="showStatusAlert"
+      :type="statusType"
+      :closable="true"
+      show-icon
+      style="margin-bottom: 20px"
+      @close="showStatusAlert = false"
+    >
+      <template #title> Training Status: {{ trainingStatus }} </template>
+      {{ statusMessage }}
+    </el-alert>
+
     <el-card class="training-session__metrics">
       <template #header>
         <span>Real-time Metrics</span>
@@ -97,6 +175,26 @@ onBeforeUnmount(() => {
         </el-descriptions-item>
         <el-descriptions-item label="Loss">
           {{ currentMetrics.loss !== null ? currentMetrics.loss.toFixed(4) : 'N/A' }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-card>
+
+    <el-card v-if="robotPosition" class="training-session__environment">
+      <template #header>
+        <span>Environment State</span>
+      </template>
+      <el-descriptions :column="3" border>
+        <el-descriptions-item label="Robot Position X">
+          {{ robotPosition.x.toFixed(2) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="Robot Position Y">
+          {{ robotPosition.y.toFixed(2) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="Last Action">
+          {{ lastAction || 'N/A' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="Last Reward" :span="3">
+          {{ lastReward.toFixed(4) }}
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -121,6 +219,10 @@ onBeforeUnmount(() => {
   }
 
   &__metrics {
+    margin-bottom: 20px;
+  }
+
+  &__environment {
     margin-bottom: 20px;
   }
 }

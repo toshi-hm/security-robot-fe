@@ -83,5 +83,61 @@ describe('Training Session Page', () => {
     expect(props).toHaveProperty('episode')
     expect(props).toHaveProperty('reward')
     expect(props).toHaveProperty('loss')
+    expect(props).toHaveProperty('coverageRatio')
+    expect(props).toHaveProperty('explorationScore')
+  })
+
+  it('registers all WebSocket event handlers on mount', () => {
+    const mockOn = vi.fn()
+    vi.stubGlobal('useWebSocket', () => ({
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      isConnected: { value: false },
+      error: { value: null },
+      on: mockOn,
+      off: vi.fn(),
+    }))
+
+    mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
+    })
+
+    expect(mockOn).toHaveBeenCalledWith('training_progress', expect.any(Function))
+    expect(mockOn).toHaveBeenCalledWith('training_status', expect.any(Function))
+    expect(mockOn).toHaveBeenCalledWith('training_error', expect.any(Function))
+    expect(mockOn).toHaveBeenCalledWith('environment_update', expect.any(Function))
+    expect(mockOn).toHaveBeenCalledWith('connection_ack', expect.any(Function))
+    expect(mockOn).toHaveBeenCalledWith('pong', expect.any(Function))
+  })
+
+  it('does not show status alert initially', () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
+    })
+
+    const alerts = wrapper.findAll('.el-alert')
+    // Only connection error alert might be present
+    expect(alerts.length).toBeLessThanOrEqual(1)
+  })
+
+  it('does not show environment card when robotPosition is null', () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+        },
+      },
+    })
+
+    const envCards = wrapper.findAll('.training-session__environment')
+    expect(envCards.length).toBe(0)
   })
 })
