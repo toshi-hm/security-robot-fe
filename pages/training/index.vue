@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+
 import TrainingControl from '~/components/training/TrainingControl.vue'
 
-const { sessions, fetchSessions, isLoading, currentSession } = useTraining()
+const { sessions, fetchSessions, isLoading } = useTraining()
 const router = useRouter()
 
 // Real-time updates via WebSocket
@@ -10,9 +11,9 @@ const activeSessionIds = ref<Set<number>>(new Set())
 
 onMounted(async () => {
   await fetchSessions()
-  
+
   // Track active sessions
-  sessions.value.forEach(session => {
+  sessions.value.forEach((session) => {
     if (session.isRunning) {
       activeSessionIds.value.add(session.id)
     }
@@ -25,22 +26,33 @@ const handleSessionClick = (sessionId: number) => {
 
 const getStatusType = (status: string) => {
   switch (status) {
-    case 'running': return 'success'
-    case 'paused': return 'warning'
-    case 'completed': return 'info'
-    case 'failed': return 'danger'
-    default: return ''
+    case 'running':
+      return 'success'
+    case 'paused':
+      return 'warning'
+    case 'completed':
+      return 'info'
+    case 'failed':
+      return 'danger'
+    default:
+      return ''
   }
 }
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'running': return '実行中'
-    case 'paused': return '一時停止'
-    case 'completed': return '完了'
-    case 'failed': return '失敗'
-    case 'created': return '作成済み'
-    default: return status
+    case 'running':
+      return '実行中'
+    case 'paused':
+      return '一時停止'
+    case 'completed':
+      return '完了'
+    case 'failed':
+      return '失敗'
+    case 'created':
+      return '作成済み'
+    default:
+      return status
   }
 }
 </script>
@@ -55,21 +67,21 @@ const getStatusText = (status: string) => {
       <TrainingControl />
     </el-card>
 
-    <el-card class="training-page__sessions" v-loading="isLoading">
+    <el-card v-loading="isLoading" class="training-page__sessions">
       <template #header>
         <div class="training-page__sessions-header">
           <span>Active Sessions</span>
-          <el-button size="small" @click="fetchSessions" :loading="isLoading">
+          <el-button size="small" :loading="isLoading" @click="fetchSessions">
             <i class="el-icon-refresh"></i> Refresh
           </el-button>
         </div>
       </template>
 
-      <el-table 
-        :data="sessions" 
+      <el-table
+        :data="sessions"
         style="width: 100%"
+        :row-class-name="({ row }) => (row.isRunning ? 'active-row' : '')"
         @row-click="handleSessionClick"
-        :row-class-name="({row}) => row.isRunning ? 'active-row' : ''"
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="Name" min-width="150" />
@@ -87,17 +99,15 @@ const getStatusText = (status: string) => {
         </el-table-column>
         <el-table-column label="Progress" width="120">
           <template #default="{ row }">
-            <el-progress 
-              :percentage="row.progress" 
+            <el-progress
+              :percentage="row.progress"
               :status="row.progress === 100 ? 'success' : undefined"
               :stroke-width="8"
             />
           </template>
         </el-table-column>
         <el-table-column label="Timestep" width="150">
-          <template #default="{ row }">
-            {{ row.currentTimestep }} / {{ row.totalTimesteps }}
-          </template>
+          <template #default="{ row }"> {{ row.currentTimestep }} / {{ row.totalTimesteps }} </template>
         </el-table-column>
         <el-table-column label="Episodes" width="100">
           <template #default="{ row }">
@@ -106,13 +116,7 @@ const getStatusText = (status: string) => {
         </el-table-column>
         <el-table-column label="Actions" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button 
-              type="primary" 
-              size="small"
-              @click.stop="handleSessionClick(row.id)"
-            >
-              View Details
-            </el-button>
+            <el-button type="primary" size="small" @click.stop="handleSessionClick(row.id)"> View Details </el-button>
           </template>
         </el-table-column>
       </el-table>

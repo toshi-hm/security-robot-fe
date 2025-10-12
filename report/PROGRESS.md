@@ -16,13 +16,13 @@
 - **テスト設計**: instructions/04_test_design_standalone.md
 
 ### ビルド・品質状況 ✅
-- **ビルド**: ✅ Success (1.95 MB, node-server preset)
-- **Lint**: ✅ 0 errors (24 warnings - test `any` types)
+- **ビルド**: ✅ Success (1.97 MB, node-server preset)
+- **Lint**: ✅ 0 errors (41 warnings - test `any` types)
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 309テスト (281 unit + 28 E2E)
-  - ✅ パス: 309テスト (100%)
+- **総テスト数**: 313テスト (285 unit + 28 E2E)
+  - ✅ パス: 313テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 68.99% (目標: 85%以上)
   - Lines: 68.99%
@@ -256,6 +256,7 @@
   - on/off: Message handler registration/removal
   - Auto-reconnect logic (max 5 attempts)
   - Error handling and state management
+  - Fixed: Added missing imports (onBeforeUnmount, readonly)
 - [x] Training Page real-time integration (pages/training/[sessionId]/index.vue)
   - WebSocket connection on mount
   - Real-time metrics display (timestep, episode, reward, loss)
@@ -264,12 +265,16 @@
   - Error alert display
   - Clean disconnect on unmount
 - [x] Test updates
-  - useWebSocket.spec.ts: Native WebSocket mocking (16 tests, lifecycle refinement needed)
+  - useWebSocket.spec.ts: Native WebSocket mocking (16 tests passing, 100%)
   - Training session page tests: useWebSocket mock added (4 tests passing)
-  - Total: 270 tests passing (94.4%)
+  - TrainingControl.spec.ts: Rewritten for new implementation (5 tests passing)
+  - training/index.spec.ts: Simplified with shallow rendering (4 tests passing)
+  - Global test setup: tests/setup.ts created for Nuxt auto-imports
+  - Total: 285 tests passing (100% success rate)
 - [x] Code quality fixes
   - Remove unused Socket.IO imports
-  - Fix ESLint errors (0 errors, 36 warnings)
+  - Fix ESLint errors (0 errors, 41 warnings - test `any` types acceptable)
+  - Remove unused variables (currentSession in training/index.vue)
 - [x] Build successful (1.97 MB)
 
 ### Phase 18: Training UI Enhancement - Session Management ✅
@@ -449,7 +454,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-12 22:30 (Session 017 - Training UI Enhancement Complete)
+**最終更新**: 2025-10-12 23:00 (Session 017 - Phase 17 WebSocket Integration Complete)
 **次回更新予定**: 次セッション開始時
 
 ---

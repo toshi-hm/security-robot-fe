@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { FormInstance } from 'element-plus'
+
 import type { TrainingConfig } from '~/libs/repositories/training/TrainingRepository'
+
+import type { FormInstance } from 'element-plus'
 
 const { createSession, isLoading } = useTraining()
 const router = useRouter()
@@ -59,12 +61,7 @@ const cancelForm = () => {
 <template>
   <div class="training-control">
     <div v-if="!showForm" class="training-control__start">
-      <el-button
-        type="primary"
-        size="large"
-        @click="showForm = true"
-        :icon="'el-icon-video-play'"
-      >
+      <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="showForm = true">
         Start New Training Session
       </el-button>
     </div>
@@ -74,18 +71,9 @@ const cancelForm = () => {
         <span>New Training Session Configuration</span>
       </template>
 
-      <el-form
-        ref="formRef"
-        :model="trainingConfig"
-        :rules="rules"
-        label-width="160px"
-        label-position="left"
-      >
+      <el-form ref="formRef" :model="trainingConfig" :rules="rules" label-width="160px" label-position="left">
         <el-form-item label="Session Name" prop="name">
-          <el-input
-            v-model="trainingConfig.name"
-            placeholder="e.g., PPO Training Run 1"
-          />
+          <el-input v-model="trainingConfig.name" placeholder="e.g., PPO Training Run 1" />
         </el-form-item>
 
         <el-row :gutter="20">
@@ -122,22 +110,12 @@ const cancelForm = () => {
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="Environment Width">
-              <el-input-number
-                v-model="trainingConfig.envWidth"
-                :min="5"
-                :max="50"
-                style="width: 100%"
-              />
+              <el-input-number v-model="trainingConfig.envWidth" :min="5" :max="50" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="Environment Height">
-              <el-input-number
-                v-model="trainingConfig.envHeight"
-                :min="5"
-                :max="50"
-                style="width: 100%"
-              />
+              <el-input-number v-model="trainingConfig.envHeight" :min="5" :max="50" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -184,13 +162,7 @@ const cancelForm = () => {
         </el-row>
 
         <el-form-item>
-          <el-button
-            type="primary"
-            @click="startTraining"
-            :loading="isLoading"
-          >
-            Start Training
-          </el-button>
+          <el-button type="primary" :loading="isLoading" @click="startTraining"> Start Training </el-button>
           <el-button @click="cancelForm">Cancel</el-button>
         </el-form-item>
       </el-form>
