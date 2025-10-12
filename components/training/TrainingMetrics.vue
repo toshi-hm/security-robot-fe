@@ -8,6 +8,8 @@ interface RealtimeMetrics {
   episode: number
   reward: number
   loss: number | null
+  coverageRatio: number | null
+  explorationScore: number | null
 }
 
 interface Props {
@@ -112,6 +114,104 @@ const lossChartConfig: ChartConfiguration = {
 
 const lossChart = useChart(lossChartConfig)
 
+// Coverage Chart
+const coverageChartConfig: ChartConfiguration = {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Coverage Ratio',
+        data: [],
+        borderColor: 'rgb(54, 162, 235)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        tension: 0.1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Coverage Progress',
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Timestep',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Coverage Ratio',
+        },
+        min: 0,
+        max: 1,
+      },
+    },
+  },
+}
+
+const coverageChart = useChart(coverageChartConfig)
+
+// Exploration Chart
+const explorationChartConfig: ChartConfiguration = {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Exploration Score',
+        data: [],
+        borderColor: 'rgb(255, 206, 86)',
+        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+        tension: 0.1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Exploration Progress',
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Timestep',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Exploration Score',
+        },
+      },
+    },
+  },
+}
+
+const explorationChart = useChart(explorationChartConfig)
+
 // Watch for realtime metrics changes
 watch(
   () => props.realtimeMetrics,
@@ -125,6 +225,16 @@ watch(
     if (newMetrics.loss !== null) {
       lossChart.updateData(0, newMetrics.loss, timestepLabel, 100)
     }
+
+    // Update Coverage Chart (if available)
+    if (newMetrics.coverageRatio !== null) {
+      coverageChart.updateData(0, newMetrics.coverageRatio, timestepLabel, 100)
+    }
+
+    // Update Exploration Chart (if available)
+    if (newMetrics.explorationScore !== null) {
+      explorationChart.updateData(0, newMetrics.explorationScore, timestepLabel, 100)
+    }
   },
   { deep: true }
 )
@@ -135,6 +245,10 @@ const summaryStats = computed(() => ({
   currentEpisode: props.realtimeMetrics.episode,
   latestReward: props.realtimeMetrics.reward.toFixed(3),
   latestLoss: props.realtimeMetrics.loss !== null ? props.realtimeMetrics.loss.toFixed(4) : 'N/A',
+  latestCoverage:
+    props.realtimeMetrics.coverageRatio !== null ? (props.realtimeMetrics.coverageRatio * 100).toFixed(1) + '%' : 'N/A',
+  latestExploration:
+    props.realtimeMetrics.explorationScore !== null ? props.realtimeMetrics.explorationScore.toFixed(3) : 'N/A',
 }))
 </script>
 
@@ -147,19 +261,19 @@ const summaryStats = computed(() => ({
             <span>Current Metrics</span>
           </template>
           <el-row :gutter="20">
-            <el-col :span="6">
+            <el-col :span="4">
               <div class="metric-item">
                 <div class="metric-item__label">Timestep</div>
                 <div class="metric-item__value">{{ summaryStats.currentTimestep }}</div>
               </div>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="4">
               <div class="metric-item">
                 <div class="metric-item__label">Episode</div>
                 <div class="metric-item__value">{{ summaryStats.currentEpisode }}</div>
               </div>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="4">
               <div class="metric-item">
                 <div class="metric-item__label">Reward</div>
                 <div class="metric-item__value metric-item__value--reward">
@@ -167,11 +281,27 @@ const summaryStats = computed(() => ({
                 </div>
               </div>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="4">
               <div class="metric-item">
                 <div class="metric-item__label">Loss</div>
                 <div class="metric-item__value metric-item__value--loss">
                   {{ summaryStats.latestLoss }}
+                </div>
+              </div>
+            </el-col>
+            <el-col :span="4">
+              <div class="metric-item">
+                <div class="metric-item__label">Coverage</div>
+                <div class="metric-item__value metric-item__value--coverage">
+                  {{ summaryStats.latestCoverage }}
+                </div>
+              </div>
+            </el-col>
+            <el-col :span="4">
+              <div class="metric-item">
+                <div class="metric-item__label">Exploration</div>
+                <div class="metric-item__value metric-item__value--exploration">
+                  {{ summaryStats.latestExploration }}
                 </div>
               </div>
             </el-col>
@@ -198,6 +328,29 @@ const summaryStats = computed(() => ({
           </template>
           <div class="chart-container">
             <canvas ref="lossChart.canvas" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" style="margin-top: 20px">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span>Coverage Chart</span>
+          </template>
+          <div class="chart-container">
+            <canvas ref="coverageChart.canvas" />
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span>Exploration Chart</span>
+          </template>
+          <div class="chart-container">
+            <canvas ref="explorationChart.canvas" />
           </div>
         </el-card>
       </el-col>
@@ -229,6 +382,14 @@ const summaryStats = computed(() => ({
 
         &--loss {
           color: #f56c6c;
+        }
+
+        &--coverage {
+          color: #409eff;
+        }
+
+        &--exploration {
+          color: #e6a23c;
         }
       }
     }

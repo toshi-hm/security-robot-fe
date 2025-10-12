@@ -23,6 +23,8 @@ const mountComponent = (props = {}) => {
       episode: 0,
       reward: 0,
       loss: null,
+      coverageRatio: null,
+      explorationScore: null,
     },
   }
 
@@ -70,6 +72,8 @@ describe('TrainingMetrics.vue', () => {
       episode: 10,
       reward: 123.456,
       loss: 0.0234,
+      coverageRatio: 0.75,
+      explorationScore: 0.85,
     }
     const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
 
@@ -85,6 +89,8 @@ describe('TrainingMetrics.vue', () => {
       episode: 5,
       reward: 50.5,
       loss: null,
+      coverageRatio: null,
+      explorationScore: null,
     }
     const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
 
@@ -105,7 +111,7 @@ describe('TrainingMetrics.vue', () => {
     const wrapper = mountComponent()
     const canvases = wrapper.findAll('canvas')
 
-    // Should have 2 canvas elements (reward and loss)
-    expect(canvases.length).toBe(2)
+    // Should have 4 canvas elements (reward, loss, coverage, exploration)
+    expect(canvases.length).toBe(4)
   })
 })

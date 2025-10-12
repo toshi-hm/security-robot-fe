@@ -15,6 +15,8 @@ const currentMetrics = ref({
   episode: 0,
   reward: 0,
   loss: null as number | null,
+  coverageRatio: null as number | null,
+  explorationScore: null as number | null,
 })
 
 // WebSocket message handlers
@@ -25,6 +27,8 @@ const handleTrainingProgress = (message: any) => {
       episode: message.data?.episode || message.episode || 0,
       reward: message.data?.reward || message.reward || 0,
       loss: message.data?.loss ?? message.loss ?? null,
+      coverageRatio: message.data?.coverage_ratio ?? message.coverage_ratio ?? null,
+      explorationScore: message.data?.exploration_score ?? message.exploration_score ?? null,
     }
   }
 }
