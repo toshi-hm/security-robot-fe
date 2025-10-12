@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-13
+最終更新日: 2025-10-13 (Session 021)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,8 +21,8 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 317テスト (289 unit + 28 E2E)
-  - ✅ パス: 317テスト (100%)
+- **総テスト数**: 320テスト (292 unit + 28 E2E)
+  - ✅ パス: 320テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 68.99% (目標: 85%以上)
   - Lines: 68.99%
@@ -350,11 +350,45 @@
   - All 289 tests passing (100%)
 - [x] Build successful (1.97 MB)
 
+### Phase 21: WebSocket Features Enhancement ✅
+- [x] Training Status Handler enhancement
+  - Display status notifications as UI alerts
+  - Auto-determine alert type (success/warning/error/info)
+  - Status types: running, started, completed, paused, failed, error
+  - Auto-hide after 5 seconds (except errors)
+  - User can manually close alerts
+- [x] Training Error Handler implementation
+  - New handler for training_error WebSocket messages
+  - Display error messages with error type
+  - Persistent error alerts (no auto-hide)
+  - Format: "Error ({error_type}): {error_message}"
+- [x] Environment Update Handler implementation
+  - New handler for environment_update WebSocket messages
+  - Track robot position (x, y coordinates)
+  - Display last action taken by robot
+  - Show last reward received
+  - Support both object and array formats for position
+- [x] UI enhancements
+  - Status Alert card with dynamic type and closable design
+  - Environment State card (conditional display)
+  - Real-time display: Robot Position X/Y, Last Action, Last Reward
+- [x] WebSocket event registration
+  - Added training_error event handler
+  - Added environment_update event handler
+  - Proper cleanup in onBeforeUnmount
+- [x] Test updates
+  - Training Session Page tests: 3 new tests
+  - All 6 WebSocket event handlers registration test
+  - Initial UI state tests
+  - All 292 tests passing (100%)
+- [x] Build successful (1.97 MB)
+
 ### 次フェーズ候補
-- [ ] Phase 21: Additional WebSocket Features
-  - training_status message handler enhancement
-  - training_error message handler with user feedback
-  - environment_update visualization
+- [ ] Phase 22: Visual Environment Map
+  - 2D grid visualization of robot position
+  - Coverage heatmap overlay
+  - Real-time position updates
+  - Interactive map with zoom/pan
 - [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
@@ -502,7 +536,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-13 (Session 020 - Phase 20 Coverage & Exploration Charts Complete)
+**最終更新**: 2025-10-13 (Session 021 - Phase 21 WebSocket Features Enhancement Complete)
 **次回更新予定**: 次セッション開始時
 
 ---

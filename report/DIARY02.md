@@ -18,6 +18,93 @@
 
 ## 📝 セッション記録
 
+### Session 021 - Phase 21 WebSocket Features Enhancement (2025-10-13)
+
+**目的**: Phase 21完全達成 - WebSocket機能拡張（training_status, training_error, environment_update）
+
+**実施内容**:
+1. **Training Status Handler拡張**
+   - 問題: training_statusがconsole.logのみで、UIに表示されていない
+   - 解決:
+     - ステータスアラート表示機能追加
+     - ステータスタイプ自動判定（success/warning/error/info）
+     - running, started, completed, paused, failed, error対応
+     - 5秒後の自動非表示（エラーは永続）
+     - ユーザーによる手動クローズ対応
+
+2. **Training Error Handler追加**
+   - 新しいイベントハンドラー: handleTrainingError
+   - training_errorメッセージ受信
+   - エラー内容をアラート表示
+   - フォーマット: "Error ({error_type}): {error_message}"
+   - 永続的なエラー表示（自動非表示なし）
+
+3. **Environment Update Handler追加**
+   - 新しいイベントハンドラー: handleEnvironmentUpdate
+   - environment_updateメッセージ受信
+   - ロボット位置追跡 (x, y座標)
+   - 最後のアクション表示
+   - 最後の報酬表示
+   - オブジェクトと配列両フォーマット対応
+
+4. **UI拡張**
+   - Status Alert Card追加
+     - タイトル: Training Status
+     - 動的タイプ（success/warning/error/info）
+     - クローズ可能
+   - Environment State Card追加
+     - Robot Position X, Y (小数点2桁)
+     - Last Action
+     - Last Reward (小数点4桁)
+     - robotPositionがnullの場合は非表示
+
+5. **WebSocketイベント登録**
+   - on('training_error', handleTrainingError)
+   - on('environment_update', handleEnvironmentUpdate)
+   - off()でのクリーンアップ追加
+
+6. **Test更新**
+   - Training Session Page tests拡張
+     - 全6イベントハンドラー登録確認
+     - 初期状態でステータスアラート非表示確認
+     - robotPosition nullで環境カード非表示確認
+     - realtimeMetricsプロパティ拡張（coverageRatio, explorationScore）
+   - 全292テストパス (100%)
+
+7. **Code Quality**
+   - Lint fix実行: 0 errors, 45 warnings (acceptable)
+   - Build: 1.97 MB成功
+   - Tests: 292 passed (289 unit + 3 new tests)
+
+**成果物**:
+- ✅ Training Session Page: 3つの新WebSocketハンドラー追加
+- ✅ UI: Status Alert + Environment State Card
+- ✅ Test: 292 tests passing (100%)
+
+**技術的発見**:
+1. **ステータスベースのアラート表示**
+   - 5秒タイマーによる自動非表示が有効
+   - エラーのみ永続表示でユーザーの気づきを確保
+
+2. **柔軟なデータフォーマット対応**
+   - robot_position: オブジェクト ({x, y}) と配列 ([x, y]) 両対応
+   - message.data.* と message.* 両フォーマット対応
+   - バックエンドの変更に柔軟に対応可能
+
+3. **条件付きUI表示**
+   - v-if="robotPosition" でEnvironment Cardを条件表示
+   - データが利用可能になった時点で自動表示
+
+**次のステップ**:
+- [ ] Phase 22以降の継続 (次の要件に従う)
+- [ ] Chart export functionality (PNG/CSV download)
+- [ ] Visual environment map with robot position
+
+**時間**: 約45分
+**コミット**: Phase 21完全達成
+
+---
+
 ### Session 020 - Phase 20 Coverage & Exploration Charts (2025-10-13)
 
 **目的**: Phase 20完全達成 - Coverage & Exploration チャートの追加実装
