@@ -29,12 +29,27 @@ const TrainingMetricsStub = {
   props: ['realtimeMetrics'],
 }
 
+// Mock RobotPositionDisplay component
+const RobotPositionDisplayStub = {
+  name: 'RobotPositionDisplay',
+  template: '<div class="robot-position-stub"></div>',
+  props: ['position'],
+}
+
+// Mock EnvironmentVisualization component
+const EnvironmentVisualizationStub = {
+  name: 'EnvironmentVisualization',
+  template: '<div class="environment-visualization-stub"></div>',
+}
+
 describe('Training Session Page', () => {
   it('renders the page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -47,6 +62,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -59,6 +76,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -71,6 +90,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -102,6 +123,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -119,6 +142,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })
@@ -133,6 +158,8 @@ describe('Training Session Page', () => {
       global: {
         stubs: {
           TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
         },
       },
     })

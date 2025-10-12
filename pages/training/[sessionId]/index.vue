@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 
+import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
+import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 
 const route = useRoute()
@@ -29,6 +31,15 @@ const showStatusAlert = ref(false)
 const robotPosition = ref<{ x: number; y: number } | null>(null)
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
+
+// Computed property for RobotPositionDisplay (converts x,y to row,col)
+const robotPositionForDisplay = computed(() => {
+  if (!robotPosition.value) return null
+  return {
+    row: Math.round(robotPosition.value.y),
+    col: Math.round(robotPosition.value.x),
+  }
+})
 
 // WebSocket message handlers
 const handleTrainingProgress = (message: any) => {
@@ -179,25 +190,38 @@ onBeforeUnmount(() => {
       </el-descriptions>
     </el-card>
 
-    <el-card v-if="robotPosition" class="training-session__environment">
-      <template #header>
-        <span>Environment State</span>
-      </template>
-      <el-descriptions :column="3" border>
-        <el-descriptions-item label="Robot Position X">
-          {{ robotPosition.x.toFixed(2) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="Robot Position Y">
-          {{ robotPosition.y.toFixed(2) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="Last Action">
-          {{ lastAction || 'N/A' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="Last Reward" :span="3">
-          {{ lastReward.toFixed(4) }}
-        </el-descriptions-item>
-      </el-descriptions>
-    </el-card>
+    <el-row v-if="robotPosition" :gutter="20" style="margin-bottom: 20px">
+      <el-col :span="12">
+        <el-card class="training-session__environment">
+          <template #header>
+            <span>Environment Visualization</span>
+          </template>
+          <EnvironmentVisualization />
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="training-session__environment-info">
+          <template #header>
+            <span>Environment State</span>
+          </template>
+          <RobotPositionDisplay v-if="robotPositionForDisplay" :position="robotPositionForDisplay" />
+          <el-descriptions :column="2" border style="margin-top: 15px">
+            <el-descriptions-item label="Position X">
+              {{ robotPosition.x.toFixed(2) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Position Y">
+              {{ robotPosition.y.toFixed(2) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Last Action">
+              {{ lastAction || 'N/A' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Last Reward">
+              {{ lastReward.toFixed(4) }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </el-col>
+    </el-row>
 
     <TrainingMetrics :realtime-metrics="currentMetrics" />
   </div>
@@ -223,7 +247,16 @@ onBeforeUnmount(() => {
   }
 
   &__environment {
-    margin-bottom: 20px;
+    height: 400px;
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__environment-info {
+    height: 400px;
   }
 }
 </style>
