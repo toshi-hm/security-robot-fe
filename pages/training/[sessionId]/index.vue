@@ -31,6 +31,10 @@ const showStatusAlert = ref(false)
 const robotPosition = ref<{ x: number; y: number } | null>(null)
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
+const gridWidth = ref<number>(8)
+const gridHeight = ref<number>(8)
+const coverageMap = ref<boolean[][]>([])
+const threatGrid = ref<number[][]>([])
 
 // Computed property for RobotPositionDisplay (converts x,y to row,col)
 const robotPositionForDisplay = computed(() => {
@@ -117,6 +121,20 @@ const handleEnvironmentUpdate = (message: any) => {
     // Update action and reward
     lastAction.value = message.action_taken || message.action || ''
     lastReward.value = message.reward_received ?? message.reward ?? 0
+
+    // Update grid dimensions if provided
+    if (message.grid_width) gridWidth.value = message.grid_width
+    if (message.grid_height) gridHeight.value = message.grid_height
+
+    // Update coverage map if provided
+    if (message.coverage_map) {
+      coverageMap.value = message.coverage_map
+    }
+
+    // Update threat grid if provided
+    if (message.threat_grid) {
+      threatGrid.value = message.threat_grid
+    }
   }
 }
 
@@ -196,7 +214,13 @@ onBeforeUnmount(() => {
           <template #header>
             <span>Environment Visualization</span>
           </template>
-          <EnvironmentVisualization />
+          <EnvironmentVisualization
+            :grid-width="gridWidth"
+            :grid-height="gridHeight"
+            :robot-position="robotPosition"
+            :coverage-map="coverageMap"
+            :threat-grid="threatGrid"
+          />
         </el-card>
       </el-col>
       <el-col :span="12">
