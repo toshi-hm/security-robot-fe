@@ -136,7 +136,7 @@ const handleBack = () => {
             @pause="handlePause"
             @stop="handleStop"
           />
-          <PlaybackSpeed :speed="playbackStore.playbackSpeed" @update:speed="handleSpeedChange" />
+          <PlaybackSpeed :model-value="playbackStore.playbackSpeed" @update:model-value="handleSpeedChange" />
         </div>
 
         <!-- Timeline -->
@@ -154,8 +154,8 @@ const handleBack = () => {
             <el-descriptions-item label="フレーム">
               {{ playbackStore.currentFrameIndex + 1 }} / {{ playbackStore.frames.length }}
             </el-descriptions-item>
-            <el-descriptions-item label="タイムステップ">
-              {{ currentFrame.timestep }}
+            <el-descriptions-item label="フレーム番号">
+              {{ playbackStore.currentFrameIndex }}
             </el-descriptions-item>
             <el-descriptions-item label="報酬">
               {{ currentFrame.reward?.toFixed(2) || 'N/A' }}
@@ -170,13 +170,16 @@ const handleBack = () => {
         <div class="playback-detail__visualization">
           <div class="playback-detail__environment">
             <h3>環境状態</h3>
-            <EnvironmentVisualization v-if="currentFrame?.state" :environment-state="currentFrame.state" />
+            <EnvironmentVisualization v-if="currentFrame?.environmentState" :environment-state="currentFrame.environmentState" />
             <el-empty v-else description="環境データがありません" />
           </div>
 
           <div class="playback-detail__robot">
             <h3>ロボット位置</h3>
-            <RobotPositionDisplay v-if="currentFrame?.state?.robot" :position="currentFrame.state.robot" />
+            <RobotPositionDisplay
+              v-if="currentFrame?.environmentState && typeof currentFrame.environmentState === 'object' && 'robot' in currentFrame.environmentState"
+              :position="(currentFrame.environmentState as any).robot"
+            />
             <el-empty v-else description="ロボットデータがありません" />
           </div>
         </div>

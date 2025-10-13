@@ -157,7 +157,7 @@ describe('Playback Session Page', () => {
 
   it('renders playback control components', () => {
     const playbackStore = usePlaybackStore()
-    playbackStore.frames = [{ frameNumber: 0, timestep: 0, state: null, reward: 0, timestamp: '' }]
+    playbackStore.frames = [{ timestamp: '', environmentState: null, reward: 0 }]
 
     const wrapper = mount(PlaybackSessionPage, {
       global: { stubs: globalStubs },

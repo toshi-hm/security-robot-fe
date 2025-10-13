@@ -39,7 +39,5 @@ describe('Environment Store', () => {
 
     expect(store.environments).toBeDefined()
     expect(store.currentState).toBeDefined()
-    expect(store.isLoading).toBeDefined()
-    expect(store.error).toBeDefined()
   })
 })

@@ -10,6 +10,8 @@ describe('useEnvironment', () => {
         {
           id: 'env-1',
           name: 'Test Environment 1',
+          width: 8,
+          height: 8,
           gridSize: { rows: 8, cols: 8 },
           threatMap: [
             [0.1, 0.2],
@@ -19,6 +21,8 @@ describe('useEnvironment', () => {
         {
           id: 'env-2',
           name: 'Test Environment 2',
+          width: 10,
+          height: 10,
           gridSize: { rows: 10, cols: 10 },
           threatMap: [
             [0.5, 0.6],
@@ -58,19 +62,19 @@ describe('useEnvironment', () => {
   describe('fetchState', () => {
     it('fetches and stores environment state', async () => {
       const mockState = {
-        environmentId: 'env-1',
-        robotPosition: { x: 3, y: 4 },
-        robotOrientation: 1,
-        threatGrid: [
-          [0.1, 0.2],
-          [0.3, 0.4],
-        ],
-        coverageMap: [
-          [true, false],
-          [false, true],
-        ],
-        suspiciousObjects: [],
-        timestamp: new Date('2024-01-01'),
+        definition: {
+          id: 'env-1',
+          name: 'Test Environment',
+          width: 10,
+          height: 10,
+          description: 'Test',
+        },
+        robot: {
+          position: { row: 3, col: 4 },
+          batteryLevel: 80,
+          sensorReadings: [0.1, 0.2, 0.3],
+        },
+        activeThreatLevel: 5,
       }
 
       const mockRepository: EnvironmentRepository = {
@@ -83,28 +87,38 @@ describe('useEnvironment', () => {
       await fetchState('env-1')
 
       expect(currentState.value).toEqual(mockState)
-      expect(currentState.value?.environmentId).toBe('env-1')
+      expect(currentState.value?.definition.id).toBe('env-1')
     })
 
     it('updates state when fetched multiple times', async () => {
       const mockState1 = {
-        environmentId: 'env-1',
-        robotPosition: { x: 0, y: 0 },
-        robotOrientation: 0,
-        threatGrid: [[0.1]],
-        coverageMap: [[false]],
-        suspiciousObjects: [],
-        timestamp: new Date('2024-01-01'),
+        definition: {
+          id: 'env-1',
+          name: 'Test Environment',
+          width: 10,
+          height: 10,
+        },
+        robot: {
+          position: { row: 0, col: 0 },
+          batteryLevel: 80,
+          sensorReadings: [0.1],
+        },
+        activeThreatLevel: 3,
       }
 
       const mockState2 = {
-        environmentId: 'env-1',
-        robotPosition: { x: 1, y: 1 },
-        robotOrientation: 2,
-        threatGrid: [[0.2]],
-        coverageMap: [[true]],
-        suspiciousObjects: [],
-        timestamp: new Date('2024-01-02'),
+        definition: {
+          id: 'env-1',
+          name: 'Test Environment',
+          width: 10,
+          height: 10,
+        },
+        robot: {
+          position: { row: 1, col: 1 },
+          batteryLevel: 70,
+          sensorReadings: [0.2],
+        },
+        activeThreatLevel: 5,
       }
 
       let callCount = 0

@@ -35,7 +35,7 @@ const getStatusType = (status: string) => {
     case 'failed':
       return 'danger'
     default:
-      return ''
+      return 'info'
   }
 }
 

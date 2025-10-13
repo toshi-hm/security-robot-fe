@@ -57,10 +57,9 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
       })
 
       // Convert metrics to PlaybackFrame format
-      return response.metrics.map((m: any, index: number) => ({
-        frameNumber: index,
-        timestep: m.timestep,
-        state: {
+      return response.metrics.map((m: any) => ({
+        timestamp: m.timestamp || new Date().toISOString(),
+        environmentState: {
           robot: { x: 0, y: 0, orientation: 0 }, // TODO: Get from environment data
           environment: {
             threatGrid: [],
@@ -68,7 +67,6 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
           },
         },
         reward: m.reward,
-        timestamp: m.timestamp || new Date().toISOString(),
       }))
     } catch (error) {
       console.error(`Failed to fetch playback frames for session ${sessionId}:`, error)

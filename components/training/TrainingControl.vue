@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import type { TrainingConfig } from '~/libs/repositories/training/TrainingRepository'
-
-import type { FormInstance } from 'element-plus'
+import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 
 const { createSession, isLoading } = useTraining()
 const router = useRouter()
 
-const formRef = ref<FormInstance>()
+const formRef = ref()
 const showForm = ref(false)
 
 const trainingConfig = ref<TrainingConfig>({
@@ -30,7 +28,7 @@ const rules = {
   ],
   totalTimesteps: [
     { required: true, message: 'Total timesteps is required', trigger: 'blur' },
-    { type: 'number', min: 1000, max: 1000000, message: 'Must be between 1,000 and 1,000,000', trigger: 'blur' },
+    { type: 'number' as 'number', min: 1000, max: 1000000, message: 'Must be between 1,000 and 1,000,000', trigger: 'blur' },
   ],
 }
 

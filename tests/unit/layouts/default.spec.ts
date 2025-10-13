@@ -82,11 +82,11 @@ describe('Default Layout', () => {
     })
 
     const menuItems = wrapper.findAllComponents(ElMenuItemStub)
-    expect(menuItems[0].props('index')).toBe('/')
-    expect(menuItems[1].props('index')).toBe('/training')
-    expect(menuItems[2].props('index')).toBe('/playback')
-    expect(menuItems[3].props('index')).toBe('/models')
-    expect(menuItems[4].props('index')).toBe('/settings')
+    expect(menuItems[0]?.props('index')).toBe('/')
+    expect(menuItems[1]?.props('index')).toBe('/training')
+    expect(menuItems[2]?.props('index')).toBe('/playback')
+    expect(menuItems[3]?.props('index')).toBe('/models')
+    expect(menuItems[4]?.props('index')).toBe('/settings')
   })
 
   it('has correct layout structure with grid', () => {

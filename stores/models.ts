@@ -94,7 +94,7 @@ export const useModelsStore = defineStore('models', () => {
     try {
       const success = await repository.deleteModel(fileId)
       if (success) {
-        models.value = models.value.filter((m) => m.id !== fileId)
+        models.value = models.value.filter((m) => m.summary.id !== fileId.toString())
       }
       return success
     } catch (err) {

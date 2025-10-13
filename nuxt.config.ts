@@ -1,6 +1,7 @@
+import type { NuxtConfig } from 'nuxt/schema'
 import { defineNuxtConfig } from 'nuxt/config'
 
-export default defineNuxtConfig({
+const config: ReturnType<typeof defineNuxtConfig> = defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
@@ -31,3 +32,5 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2025-01-01',
 })
+
+export default config

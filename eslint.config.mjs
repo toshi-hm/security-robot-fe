@@ -14,7 +14,8 @@ const __dirname = path.dirname(__filename)
 
 const gitignorePath = path.resolve(__dirname, '.gitignore')
 
-export default [
+/** @type {import('eslint').Linter.Config[]} */
+const config = [
   includeIgnoreFile(gitignorePath),
   {
     languageOptions: {
@@ -202,3 +203,5 @@ export default [
     },
   },
 ]
+
+export default config

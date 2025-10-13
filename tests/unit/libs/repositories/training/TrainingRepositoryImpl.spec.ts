@@ -3,10 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_ENDPOINTS } from '~/configs/api'
 import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
-declare global {
-  var $fetch: typeof fetch
-}
-
 describe('TrainingRepositoryImpl', () => {
   const repository = new TrainingRepositoryImpl()
   const fetchMock = vi.fn()

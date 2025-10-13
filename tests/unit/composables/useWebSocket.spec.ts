@@ -25,7 +25,7 @@ describe('useWebSocket', () => {
     }
 
     // グローバルWebSocketのモック設定
-    const MockWebSocket = vi.fn(() => mockWebSocket)
+    const MockWebSocket: any = vi.fn(() => mockWebSocket)
     MockWebSocket.CONNECTING = 0
     MockWebSocket.OPEN = 1
     MockWebSocket.CLOSING = 2

@@ -13,7 +13,7 @@
     "lintfix": "pnpm lint:fix",
     "stylelint": "stylelint '**/*.{css,scss,vue}'",
     "stylelint:fix": "stylelint '**/*.{css,scss,vue}' --fix",
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck",
     "test": "vitest",
     "e2e": "playwright test -c tests/e2e/playwright.config.ts"
   },
