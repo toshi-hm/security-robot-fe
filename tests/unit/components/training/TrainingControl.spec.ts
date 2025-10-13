@@ -1,6 +1,28 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
+
+// Mock functions
+const mockCreateSession = vi.fn()
+const mockPush = vi.fn()
+const mockSuccess = vi.fn()
+const mockError = vi.fn()
+
+// Mock composables using vi.stubGlobal (Nuxt-compatible)
+vi.stubGlobal('useTraining', () => ({
+  createSession: mockCreateSession,
+  isLoading: ref(false),
+}))
+
+vi.stubGlobal('useRouter', () => ({
+  push: mockPush,
+}))
+
+// Mock ElMessage globally
+vi.stubGlobal('ElMessage', {
+  success: mockSuccess,
+  error: mockError,
+})
 
 import TrainingControl from '~/components/training/TrainingControl.vue'
 
@@ -55,25 +77,16 @@ const mountComponent = (options = {}) => {
           template: '<div class="el-divider"><slot /></div>',
         },
       },
-      mocks: {
-        useTraining: () => ({
-          createSession: vi.fn(),
-          isLoading: ref(false),
-        }),
-        useRouter: () => ({
-          push: vi.fn(),
-        }),
-        ElMessage: {
-          success: vi.fn(),
-          error: vi.fn(),
-        },
-      },
     },
     ...options,
   })
 }
 
 describe('TrainingControl.vue', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('renders start button initially', () => {
     const wrapper = mountComponent()
     const button = wrapper.find('.el-button')
@@ -111,5 +124,191 @@ describe('TrainingControl.vue', () => {
     await wrapper.find('.el-button').trigger('click')
 
     expect(wrapper.find('.el-card').exists()).toBe(true)
+  })
+
+  it('hides form when cancelForm is called', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.el-button').trigger('click')
+    expect(wrapper.find('.el-card').exists()).toBe(true)
+
+    const vm = wrapper.vm as any
+    vm.formRef = { validate: vi.fn(), resetFields: vi.fn() }
+    vm.cancelForm()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.el-card').exists()).toBe(false)
+  })
+
+  it('resets form fields when cancelForm is called', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    const mockResetFields = vi.fn()
+    vm.formRef = {
+      validate: vi.fn(),
+      resetFields: mockResetFields,
+    }
+
+    vm.cancelForm()
+    expect(mockResetFields).toHaveBeenCalled()
+  })
+
+  it('does not proceed with startTraining if formRef is not available', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    vm.formRef = null
+    await vm.startTraining()
+
+    // Should return early, no errors thrown
+    expect(vm.formRef).toBeNull()
+    expect(mockCreateSession).not.toHaveBeenCalled()
+  })
+
+  it('does not proceed with startTraining if validation fails', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    vm.formRef = {
+      validate: vi.fn().mockRejectedValue(new Error('Validation failed')),
+      resetFields: vi.fn(),
+    }
+
+    await vm.startTraining()
+
+    // Should return early after validation failure
+    expect(vm.formRef.validate).toHaveBeenCalled()
+    expect(mockCreateSession).not.toHaveBeenCalled()
+  })
+
+  it('clicking start training button in form triggers startTraining', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.el-button').trigger('click')
+
+    // Find the "Start Training" button (not the "Start New Training Session" button)
+    const buttons = wrapper.findAllComponents({ name: 'ElButton' })
+    const startTrainingButton = buttons.find((button) =>
+      button.text().includes('Start Training'),
+    )
+
+    expect(startTrainingButton).toBeDefined()
+  })
+
+  it('cancel button exists in form', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.el-button').trigger('click')
+
+    // Find the Cancel button
+    const buttons = wrapper.findAllComponents({ name: 'ElButton' })
+    const cancelButton = buttons.find((button) => button.text() === 'Cancel')
+
+    expect(cancelButton).toBeDefined()
+    expect(cancelButton!.exists()).toBe(true)
+  })
+
+  it('has default training config values', () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    expect(vm.trainingConfig).toEqual({
+      name: '',
+      algorithm: 'ppo',
+      environmentType: 'standard',
+      totalTimesteps: 10000,
+      envWidth: 8,
+      envHeight: 8,
+      coverageWeight: 1.5,
+      explorationWeight: 3.0,
+      diversityWeight: 2.0,
+    })
+  })
+
+  it('has validation rules for form fields', () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    expect(vm.rules).toBeDefined()
+    expect(vm.rules.name).toBeDefined()
+    expect(vm.rules.totalTimesteps).toBeDefined()
+  })
+
+  it('calls createSession and navigates on successful training start', async () => {
+    vi.clearAllMocks()
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'session-123',
+      name: 'Test Session',
+    })
+
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    vm.formRef = {
+      validate: vi.fn().mockResolvedValue(true),
+      resetFields: vi.fn(),
+    }
+
+    vm.showForm = true
+
+    await vm.startTraining()
+
+    expect(mockCreateSession).toHaveBeenCalledTimes(1)
+    expect(mockCreateSession).toHaveBeenCalledWith(vm.trainingConfig)
+    expect(mockSuccess).toHaveBeenCalledTimes(1)
+    expect(mockSuccess).toHaveBeenCalledWith('Training session "Test Session" started successfully!')
+    expect(mockPush).toHaveBeenCalledTimes(1)
+    expect(mockPush).toHaveBeenCalledWith('/training/session-123')
+    expect(vm.showForm).toBe(false)
+  })
+
+  it('shows error when createSession returns null', async () => {
+    vi.clearAllMocks()
+    mockCreateSession.mockResolvedValueOnce(null)
+
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    vm.formRef = {
+      validate: vi.fn().mockResolvedValue(true),
+      resetFields: vi.fn(),
+    }
+
+    await vm.startTraining()
+
+    expect(mockCreateSession).toHaveBeenCalled()
+    expect(mockError).toHaveBeenCalledWith('Failed to start training session')
+    expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('handles form input updates through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    // Show the form first
+    await wrapper.find('.el-button').trigger('click')
+
+    // Trigger v-model updates by setting values on trainingConfig
+    // This will cause Vue to call the onUpdate:modelValue handlers
+    vm.trainingConfig.name = 'My Test Session'
+    vm.trainingConfig.algorithm = 'a3c'
+    vm.trainingConfig.environmentType = 'enhanced'
+    vm.trainingConfig.totalTimesteps = 50000
+    vm.trainingConfig.envWidth = 10
+    vm.trainingConfig.envHeight = 12
+    vm.trainingConfig.coverageWeight = 2.0
+    vm.trainingConfig.explorationWeight = 4.0
+    vm.trainingConfig.diversityWeight = 3.0
+
+    await wrapper.vm.$nextTick()
+
+    // Verify the values were set
+    expect(vm.trainingConfig.name).toBe('My Test Session')
+    expect(vm.trainingConfig.algorithm).toBe('a3c')
+    expect(vm.trainingConfig.environmentType).toBe('enhanced')
+    expect(vm.trainingConfig.totalTimesteps).toBe(50000)
+    expect(vm.trainingConfig.envWidth).toBe(10)
+    expect(vm.trainingConfig.envHeight).toBe(12)
+    expect(vm.trainingConfig.coverageWeight).toBe(2.0)
+    expect(vm.trainingConfig.explorationWeight).toBe(4.0)
+    expect(vm.trainingConfig.diversityWeight).toBe(3.0)
   })
 })

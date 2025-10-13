@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-13 (Session 023)
+最終更新日: 2025-10-13 (Session 024)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,15 +21,15 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 324テスト (296 unit + 28 E2E)
-  - ✅ パス: 324テスト (100%)
+- **総テスト数**: 373テスト (ユニットテスト)
+  - ✅ パス: 373テスト (100%)
   - ❌ 失敗: 0テスト
-- **Unit Test Coverage**: 68.99% (目標: 85%以上)
-  - Lines: 68.99%
-  - Functions: 80.8%
-  - Branches: 82.08%
-  - Statements: 68.99%
-- **初期カバレッジ**: 26.99% → **+41.96pt 改善** (68.99%達成)
+- **Unit Test Coverage**: 76.67% (目標: 85%以上)
+  - Lines: 76.67%
+  - Functions: 60.78%
+  - Branches: 89.28%
+  - Statements: 76.67%
+- **初期カバレッジ**: 26.99% → **+49.68pt 改善** (76.67%達成)
 
 ---
 
@@ -125,7 +125,7 @@
 - [x] RobotPositionDisplay.vue (5テスト, 100%カバレッジ)
 - [x] CoverageMap.vue (5テスト, 100%カバレッジ)
 - [x] ThreatLevelMap.vue (5テスト, 100%カバレッジ)
-- [x] PlaybackControl.vue (7テスト, 100%カバレッジ)
+- [x] PlaybackControl.vue (10テスト, 100%カバレッジ)
 - [x] PlaybackSpeed.vue (5テスト, 100%カバレッジ)
 - [x] PlaybackTimeline.vue (5テスト, 100%カバレッジ)
 - [x] RewardChart.vue (5テスト, 100%カバレッジ)

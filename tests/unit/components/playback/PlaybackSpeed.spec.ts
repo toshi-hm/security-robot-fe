@@ -77,4 +77,29 @@ describe('PlaybackSpeed', () => {
     const select = wrapper.findComponent(ElSelectStub)
     expect(select.props('placeholder')).toBe('Speed')
   })
+
+  it('emits update:modelValue when handleUpdate is called', async () => {
+    const wrapper = mount(PlaybackSpeed, {
+      props: { modelValue: 1 },
+      global: { stubs: globalStubs },
+    })
+
+    const select = wrapper.findComponent(ElSelectStub)
+    await select.vm.$emit('update:modelValue', 2)
+
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([2])
+  })
+
+  it('emits correct value when speed changes', async () => {
+    const wrapper = mount(PlaybackSpeed, {
+      props: { modelValue: 1 },
+      global: { stubs: globalStubs },
+    })
+
+    const select = wrapper.findComponent(ElSelectStub)
+    await select.vm.$emit('update:modelValue', 0.5)
+
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([0.5])
+  })
 })
