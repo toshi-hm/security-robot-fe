@@ -11,8 +11,8 @@ const ElSpaceStub = {
 
 const ElButtonStub = {
   name: 'ElButton',
-  template: '<button class="el-button"><slot /></button>',
-  props: ['type'],
+  template: '<button class="el-button" :disabled="disabled"><slot /></button>',
+  props: ['type', 'disabled'],
 }
 
 describe('PlaybackControl', () => {
@@ -23,6 +23,7 @@ describe('PlaybackControl', () => {
 
   it('renders all control buttons', () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -32,6 +33,7 @@ describe('PlaybackControl', () => {
 
   it('renders play button with primary type', () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -43,6 +45,7 @@ describe('PlaybackControl', () => {
 
   it('renders pause button', () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -53,6 +56,7 @@ describe('PlaybackControl', () => {
 
   it('renders stop button with danger type', () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -64,6 +68,7 @@ describe('PlaybackControl', () => {
 
   it('emits play event when play button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -76,6 +81,7 @@ describe('PlaybackControl', () => {
 
   it('emits pause event when pause button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: true },
       global: { stubs: globalStubs },
     })
 
@@ -88,6 +94,7 @@ describe('PlaybackControl', () => {
 
   it('emits stop event when stop button is clicked', async () => {
     const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
       global: { stubs: globalStubs },
     })
 
@@ -96,5 +103,49 @@ describe('PlaybackControl', () => {
 
     expect(wrapper.emitted('stop')).toBeTruthy()
     expect(wrapper.emitted('stop')).toHaveLength(1)
+  })
+
+  it('disables play button and enables pause button when isPlaying is true', () => {
+    const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: true },
+      global: { stubs: globalStubs },
+    })
+
+    const buttons = wrapper.findAllComponents(ElButtonStub)
+    const playButton = buttons[0]!
+    const pauseButton = buttons[1]!
+
+    expect(playButton.props('disabled')).toBe(true)
+    expect(pauseButton.props('disabled')).toBe(false)
+  })
+
+  it('enables play button and disables pause button when isPlaying is false', () => {
+    const wrapper = mount(PlaybackControl, {
+      props: { isPlaying: false },
+      global: { stubs: globalStubs },
+    })
+
+    const buttons = wrapper.findAllComponents(ElButtonStub)
+    const playButton = buttons[0]!
+    const pauseButton = buttons[1]!
+
+    expect(playButton.props('disabled')).toBe(false)
+    expect(pauseButton.props('disabled')).toBe(true)
+  })
+
+  it('stop button is always enabled', () => {
+    const wrapperWhenPlaying = mount(PlaybackControl, {
+      props: { isPlaying: true },
+      global: { stubs: globalStubs },
+    })
+    const stopButtonWhenPlaying = wrapperWhenPlaying.findAllComponents(ElButtonStub)[2]!
+    expect(stopButtonWhenPlaying.props('disabled')).toBe(undefined)
+
+    const wrapperWhenPaused = mount(PlaybackControl, {
+      props: { isPlaying: false },
+      global: { stubs: globalStubs },
+    })
+    const stopButtonWhenPaused = wrapperWhenPaused.findAllComponents(ElButtonStub)[2]!
+    expect(stopButtonWhenPaused.props('disabled')).toBe(undefined)
   })
 })
