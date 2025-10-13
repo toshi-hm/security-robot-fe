@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-13 (Session 022)
+最終更新日: 2025-10-13 (Session 023)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -17,7 +17,7 @@
 
 ### ビルド・品質状況 ✅
 - **ビルド**: ✅ Success (1.97 MB, node-server preset)
-- **Lint**: ✅ 0 errors (41 warnings - test `any` types)
+- **Lint**: ✅ 0 errors (55 warnings - test `any` types)
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
@@ -101,6 +101,11 @@
 - [x] 依存性注入パターン適用
 - [x] Chart.jsコンストラクタモック対応
 - [x] **Composables層全体: 92.47%カバレッジ (目標85%超過 +7.47pt)** 🏆
+
+#### ✅ useModels (完成)
+- [x] useModels.ts - 新規作成 (Session 023)
+- [x] 依存性注入パターン適用
+- [x] 関数内での遅延初期化によるPinia初期化タイミング問題解決
 
 ---
 
@@ -415,6 +420,38 @@
   - Build successful (1.97 MB)
 - [x] Git commit: "feat: Implement Phase 22 - Environment Visualization Integration"
 
+### Phase 23: Models Page Bug Fix & Composable Pattern ✅
+- [x] Models Page Pinia initialization error fix
+  - Issue: `getActivePinia()` was called but there was no active Pinia
+  - Root cause: Default parameter evaluation timing in `useModels` composable
+- [x] Backend API schema alignment
+  - ModelEntity updated to match `FileMetadataResponse` from backend
+  - Properties: id, filename, original_filename, file_size, created_at, etc.
+  - Removed obsolete domain files (Model.ts, ModelMetadata.ts)
+- [x] UI component fixes
+  - Property name corrections (size → file_size, uploaded_at → created_at)
+  - Element Plus icon integration (@element-plus/icons-vue)
+  - UploadFilled icon explicit import
+- [x] Composable pattern migration
+  - composables/useModels.ts created (dependency injection pattern)
+  - Lazy initialization: `repository || new ModelRepositoryImpl()`
+  - stores/models.ts refactored to use composable service
+  - Consistent pattern with usePlayback
+- [x] Pinia plugin creation
+  - plugins/pinia.client.ts created
+  - Ensures Pinia instance initialization at app startup
+  - Reuses existing instance or creates new one
+  - Calls setActivePinia() for activation
+- [x] Files created/modified
+  - New: composables/useModels.ts, plugins/pinia.client.ts
+  - Modified: libs/entities/model/ModelEntity.ts, stores/models.ts, pages/models/index.vue
+  - Deleted: libs/domains/model/Model.ts, ModelMetadata.ts
+  - Dependency added: @element-plus/icons-vue: 2.3.2
+- [x] Verification
+  - TypeScript: 0 errors
+  - ESLint: 0 errors, 55 warnings (acceptable)
+  - `/models` page: Fully functional
+
 ### 次フェーズ候補
   - 2D grid visualization of robot position
   - Coverage heatmap overlay
@@ -567,7 +604,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-13 (Session 022 - Phase 22 Environment Visualization Integration Complete)
+**最終更新**: 2025-10-13 (Session 023 - Models Page Pinia Fix Complete)
 **次回更新予定**: 次セッション開始時
 
 ---
@@ -575,9 +612,9 @@ export const useEnvironment = (
 ## 🎉 プロジェクト完了状況
 
 ### Testing Suite完全達成 ✅
-- **Phase 7-22**: 全フェーズ完了
+- **Phase 7-23**: 全フェーズ完了
 - **Total Tests**: 324 (296 unit + 28 E2E) - 100% passing
-- **Build**: ✅ Production ready
+- **Build**: ✅ Production ready (1.97 MB)
 - **Code Quality**: ✅ Lint clean, TypeScript strict
 
 ### 次のステップ

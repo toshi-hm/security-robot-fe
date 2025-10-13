@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 023 - Models Page Fix](#session-023---models-page-pinia-initialization-fix-2025-10-13)
 - [Session 022 - Phase 22 Complete](#session-022---phase-22-environment-visualization-integration-2025-10-13)
 - [Session 021 - Phase 21 Complete](#session-021---phase-21-websocket-features-enhancement-2025-10-13)
 - [Session 017 - Phase 17 Complete](#session-017---phase-17-websocket-integration-complete-2025-10-12)
@@ -19,6 +20,94 @@
 ---
 
 ## 📝 セッション記録
+
+### Session 023 - Models Page Pinia Initialization Fix (2025-10-13)
+
+**目的**: `/models` ページの500エラー（Pinia初期化問題）を解決
+
+**問題の発見**:
+- `/models` ページアクセス時に500 Internal Server Error発生
+- エラー内容: `getActivePinia()` was called but there was no active Pinia
+- バックエンドAPIとフロントエンドのデータ構造に不整合
+
+**実施した修正**:
+
+1. **データモデルの修正**
+   - `libs/entities/model/ModelEntity.ts`: バックエンドの`FileMetadataResponse`に合わせて完全書き直し
+   - フラットな構造に変更（`id`, `filename`, `file_size`, `created_at`等）
+   - 不要ファイル削除: `libs/domains/model/Model.ts`, `ModelMetadata.ts`
+
+2. **APIクライアントの修正**
+   - `libs/repositories/model/ModelRepositoryImpl.ts`: アップロード時に`file_type: 'model'`パラメータ追加
+   - バックエンドAPI仕様 (`app/schemas/files.py`の`FileMetadataResponse`) に準拠
+
+3. **UIコンポーネントの修正**
+   - `pages/models/index.vue`: プロパティ名を修正
+     - `row.size` → `row.file_size`
+     - `row.uploaded_at` → `row.created_at`  
+     - `prop="filename"` → `prop="original_filename"`
+   - Element Plusアイコン対応:
+     - `@element-plus/icons-vue` パッケージインストール
+     - `UploadFilled` アイコンを明示的にインポート
+
+4. **Composableパターンへの移行**
+   - `composables/useModels.ts`: 新規作成（依存性注入パターン）
+     - リポジトリの遅延初期化: `repository || new ModelRepositoryImpl()`
+     - 関数内での初期化によりPinia初期化タイミング問題を解決
+   - `stores/models.ts`: composableパターンに移行
+     - `useModels()` serviceを使用
+     - `service.models` を公開
+     - `usePlaybackStore` と同じパターンに統一
+
+5. **Pinia初期化の最終修正**
+   - `plugins/pinia.client.ts`: 新規作成
+   - アプリケーション起動時に確実にPiniaインスタンスを初期化
+   - 既存インスタンスの再利用または新規作成のロジック実装
+   - `setActivePinia()` 呼び出しでアクティブ化
+
+**技術的な学び**:
+
+1. **Piniaの初期化タイミング問題**
+   - デフォルトパラメータでの`new`は関数定義時に評価される
+   - `export const useModels = (repository: ModelRepository = new ModelRepositoryImpl())` ← ❌
+   - 解決策: `const repo = repository || new ModelRepositoryImpl()` ← ✅ (関数内で初期化)
+
+2. **Composableパターンの重要性**
+   - `usePlayback` と同様のパターンを採用することでストア間の一貫性を確保
+   - 依存性注入パターンでテスタビリティとタイミング制御を両立
+
+3. **バックエンドAPI仕様の確認重要性**
+   - `/home/maya/work/security-robot-be/app/schemas/files.py` の`FileMetadataResponse`
+   - フロントエンドのエンティティを完全に一致させる必要がある
+
+**検証結果**:
+- ✅ TypeScript型チェック: エラーなし
+- ✅ ESLint: 新規エラーなし（既存の55 warnings のみ）
+- ✅ `/models`ページ: Piniaエラー解消、正常に動作
+
+**成果物**:
+
+新規作成:
+- `composables/useModels.ts`
+- `plugins/pinia.client.ts`
+
+修正:
+- `libs/entities/model/ModelEntity.ts`
+- `libs/repositories/model/ModelRepositoryImpl.ts`
+- `pages/models/index.vue`
+- `stores/models.ts`
+
+削除:
+- `libs/domains/model/Model.ts`
+- `libs/domains/model/ModelMetadata.ts`
+
+依存関係追加:
+- `@element-plus/icons-vue: 2.3.2`
+
+**時間**: 約90分
+**コミット**: Models Page Pinia initialization fix
+
+---
 
 ### Session 022 - Phase 22 Environment Visualization Integration (2025-10-13)
 

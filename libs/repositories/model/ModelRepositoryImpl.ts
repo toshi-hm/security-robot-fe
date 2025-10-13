@@ -46,6 +46,7 @@ export class ModelRepositoryImpl implements ModelRepository {
       // Backend: POST /api/v1/files/ (multipart/form-data)
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('file_type', 'model') // Required by backend
       if (metadata) {
         formData.append('metadata', JSON.stringify(metadata))
       }

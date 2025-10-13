@@ -2,10 +2,7 @@ import { defineStore } from 'pinia'
 
 import { ref } from 'vue'
 
-import type { ModelEntity } from '~/libs/entities/model/ModelEntity'
-import { ModelRepositoryImpl } from '~/libs/repositories/model/ModelRepositoryImpl'
-
-const repository = new ModelRepositoryImpl()
+import { useModels } from '~/composables/useModels'
 
 /**
  * Models Store
@@ -14,7 +11,9 @@ const repository = new ModelRepositoryImpl()
  * Features: list, upload, download, delete
  */
 export const useModelsStore = defineStore('models', () => {
-  const models = ref<ModelEntity[]>([])
+  const service = useModels()
+
+  // Additional state for UI
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -26,7 +25,7 @@ export const useModelsStore = defineStore('models', () => {
     error.value = null
 
     try {
-      models.value = await repository.listModels()
+      await service.listModels()
     } catch (err) {
       error.value = 'モデル一覧の取得に失敗しました'
       console.error('Failed to fetch models:', err)
@@ -39,14 +38,12 @@ export const useModelsStore = defineStore('models', () => {
   /**
    * Upload a new model file
    */
-  const uploadModel = async (file: File, metadata?: Record<string, any>): Promise<ModelEntity> => {
+  const uploadModel = async (file: File, metadata?: Record<string, any>) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const newModel = await repository.uploadModel(file, metadata)
-      models.value.push(newModel)
-      return newModel
+      await service.uploadModel(file, metadata)
     } catch (err) {
       error.value = 'モデルのアップロードに失敗しました'
       console.error('Failed to upload model:', err)
@@ -64,7 +61,7 @@ export const useModelsStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const blob = await repository.downloadModel(fileId)
+      const blob = await service.downloadModel(fileId)
 
       // Create download link
       const url = window.URL.createObjectURL(blob)
@@ -92,10 +89,7 @@ export const useModelsStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const success = await repository.deleteModel(fileId)
-      if (success) {
-        models.value = models.value.filter((m) => m.summary.id !== fileId.toString())
-      }
+      const success = await service.deleteModel(fileId)
       return success
     } catch (err) {
       error.value = 'モデルの削除に失敗しました'
@@ -107,8 +101,10 @@ export const useModelsStore = defineStore('models', () => {
   }
 
   return {
-    // State
-    models,
+    // From service
+    models: service.models,
+
+    // Additional state
     isLoading,
     error,
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UploadFilled } from '@element-plus/icons-vue'
 import { onMounted, ref } from 'vue'
 
 import { useModelsStore } from '~/stores/models'
@@ -107,15 +108,15 @@ const formatDate = (date: string | Date): string => {
 
       <el-table v-else :data="modelsStore.models" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="filename" label="ファイル名" min-width="200" />
+        <el-table-column prop="original_filename" label="ファイル名" min-width="200" />
         <el-table-column label="サイズ" width="120">
           <template #default="{ row }">
-            {{ row.size ? formatFileSize(row.size) : 'N/A' }}
+            {{ row.file_size ? formatFileSize(row.file_size) : 'N/A' }}
           </template>
         </el-table-column>
         <el-table-column label="アップロード日時" width="200">
           <template #default="{ row }">
-            {{ row.uploaded_at ? formatDate(row.uploaded_at) : 'N/A' }}
+            {{ row.created_at ? formatDate(row.created_at) : 'N/A' }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
@@ -131,7 +132,7 @@ const formatDate = (date: string | Date): string => {
     <el-dialog v-model="uploadDialogVisible" title="モデルをアップロード" width="500px">
       <el-upload :auto-upload="false" :limit="1" :on-change="handleUploadChange" drag class="models__upload">
         <div class="models__upload-content">
-          <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">ファイルをドラッグ＆ドロップ、または<em>クリックして選択</em></div>
           <div class="el-upload__tip">.zip, .pth, .h5ファイルをアップロードできます</div>
         </div>
