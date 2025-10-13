@@ -11,6 +11,8 @@
 
 ## 📑 目次
 
+- [Session 026 - Test Refactoring & Enhancement](#session-026---test-refactoring--enhancement-2025-10-14)
+- [Session 025 - Settings Pages Implementation](#session-025---settings-pages-implementation-complete-2025-10-14)
 - [Session 024 - PlaybackControl Test Coverage Enhancement](#session-024---playbackcontrol-test-coverage-enhancement-2025-10-13)
 - [Session 023 - Models Page Fix](#session-023---models-page-pinia-initialization-fix-2025-10-13)
 - [Session 022 - Phase 22 Complete](#session-022---phase-22-environment-visualization-integration-2025-10-13)
@@ -21,6 +23,164 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-026---test-refactoring--enhancement-2025-10-14"></a>
+### Session 026 - Test Refactoring & Enhancement (2025-10-14)
+
+**目的**: テストの安定性と保守性を向上させるためのリファクタリング
+
+**実施内容**:
+
+1.  **Element Plus グローバルモック作成 (`tests/mocks/element-plus.ts`)**
+    *   `ElMessage`, `ElMessageBox`, `ElNotification` のための共有モックを作成。
+    *   これにより、各テストファイルで個別にモックを定義する必要がなくなり、一貫性が向上しました。
+
+2.  **TrainingControl テストの全面的な見直し (`tests/unit/components/training/TrainingControl.spec.ts`)**
+    *   **問題**: 既存のテストがコンポーネントの全機能をカバーしていなかった。
+    *   **解決**: テストスイートを完全に書き直し、以下のシナリオを追加。
+        *   フォーム表示・非表示のロジック検証。
+        *   フォームのキャンセル機能とリセット処理のテスト。
+        *   フォームバリデーションの成功・失敗ケースの検証。
+        *   `createSession` API呼び出しの成功・失敗シナリオのテスト。
+        *   API成功時の `ElMessage.success` 呼び出しと `useRouter().push()` での画面遷移を検証。
+        *   API失敗時の `ElMessage.error` 呼び出しを検証。
+        *   `v-model` による双方向データバインディングの更新をシミュレートするテスト。
+    *   **効果**: `TrainingControl` コンポーネントのインタラクションに関する信頼性が大幅に向上しました。
+
+**技術的発見**:
+
+*   **グローバルモック**: `vi.stubGlobal` を使用して、Nuxtのコンポーザブル (`useTraining`, `useRouter`) やグローバルオブジェクト (`ElMessage`) をテスト全体でモックするパターンを確立しました。
+*   **コンポーネントVMへのアクセス**: `wrapper.vm` を介してコンポーネントインスタンスのメソッドを直接呼び出し、内部ロジックをテストする手法を適用しました。
+*   **v-modelのテスト**: `wrapper.vm` のデータプロパティを直接変更し、`$nextTick()` を待つことで、`v-model` の更新を効果的にテストできることを確認しました。
+
+**成果物**:
+*   新規作成: `tests/mocks/element-plus.ts`
+*   修正: `tests/unit/components/training/TrainingControl.spec.ts`
+
+**時間**: 約30分
+**コミット**: `refactor(testing): improve test stability and coverage for TrainingControl`
+
+---
+
+### Session 025 - Settings Pages Implementation Complete (2025-10-14)
+
+**目的**: Phase 24 - Settings Pages完全実装（現在の設定表示、ナビゲーション、エラー修正）
+
+**実施内容**:
+
+1. **Settings Index Page Enhancement (pages/settings/index.vue)**
+   - **問題**: 設定カードに現在の設定値が表示されていない
+   - **解決**:
+     - LocalStorage統合: `loadSettings()` 関数でenvir onmentSettings/trainingSettingsを読み込み
+     - 現在の設定表示: `el-descriptions` コンポーネントで整然と表示
+     - 環境設定カード:
+       - グリッドサイズ: `8 × 8`
+       - 環境タイプ: `標準` / `拡張`
+       - 脅威レベル: カラーコード付きタグ（低=緑、中=黄、高=赤）
+       - 報酬重み: カバレッジ/探索/多様性の3値表示
+     - 学習設定カード:
+       - アルゴリズム: `PPO` / `A3C` （青タグ）
+       - 総タイムステップ: 桁区切り表示（`toLocaleString()`）
+       - 学習率、ガンマ、バッチサイズ/エポック
+     - ヘルパー関数: `getEnvironmentTypeLabel()`, `getThreatLevelLabel()`, `getAlgorithmLabel()`
+     - onMounted()で自動読み込み
+     - BEM CSS: カード最小高さ400px、レスポンシブレイアウト
+
+2. **Navigation Fixes**
+   - **問題1**: navigateTo() が直接@clickで呼ばれてVueエラー
+     - 解決: `goToEnvironmentSettings()` / `goToTrainingSettings()` ハンドラ関数作成
+     - `return navigateTo()` でPromiseを返す（Nuxt公式推奨）
+   - **問題2**: dayjs import error（Element Plusの内部依存）
+     - エラー: `The requested module does not provide an export named 'default'`
+     - 解決: `nuxt.config.ts` に以下追加
+       ```typescript
+       vite: {
+         optimizeDeps: { include: ['dayjs'] },
+         ssr: { noExternal: ['element-plus'] }
+       }
+       ```
+     - `element-plus` パッケージをdevDependenciesに追加
+
+3. **Settings Pages Enhancement**
+   - **Environment/Training Pages**: 「設定一覧に戻る」ボタン追加
+     - `goBack()` 関数: `return navigateTo('/settings')`
+     - `el-space` で3ボタンを整列（保存/リセット/戻る）
+   - **LocalStorage統合**: 既存実装（保存先の説明追加）
+     - キー: `environmentSettings`, `trainingSettings`
+     - フォーマット: JSON.stringify/parse
+     - メリット: ページリロード後も設定保持
+     - デメリット: ブラウザキャッシュクリアで消失、端末間共有不可
+
+4. **TypeScript Error Fixes**
+   - **useModels.spec.ts**: `updatedModels` に `as ModelEntity` 型アサーション追加
+   - **playback.spec.ts**: `store.frames` のref access修正
+     - 誤: `store.frames.value = [...] as any`
+     - 正: `(store.frames as any).value = [...]`
+     - 5箇所修正
+   - **element-plus type definitions**: devDependencyとして追加で解決
+
+5. **Test Updates**
+   - **settings/index.spec.ts**:
+     - `navigateTo`, `onMounted` グローバルスタブ追加
+     - `localStorage` モック追加
+     - `el-descriptions`, `el-descriptions-item`, `el-tag`, `el-space` スタブ追加
+   - **settings/environment.spec.ts & training.spec.ts**:
+     - `navigateTo` モック追加
+     - `el-space` スタブ追加
+   - 全373テストパス (100%)
+
+6. **Code Quality**
+   - Lint: 0 errors, 83 warnings (test `any` types - acceptable)
+   - TypeScript: 0 errors (strict mode)
+   - Build: 1.98 MB成功
+   - Prettier auto-fix適用
+
+**成果物**:
+- ✅ pages/settings/index.vue: 現在の設定表示機能完全実装
+- ✅ pages/settings/environment.vue: 戻るボタン追加
+- ✅ pages/settings/training.vue: 戻るボタン追加
+- ✅ nuxt.config.ts: dayjs最適化設定追加
+- ✅ package.json: element-plus, dayjs追加
+- ✅ Tests: 373 passing (12 settings tests)
+
+**技術的発見**:
+
+1. **Nuxt navigateTo() ベストプラクティス**
+   - 公式推奨: `return navigateTo()` でPromiseを返す
+   - テンプレートでの直接呼び出しは避け、ハンドラ関数でラップ
+   - 理由: Vueがライフサイクルとナビゲーションを適切に管理できる
+
+2. **Element PlusとVite最適化**
+   - dayjs: Element Plus内部で使用されるが、minified版がESM exportを提供しない
+   - 解決策: `vite.optimizeDeps.include: ['dayjs']` で事前バンドル
+   - SSR設定: `vite.ssr.noExternal: ['element-plus']` で一貫性確保
+
+3. **LocalStorage設計パターン**
+   - 保存: `localStorage.setItem(key, JSON.stringify(data))`
+   - 読み込み: `JSON.parse(localStorage.getItem(key))`
+   - エラーハンドリング: try-catchでパース失敗に対応
+   - マウント時読み込み: `onMounted(() => loadSettings())`
+
+4. **Element Plus Descriptions Component**
+   - 用途: Key-Value形式のデータ表示に最適
+   - Props: `:column="1"` で縦並び、`size="small"` でコンパクト
+   - Label幅: `:deep(.el-descriptions__label)` で統一幅設定
+
+5. **BEM CSS with Element Plus**
+   - カード高さ統一: `min-height: 400px` で視覚的バランス
+   - `:deep()` セレクタ: Element Plusコンポーネント内部スタイル上書き
+   - レスポンシブ: `el-row` / `el-col` の`:span`属性活用
+
+**次のステップ候補**:
+- [ ] Settings API integration (Backend連携でDB保存)
+- [ ] Settings export/import機能 (JSON file download/upload)
+- [ ] Settings validation enhancement (相関ルール追加)
+- [ ] Visual regression tests (スクリーンショット比較)
+
+**時間**: 約2時間
+**コミット**: Phase 24 Settings Pages Complete
+
+---
 
 ### Session 024 - PlaybackControl Test Coverage Enhancement (2025-10-13)
 

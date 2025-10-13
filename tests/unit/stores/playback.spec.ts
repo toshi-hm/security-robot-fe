@@ -163,7 +163,7 @@ describe('Playback Store', () => {
     it('should seek to valid frame index', () => {
       const store = usePlaybackStore()
       // Mock frames array by modifying the value property
-      store.frames.value = [{ id: 1 }, { id: 2 }, { id: 3 }] as any
+      ;(store.frames as any).value = [{ id: 1 }, { id: 2 }, { id: 3 }]
 
       store.seekToFrame(2)
       expect(store.currentFrameIndex).toBe(2)
@@ -171,7 +171,7 @@ describe('Playback Store', () => {
 
     it('should not seek to negative frame index', () => {
       const store = usePlaybackStore()
-      store.frames.value = [{ id: 1 }, { id: 2 }] as any
+      ;(store.frames as any).value = [{ id: 1 }, { id: 2 }]
       store.currentFrameIndex = 0
 
       store.seekToFrame(-1)
@@ -180,7 +180,7 @@ describe('Playback Store', () => {
 
     it('should not seek beyond frames length', () => {
       const store = usePlaybackStore()
-      store.frames.value = [{ id: 1 }, { id: 2 }] as any
+      ;(store.frames as any).value = [{ id: 1 }, { id: 2 }]
       store.currentFrameIndex = 0
 
       store.seekToFrame(5)
@@ -189,7 +189,7 @@ describe('Playback Store', () => {
 
     it('should seek to first frame (0)', () => {
       const store = usePlaybackStore()
-      store.frames.value = [{ id: 1 }, { id: 2 }, { id: 3 }] as any
+      ;(store.frames as any).value = [{ id: 1 }, { id: 2 }, { id: 3 }]
       store.currentFrameIndex = 2
 
       store.seekToFrame(0)
@@ -198,7 +198,7 @@ describe('Playback Store', () => {
 
     it('should seek to last frame', () => {
       const store = usePlaybackStore()
-      store.frames.value = [{ id: 1 }, { id: 2 }, { id: 3 }] as any
+      ;(store.frames as any).value = [{ id: 1 }, { id: 2 }, { id: 3 }]
 
       store.seekToFrame(2)
       expect(store.currentFrameIndex).toBe(2)

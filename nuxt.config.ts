@@ -23,6 +23,12 @@ const config: ReturnType<typeof defineNuxtConfig> = defineNuxtConfig({
     define: {
       global: 'globalThis',
     },
+    optimizeDeps: {
+      include: ['dayjs'],
+    },
+    ssr: {
+      noExternal: ['element-plus'],
+    },
   },
   elementPlus: {
     icon: 'ElIcon',

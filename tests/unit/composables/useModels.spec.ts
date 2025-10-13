@@ -75,15 +75,16 @@ describe('useModels', () => {
     })
 
     it('should update models when called multiple times', async () => {
-      const updatedModels = [...mockModels, {
-        ...mockModels[0],
-        id: 3,
-        filename: 'model3.pth',
-      }]
+      const updatedModels: ModelEntity[] = [
+        ...mockModels,
+        {
+          ...mockModels[0],
+          id: 3,
+          filename: 'model3.pth',
+        } as ModelEntity,
+      ]
 
-      vi.mocked(mockRepository.listModels)
-        .mockResolvedValueOnce(mockModels)
-        .mockResolvedValueOnce(updatedModels)
+      vi.mocked(mockRepository.listModels).mockResolvedValueOnce(mockModels).mockResolvedValueOnce(updatedModels)
 
       const { models, listModels } = useModels(mockRepository)
 

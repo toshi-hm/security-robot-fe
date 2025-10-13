@@ -187,9 +187,7 @@ describe('TrainingControl.vue', () => {
 
     // Find the "Start Training" button (not the "Start New Training Session" button)
     const buttons = wrapper.findAllComponents({ name: 'ElButton' })
-    const startTrainingButton = buttons.find((button) =>
-      button.text().includes('Start Training'),
-    )
+    const startTrainingButton = buttons.find((button) => button.text().includes('Start Training'))
 
     expect(startTrainingButton).toBeDefined()
   })
