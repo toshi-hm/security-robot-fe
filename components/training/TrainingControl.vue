@@ -177,8 +177,8 @@ const cancelForm = () => {
 <style lang="scss" scoped>
 .training-control {
   &__start {
-    text-align: center;
     padding: 40px 0;
+    text-align: center;
   }
 
   &__form {

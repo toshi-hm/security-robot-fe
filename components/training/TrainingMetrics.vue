@@ -362,19 +362,19 @@ const summaryStats = computed(() => ({
 .training-metrics {
   &__summary {
     .metric-item {
-      text-align: center;
       padding: 10px 0;
+      text-align: center;
 
       &__label {
-        font-size: 14px;
         color: #909399;
+        font-size: 14px;
         margin-bottom: 8px;
       }
 
       &__value {
+        color: #303133;
         font-size: 28px;
         font-weight: bold;
-        color: #303133;
 
         &--reward {
           color: #67c23a;

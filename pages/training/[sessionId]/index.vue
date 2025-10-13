@@ -256,9 +256,9 @@ onBeforeUnmount(() => {
   padding: 20px;
 
   &__header {
+    align-items: center;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
 
     h2 {
@@ -274,8 +274,8 @@ onBeforeUnmount(() => {
     height: 400px;
 
     canvas {
-      width: 100%;
       height: 100%;
+      width: 100%;
     }
   }
 

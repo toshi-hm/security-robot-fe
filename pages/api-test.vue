@@ -79,9 +79,9 @@ const testEnvironmentDefinitions = async () => {
 
 <style scoped lang="scss">
 .api-test {
-  padding: 2rem;
-  max-width: 1200px;
   margin: 0 auto;
+  max-width: 1200px;
+  padding: 2rem;
 
   &__title {
     font-size: 2rem;
@@ -96,21 +96,21 @@ const testEnvironmentDefinitions = async () => {
   &__error {
     background: #fee;
     border: 1px solid #fcc;
-    padding: 1rem;
-    margin-bottom: 1rem;
     border-radius: 4px;
+    margin-bottom: 1rem;
+    padding: 1rem;
 
     pre {
-      margin: 0.5rem 0 0 0;
       color: #c00;
+      margin: 0.5rem 0 0;
     }
   }
 
   &__section {
-    margin-bottom: 2rem;
-    padding: 1rem;
     border: 1px solid #ddd;
     border-radius: 4px;
+    margin-bottom: 2rem;
+    padding: 1rem;
 
     h2 {
       font-size: 1.5rem;
@@ -119,13 +119,13 @@ const testEnvironmentDefinitions = async () => {
   }
 
   &__button {
-    padding: 0.5rem 1rem;
     background: #42b883;
-    color: white;
     border: none;
     border-radius: 4px;
+    color: white;
     cursor: pointer;
     font-size: 1rem;
+    padding: 0.5rem 1rem;
 
     &:hover {
       background: #35a372;
@@ -133,21 +133,21 @@ const testEnvironmentDefinitions = async () => {
   }
 
   &__result {
-    margin-top: 1rem;
-    padding: 1rem;
     background: #f5f5f5;
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow-x: auto;
     font-size: 0.9rem;
+    margin-top: 1rem;
+    overflow-x: auto;
+    padding: 1rem;
   }
 
   &__info {
-    margin-top: 2rem;
-    padding: 1rem;
     background: #e7f3ff;
     border: 1px solid #b3d9ff;
     border-radius: 4px;
+    margin-top: 2rem;
+    padding: 1rem;
 
     h3 {
       margin-bottom: 0.5rem;
@@ -155,9 +155,9 @@ const testEnvironmentDefinitions = async () => {
 
     code {
       background: #fff;
-      padding: 0.2rem 0.4rem;
       border-radius: 3px;
       font-family: monospace;
+      padding: 0.2rem 0.4rem;
     }
   }
 }

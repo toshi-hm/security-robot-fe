@@ -144,9 +144,9 @@ const getStatusText = (status: string) => {
 
   &__sessions {
     &-header {
+      align-items: center;
       display: flex;
       justify-content: space-between;
-      align-items: center;
     }
   }
 

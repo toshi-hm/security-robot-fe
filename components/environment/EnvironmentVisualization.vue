@@ -162,16 +162,16 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .environment-visualization {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  width: 100%;
+  display: flex;
   height: 100%;
+  justify-content: center;
+  width: 100%;
 
   &__canvas {
+    background-color: #fff;
     border: 2px solid #ddd;
     border-radius: 4px;
-    background-color: #fff;
   }
 }
 </style>

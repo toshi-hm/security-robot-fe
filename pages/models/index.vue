@@ -150,9 +150,9 @@ const formatDate = (date: string | Date): string => {
   padding: 20px;
 
   &__header {
+    align-items: flex-start;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
     margin-bottom: 20px;
   }
 

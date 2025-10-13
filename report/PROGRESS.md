@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-13 (Session 021)
+最終更新日: 2025-10-13 (Session 022)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,8 +21,8 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 320テスト (292 unit + 28 E2E)
-  - ✅ パス: 320テスト (100%)
+- **総テスト数**: 324テスト (296 unit + 28 E2E)
+  - ✅ パス: 324テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 68.99% (目標: 85%以上)
   - Lines: 68.99%
@@ -383,8 +383,39 @@
   - All 292 tests passing (100%)
 - [x] Build successful (1.97 MB)
 
+### Phase 22: Environment Visualization Integration ✅
+- [x] EnvironmentVisualization.vue complete rewrite
+  - Canvas 2D rendering system implementation
+  - Props interface: gridWidth, gridHeight, robotPosition, coverageMap, threatGrid
+  - Dynamic canvas sizing (cellSize: 60px)
+  - Layer-based rendering:
+    - Threat level heatmap background (yellow to red gradient)
+    - Coverage overlay (green transparency for visited cells)
+    - Grid lines (gray border)
+    - Robot rendering (blue circle with direction indicator)
+    - Interactive legend (threat levels + coverage)
+  - getThreatColor(): Color interpolation for threat levels (0.0-1.0)
+  - drawLegend(): Visual legend display (Low/High threat, Visited)
+  - Real-time updates with watch() on all props
+  - BEM CSS styling with responsive layout
+- [x] Training Session Page integration
+  - Environment state variables added (gridWidth, gridHeight, coverageMap, threatGrid)
+  - handleEnvironmentUpdate() enhanced for full environment data
+  - Props binding to EnvironmentVisualization component
+  - WebSocket message support: grid_width, grid_height, coverage_map, threat_grid
+  - RobotPositionDisplay integration (x,y → row,col conversion)
+- [x] Test updates
+  - EnvironmentVisualization.spec.ts: 9 tests (5 → 9 expansion)
+  - Canvas dimension tests with default and custom grid sizes
+  - Props acceptance tests (robotPosition, coverageMap, threatGrid)
+  - All 296 tests passing (100%)
+- [x] Code quality
+  - Lint: 0 errors
+  - TypeScript: 0 errors
+  - Build successful (1.97 MB)
+- [x] Git commit: "feat: Implement Phase 22 - Environment Visualization Integration"
+
 ### 次フェーズ候補
-- [ ] Phase 22: Visual Environment Map
   - 2D grid visualization of robot position
   - Coverage heatmap overlay
   - Real-time position updates
@@ -536,7 +567,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-13 (Session 021 - Phase 21 WebSocket Features Enhancement Complete)
+**最終更新**: 2025-10-13 (Session 022 - Phase 22 Environment Visualization Integration Complete)
 **次回更新予定**: 次セッション開始時
 
 ---
@@ -544,8 +575,8 @@ export const useEnvironment = (
 ## 🎉 プロジェクト完了状況
 
 ### Testing Suite完全達成 ✅
-- **Phase 7-12**: 全フェーズ完了
-- **Total Tests**: 309 (281 unit + 28 E2E) - 100% passing
+- **Phase 7-22**: 全フェーズ完了
+- **Total Tests**: 324 (296 unit + 28 E2E) - 100% passing
 - **Build**: ✅ Production ready
 - **Code Quality**: ✅ Lint clean, TypeScript strict
 

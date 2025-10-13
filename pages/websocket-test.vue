@@ -187,14 +187,14 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .websocket-test {
-  padding: 20px;
-  max-width: 1200px;
   margin: 0 auto;
+  max-width: 1200px;
+  padding: 20px;
 
   &__header {
+    align-items: center;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
 
     h2 {
@@ -208,39 +208,39 @@ onBeforeUnmount(() => {
 
   &__send-header,
   &__messages-header {
+    align-items: center;
     display: flex;
     justify-content: space-between;
-    align-items: center;
   }
 
   &__send-actions {
-    margin-top: 10px;
     display: flex;
     gap: 10px;
+    margin-top: 10px;
   }
 
   &__messages {
-    max-height: 400px;
-    overflow-y: auto;
     background-color: #f5f7fa;
-    padding: 15px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
     font-size: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 15px;
   }
 
   &__empty {
     color: #909399;
-    text-align: center;
     padding: 20px;
+    text-align: center;
   }
 
   &__message {
-    margin-bottom: 8px;
-    padding: 8px;
     background-color: white;
     border-left: 3px solid #409eff;
     border-radius: 2px;
+    margin-bottom: 8px;
+    padding: 8px;
 
     code {
       color: #303133;

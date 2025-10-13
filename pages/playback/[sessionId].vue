@@ -207,8 +207,8 @@ const handleBack = () => {
 
   &__title {
     font-size: 1.5rem;
-    margin-top: 1rem;
     margin-bottom: 0.5rem;
+    margin-top: 1rem;
   }
 
   &__card {
@@ -226,12 +226,12 @@ const handleBack = () => {
   }
 
   &__controls {
-    display: flex;
-    gap: 20px;
     align-items: center;
-    padding: 20px;
     background-color: #f5f7fa;
     border-radius: 4px;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
   }
 
   &__timeline {
@@ -244,8 +244,8 @@ const handleBack = () => {
 
   &__visualization {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 20px;
+    grid-template-columns: 1fr 1fr;
     margin-top: 20px;
 
     h3 {
@@ -256,9 +256,9 @@ const handleBack = () => {
 
   &__environment,
   &__robot {
-    padding: 15px;
     background-color: #f9fafb;
     border-radius: 4px;
+    padding: 15px;
   }
 }
 </style>

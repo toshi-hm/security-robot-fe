@@ -11,12 +11,116 @@
 
 ## 📑 目次
 
+- [Session 022 - Phase 22 Complete](#session-022---phase-22-environment-visualization-integration-2025-10-13)
+- [Session 021 - Phase 21 Complete](#session-021---phase-21-websocket-features-enhancement-2025-10-13)
 - [Session 017 - Phase 17 Complete](#session-017---phase-17-websocket-integration-complete-2025-10-12)
 - [Session 016 - WebSocket Integration Start](#session-016---websocket-integration-start-2025-10-11)
 
 ---
 
 ## 📝 セッション記録
+
+### Session 022 - Phase 22 Environment Visualization Integration (2025-10-13)
+
+**目的**: Phase 22完全達成 - 環境可視化コンポーネント実装とWebSocket統合
+
+**実施内容**:
+1. **EnvironmentVisualization.vue完全書き直し**
+   - 問題: 空のcanvasプレースホルダーのみ実装
+   - 解決: Canvas 2D rendering完全実装
+     - Props Interface定義:
+       - gridWidth/gridHeight (デフォルト: 8x8)
+       - robotPosition: {x, y} | null
+       - coverageMap: boolean[][]
+       - threatGrid: number[][]
+     - 動的キャンバスサイズ計算 (cellSize: 60px)
+     - レイヤーベースレンダリング:
+       1. 脅威レベルヒートマップ (黄 → 赤グラデーション)
+       2. カバレッジオーバーレイ (訪問済みセルは緑透明)
+       3. グリッド線 (灰色枠)
+       4. ロボット描画 (青円 + 方向インジケーター)
+       5. 凡例表示 (Low/High threat, Visited)
+     - getThreatColor(level): 0.0-1.0の脅威レベルを黄→赤に変換
+     - drawLegend(): 凡例ボックスをcanvas内に描画
+     - watch(): 全propsの変更を監視してリアルタイム再描画
+     - onMounted(): 初期描画
+     - BEM CSS: .environment-visualization__canvas
+
+2. **Training Session Page統合**
+   - 問題: WebSocketからの環境データが可視化コンポーネントに渡されていない
+   - 解決:
+     - 環境状態変数追加:
+       - gridWidth: ref<number>(8)
+       - gridHeight: ref<number>(8)
+       - coverageMap: ref<boolean[][]>([])
+       - threatGrid: ref<number[][]>([])
+     - handleEnvironmentUpdate()拡張:
+       - grid_width, grid_height受信
+       - coverage_map受信 (2D boolean配列)
+       - threat_grid受信 (2D number配列)
+     - EnvironmentVisualizationへprops渡し:
+       - :grid-width, :grid-height, :robot-position
+       - :coverage-map, :threat-grid
+     - RobotPositionDisplay統合 (x,y → row,col変換)
+
+3. **Test更新**
+   - EnvironmentVisualization.spec.ts拡張: 5 → 9テスト
+     - 'sets correct canvas dimensions with default props' (480x480)
+     - 'sets correct canvas dimensions with custom grid size' (600x720)
+     - 'accepts robot position prop' ({x: 2, y: 3})
+     - 'accepts coverage map prop' (2x2 boolean[][])
+     - 'accepts threat grid prop' (2x2 number[][])
+   - Training Session Page tests: Element Plus stubbing維持
+   - 全296テストパス (292 → 296, +4テスト)
+
+4. **エラー修正**
+   - 問題1: `<style lang="scss" scoped">` - 誤った引用符
+     - 解決: `<style lang="scss" scoped>` に修正
+   - 問題2: Edit tool使用前にRead toolが必要
+     - 解決: 全Edit前にRead実行パターン確立
+
+5. **Code Quality**
+   - Lint: 0 errors
+   - TypeScript: 0 errors (strict mode)
+   - Build: 1.97 MB成功
+   - Tests: 296 unit tests passing (100%)
+
+**成果物**:
+- ✅ EnvironmentVisualization.vue: Canvas 2D完全実装
+- ✅ Training Session Page: 環境データ完全統合
+- ✅ Tests: 296 passing (292 + 4 new tests)
+- ✅ Git commit: "feat: Implement Phase 22 - Environment Visualization Integration"
+
+**技術的発見**:
+1. **Canvas 2D レイヤーレンダリング**
+   - 描画順序が重要: Background → Overlay → Grid → Robot → Legend
+   - clearRect()で毎回クリアしてから再描画が安定
+
+2. **色補間アルゴリズム**
+   - 脅威レベル0 = #f0f0f0 (灰色)
+   - 脅威レベル0.1-1.0 = rgb(255, 255*(1-level), 0) で黄→赤
+   - Math.floor()で整数値に変換
+
+3. **Vue Reactivity with Canvas**
+   - watch()でprops変更を監視
+   - deep: true で配列の変更も検知
+   - canvas.valueの存在チェックが必須
+
+4. **WebSocket Data Flow**
+   - Backend → WebSocket → handleEnvironmentUpdate()
+   - → ref変数更新 → watch() trigger → drawEnvironment()
+   - リアルタイム更新が自動的に動作
+
+**次のステップ**:
+- [ ] Phase 23以降の継続
+- [ ] Interactive map features (zoom/pan)
+- [ ] Chart export functionality
+- [ ] Visual regression tests
+
+**時間**: 約60分
+**コミット**: Phase 22完全達成
+
+---
 
 ### Session 021 - Phase 21 WebSocket Features Enhancement (2025-10-13)
 

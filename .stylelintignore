@@ -1,0 +1,13 @@
+# Coverage reports
+coverage/
+
+# Build output
+.output/
+.nuxt/
+dist/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.css
