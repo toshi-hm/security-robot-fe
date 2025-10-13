@@ -28,7 +28,13 @@ const rules = {
   ],
   totalTimesteps: [
     { required: true, message: 'Total timesteps is required', trigger: 'blur' },
-    { type: 'number' as 'number', min: 1000, max: 1000000, message: 'Must be between 1,000 and 1,000,000', trigger: 'blur' },
+    {
+      type: 'number' as 'number',
+      min: 1000,
+      max: 1000000,
+      message: 'Must be between 1,000 and 1,000,000',
+      trigger: 'blur',
+    },
   ],
 }
 

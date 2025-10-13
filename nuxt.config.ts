@@ -1,4 +1,3 @@
-import type { NuxtConfig } from 'nuxt/schema'
 import { defineNuxtConfig } from 'nuxt/config'
 
 const config: ReturnType<typeof defineNuxtConfig> = defineNuxtConfig({

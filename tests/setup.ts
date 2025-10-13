@@ -12,35 +12,29 @@ import { ref } from 'vue'
   pauseSession: vi.fn(),
   resumeSession: vi.fn(),
 }))
-
 ;(global as any).useRouter = vi.fn(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   back: vi.fn(),
 }))
-
 ;(global as any).useRoute = vi.fn(() => ({
   params: {},
   query: {},
   path: '/',
 }))
-
 ;(global as any).useRuntimeConfig = vi.fn(() => ({
   public: {
     apiBaseUrl: 'http://localhost:8000',
     wsUrl: 'ws://localhost:8000',
   },
 }))
-
 ;(global as any).ElMessage = {
   success: vi.fn(),
   error: vi.fn(),
   warning: vi.fn(),
   info: vi.fn(),
 }
-
 ;(global as any).navigateTo = vi.fn()
-
 ;(global as any).useChart = vi.fn(() => ({
   canvas: ref(null),
   render: vi.fn(),

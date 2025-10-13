@@ -170,14 +170,21 @@ const handleBack = () => {
         <div class="playback-detail__visualization">
           <div class="playback-detail__environment">
             <h3>環境状態</h3>
-            <EnvironmentVisualization v-if="currentFrame?.environmentState" :environment-state="currentFrame.environmentState" />
+            <EnvironmentVisualization
+              v-if="currentFrame?.environmentState"
+              :environment-state="currentFrame.environmentState"
+            />
             <el-empty v-else description="環境データがありません" />
           </div>
 
           <div class="playback-detail__robot">
             <h3>ロボット位置</h3>
             <RobotPositionDisplay
-              v-if="currentFrame?.environmentState && typeof currentFrame.environmentState === 'object' && 'robot' in currentFrame.environmentState"
+              v-if="
+                currentFrame?.environmentState &&
+                typeof currentFrame.environmentState === 'object' &&
+                'robot' in currentFrame.environmentState
+              "
               :position="(currentFrame.environmentState as any).robot"
             />
             <el-empty v-else description="ロボットデータがありません" />
