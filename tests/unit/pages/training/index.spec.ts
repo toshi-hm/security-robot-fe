@@ -48,7 +48,7 @@ describe('Training Index Page', () => {
 
   it('displays the page title', () => {
     const wrapper = mountPage()
-    expect(wrapper.find('h2').text()).toBe('Training Sessions')
+    expect(wrapper.find('h2').text()).toBe('学習セッション')
   })
 
   it('has training-page__control section', () => {

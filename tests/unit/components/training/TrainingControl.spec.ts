@@ -91,7 +91,7 @@ describe('TrainingControl.vue', () => {
     const wrapper = mountComponent()
     const button = wrapper.find('.el-button')
     expect(button.exists()).toBe(true)
-    expect(button.text()).toContain('Start New Training Session')
+    expect(button.text()).toContain('新規学習セッションを開始')
   })
 
   it('shows form when start button is clicked', async () => {
@@ -185,9 +185,9 @@ describe('TrainingControl.vue', () => {
     const wrapper = mountComponent()
     await wrapper.find('.el-button').trigger('click')
 
-    // Find the "Start Training" button (not the "Start New Training Session" button)
+    // Find the "学習を開始" button (not the "新規学習セッションを開始" button)
     const buttons = wrapper.findAllComponents({ name: 'ElButton' })
-    const startTrainingButton = buttons.find((button) => button.text().includes('Start Training'))
+    const startTrainingButton = buttons.find((button) => button.text().includes('学習を開始'))
 
     expect(startTrainingButton).toBeDefined()
   })
@@ -196,9 +196,9 @@ describe('TrainingControl.vue', () => {
     const wrapper = mountComponent()
     await wrapper.find('.el-button').trigger('click')
 
-    // Find the Cancel button
+    // Find the キャンセル button
     const buttons = wrapper.findAllComponents({ name: 'ElButton' })
-    const cancelButton = buttons.find((button) => button.text() === 'Cancel')
+    const cancelButton = buttons.find((button) => button.text() === 'キャンセル')
 
     expect(cancelButton).toBeDefined()
     expect(cancelButton!.exists()).toBe(true)
@@ -252,7 +252,7 @@ describe('TrainingControl.vue', () => {
     expect(mockCreateSession).toHaveBeenCalledTimes(1)
     expect(mockCreateSession).toHaveBeenCalledWith(vm.trainingConfig)
     expect(mockSuccess).toHaveBeenCalledTimes(1)
-    expect(mockSuccess).toHaveBeenCalledWith('Training session "Test Session" started successfully!')
+    expect(mockSuccess).toHaveBeenCalledWith('学習セッション「Test Session」を開始しました')
     expect(mockPush).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith('/training/session-123')
     expect(vm.showForm).toBe(false)
@@ -273,7 +273,7 @@ describe('TrainingControl.vue', () => {
     await vm.startTraining()
 
     expect(mockCreateSession).toHaveBeenCalled()
-    expect(mockError).toHaveBeenCalledWith('Failed to start training session')
+    expect(mockError).toHaveBeenCalledWith('学習セッションの開始に失敗しました')
     expect(mockPush).not.toHaveBeenCalled()
   })
 
