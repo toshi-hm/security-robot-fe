@@ -109,10 +109,7 @@ describe('EnvironmentRepositoryImpl', () => {
       await expect(repository.fetchState('invalid-env')).rejects.toThrow('Environment not found')
 
       expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.environment.state('invalid-env'))
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to fetch environment state for invalid-env:',
-        mockError,
-      )
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to fetch environment state for invalid-env:', mockError)
 
       consoleSpy.mockRestore()
     })
