@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 
@@ -69,6 +70,23 @@ const rules: FormRules = {
 const algorithmDescriptions = {
   ppo: 'Proximal Policy Optimization - クリップ目的関数による安定的でサンプル効率の良いアルゴリズム',
   a3c: 'Asynchronous Advantage Actor-Critic - 複数の並列ワーカーによる高速でロバストなアルゴリズム',
+}
+
+// Parameter tooltips with detailed explanations
+const parameterTooltips = {
+  algorithm: 'どの強化学習アルゴリズムを使用するかを選択します。PPOは安定性が高く、A3Cは高速な学習が可能です。',
+  totalTimesteps:
+    '学習全体で環境とやり取りする総ステップ数。値が大きいほど学習時間が長くなりますが、より良い性能を得られる可能性があります。',
+  learningRate:
+    'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。',
+  gamma: '将来の報酬をどの程度重視するかを決める割引率。1に近いほど長期的な報酬を重視します。',
+  batchSize: '一度に学習に使用するサンプル数。大きいほど安定しますがメモリを多く使用します。',
+  epochs: '収集したデータを何回学習に使用するか。多いほど学習が進みますが、過学習のリスクもあります。',
+  clipRange: 'PPOアルゴリズムで、ポリシーの更新幅を制限するパラメータ。小さいほど安定しますが学習が遅くなります。',
+  valueCoefficient: '価値関数の損失をどの程度重視するか。大きいほど価値推定の精度が向上します。',
+  entropyCoefficient:
+    '行動の多様性をどの程度奨励するか。大きいほど探索的になり、小さいほど既知の良い行動に集中します。',
+  maxGradNorm: '勾配の大きさの上限。学習の安定性を保つために勾配爆発を防ぎます。',
 }
 
 // Navigation
@@ -185,7 +203,17 @@ onMounted(() => {
       <el-form ref="formRef" :model="trainingForm" :rules="rules" label-width="200px" label-position="left">
         <el-divider content-position="left">アルゴリズム</el-divider>
 
-        <el-form-item label="アルゴリズム" prop="algorithm">
+        <el-form-item prop="algorithm">
+          <template #label>
+            <span class="training-settings__label">
+              アルゴリズム
+              <el-tooltip :content="parameterTooltips.algorithm" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-radio-group v-model="trainingForm.algorithm">
             <el-radio value="ppo">PPO</el-radio>
             <el-radio value="a3c">A3C</el-radio>
@@ -197,14 +225,34 @@ onMounted(() => {
 
         <el-divider content-position="left">学習期間</el-divider>
 
-        <el-form-item label="総タイムステップ数" prop="totalTimesteps">
+        <el-form-item prop="totalTimesteps">
+          <template #label>
+            <span class="training-settings__label">
+              総タイムステップ数
+              <el-tooltip :content="parameterTooltips.totalTimesteps" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-input-number v-model="trainingForm.totalTimesteps" :min="1000" :max="1000000" :step="1000" />
           <span class="training-settings__hint">環境とのインタラクション総数 (1,000 - 1,000,000)</span>
         </el-form-item>
 
         <el-divider content-position="left">最適化パラメータ</el-divider>
 
-        <el-form-item label="学習率" prop="learningRate">
+        <el-form-item prop="learningRate">
+          <template #label>
+            <span class="training-settings__label">
+              学習率
+              <el-tooltip :content="parameterTooltips.learningRate" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-input-number
             v-model="trainingForm.learningRate"
             :min="0.00001"
@@ -215,12 +263,32 @@ onMounted(() => {
           <span class="training-settings__hint">勾配降下法のステップサイズ (0.00001 - 0.01)</span>
         </el-form-item>
 
-        <el-form-item label="ガンマ (γ)" prop="gamma">
+        <el-form-item prop="gamma">
+          <template #label>
+            <span class="training-settings__label">
+              ガンマ (γ)
+              <el-tooltip :content="parameterTooltips.gamma" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-slider v-model="trainingForm.gamma" :min="0.9" :max="0.9999" :step="0.001" :precision="4" show-input />
           <span class="training-settings__hint">将来の報酬の割引率 (0.9 - 0.9999)</span>
         </el-form-item>
 
-        <el-form-item label="バッチサイズ" prop="batchSize">
+        <el-form-item prop="batchSize">
+          <template #label>
+            <span class="training-settings__label">
+              バッチサイズ
+              <el-tooltip :content="parameterTooltips.batchSize" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-select v-model="trainingForm.batchSize" placeholder="バッチサイズを選択">
             <el-option :value="8" label="8" />
             <el-option :value="16" label="16" />
@@ -233,14 +301,34 @@ onMounted(() => {
           <span class="training-settings__hint">学習バッチあたりのサンプル数 (8 - 512)</span>
         </el-form-item>
 
-        <el-form-item label="エポック数" prop="epochs">
+        <el-form-item prop="epochs">
+          <template #label>
+            <span class="training-settings__label">
+              エポック数
+              <el-tooltip :content="parameterTooltips.epochs" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-input-number v-model="trainingForm.epochs" :min="1" :max="100" :step="1" />
           <span class="training-settings__hint">各バッチを通過する回数 (1 - 100)</span>
         </el-form-item>
 
         <el-divider content-position="left">PPO固有パラメータ</el-divider>
 
-        <el-form-item label="クリップ範囲" prop="clipRange">
+        <el-form-item prop="clipRange">
+          <template #label>
+            <span class="training-settings__label">
+              クリップ範囲
+              <el-tooltip :content="parameterTooltips.clipRange" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-slider
             v-model="trainingForm.clipRange"
             :min="0.1"
@@ -252,7 +340,17 @@ onMounted(() => {
           <span class="training-settings__hint">PPOクリッピングパラメータ (0.1 - 0.5)</span>
         </el-form-item>
 
-        <el-form-item label="価値関数係数" prop="valueCoefficient">
+        <el-form-item prop="valueCoefficient">
+          <template #label>
+            <span class="training-settings__label">
+              価値関数係数
+              <el-tooltip :content="parameterTooltips.valueCoefficient" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-slider
             v-model="trainingForm.valueCoefficient"
             :min="0.1"
@@ -264,7 +362,17 @@ onMounted(() => {
           <span class="training-settings__hint">価値関数損失の重み (0.1 - 1.0)</span>
         </el-form-item>
 
-        <el-form-item label="エントロピー係数" prop="entropyCoefficient">
+        <el-form-item prop="entropyCoefficient">
+          <template #label>
+            <span class="training-settings__label">
+              エントロピー係数
+              <el-tooltip :content="parameterTooltips.entropyCoefficient" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-slider
             v-model="trainingForm.entropyCoefficient"
             :min="0.001"
@@ -277,7 +385,17 @@ onMounted(() => {
           <span class="training-settings__hint">エントロピーボーナスの重み (0.001 - 0.1)</span>
         </el-form-item>
 
-        <el-form-item label="最大勾配ノルム" prop="maxGradNorm">
+        <el-form-item prop="maxGradNorm">
+          <template #label>
+            <span class="training-settings__label">
+              最大勾配ノルム
+              <el-tooltip :content="parameterTooltips.maxGradNorm" placement="top">
+                <el-icon class="training-settings__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-slider
             v-model="trainingForm.maxGradNorm"
             :min="0.1"
@@ -333,6 +451,23 @@ onMounted(() => {
 
   &__form-card {
     max-width: 800px;
+  }
+
+  &__label {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  &__help-icon {
+    color: #909399;
+    cursor: help;
+    font-size: 16px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #409eff;
+    }
   }
 
   &__hint {

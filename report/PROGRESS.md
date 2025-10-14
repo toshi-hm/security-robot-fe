@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-13 (Session 024)
+最終更新日: 2025-10-14 (Session 028)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -644,7 +644,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-14 (Session 024 - Settings Pages Complete)
+**最終更新**: 2025-10-14 (Session 028 - Training Pages Localization Complete)
 **次回更新予定**: 次セッション開始時
 
 ---
@@ -654,7 +654,7 @@ export const useEnvironment = (
 ### Testing Suite完全達成 ✅
 - **Phase 7-24**: 全フェーズ完了
 - **Total Tests**: 373 (unit tests) - 100% passing
-- **Build**: ✅ Production ready (1.98 MB)
+- **Build**: ✅ Production ready (1.97 MB)
 - **Code Quality**: ✅ Lint clean (0 errors), TypeScript strict (0 errors)
 
 ### Settings Pages完成 ✅
@@ -665,8 +665,50 @@ export const useEnvironment = (
 - ✅ フォームバリデーション（日本語エラーメッセージ）
 - ✅ Element Plus完全統合
 
+### Training Pages UI完成 ✅ (Session 028)
+- ✅ 完全日本語化 (3ファイル: TrainingControl.vue, training/index.vue, settings/training.vue)
+- ✅ 19個のパラメータツールチップ実装
+- ✅ ホバーエフェクトとアニメーション
+- ✅ 完全な説明テキスト (学習率、ガンマ、報酬重みなど)
+- ✅ 英語テキストゼロ達成
+
+### Phase 25: UI Localization - Training Pages ✅
+- [x] pages/settings/training.vue - Parameter tooltips (Session 028)
+  - QuestionFilled icon integration from @element-plus/icons-vue
+  - 10 parameters with detailed Japanese tooltips
+  - Parameters: algorithm, totalTimesteps, learningRate, gamma, batchSize, epochs, clipRange, valueCoefficient, entropyCoefficient, maxGradNorm
+  - Custom label templates with help icons
+  - Hover effect styling (gray → blue transition)
+  - cursor: help for intuitive UX
+- [x] components/training/TrainingControl.vue - Complete Japanese localization (Session 028)
+  - Button: "Start New Training Session" → "新規学習セッションを開始"
+  - Card header: "New Training Session Configuration" → "新規学習セッション設定"
+  - 9 parameters with tooltips: name, algorithm, environmentType, totalTimesteps, envWidth, envHeight, coverageWeight, explorationWeight, diversityWeight
+  - Validation messages: Complete Japanese translation
+  - Select options: "Standard Environment" → "標準環境", "Enhanced Environment" → "拡張環境"
+  - Section titles: "Environment Settings" → "環境設定", "Reward Weights" → "報酬の重み"
+  - Buttons: "Start Training" → "学習を開始", "Cancel" → "キャンセル"
+  - Success/Error messages: Complete Japanese translation
+- [x] pages/training/index.vue - Complete Japanese localization (Session 028)
+  - Page title: "Training Sessions" → "学習セッション"
+  - Card header: "Active Sessions" → "アクティブセッション"
+  - Table headers: Name → セッション名, Algorithm → アルゴリズム, Status → ステータス, Progress → 進捗, Timestep → タイムステップ, Episodes → エピソード数, Actions → 操作
+  - Buttons: "View Details" → "詳細を表示", "Refresh" → "更新"
+  - Empty state: "No training sessions found" → "学習セッションが見つかりません"
+- [x] Technical implementation
+  - Tooltip pattern with el-tooltip component
+  - BEM CSS styling (__label, __help-icon classes)
+  - Hover animations (color: #909399 → #409eff)
+  - display: inline-flex for label alignment
+  - All English text removed from UI
+- [x] Quality verification
+  - TypeScript: 0 errors (no type issues)
+  - Dev server: Successful build and hot reload
+  - All tooltips functional with hover display
+
 ### 次のステップ候補
 - Visual regression tests (スクリーンショット比較)
 - Performance tests (ロード時間測定)
 - Settings API integration (Backend連携)
 - Upload progress indicator (Progress bar実装)
+- Other pages localization (Dashboard, Playback, Models, Environment visualization)

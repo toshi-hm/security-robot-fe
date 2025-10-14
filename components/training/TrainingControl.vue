@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
@@ -23,19 +24,32 @@ const trainingConfig = ref<TrainingConfig>({
 
 const rules = {
   name: [
-    { required: true, message: 'Session name is required', trigger: 'blur' },
-    { min: 3, max: 50, message: 'Length should be 3 to 50 characters', trigger: 'blur' },
+    { required: true, message: 'セッション名は必須です', trigger: 'blur' },
+    { min: 3, max: 50, message: '3文字から50文字の間で入力してください', trigger: 'blur' },
   ],
   totalTimesteps: [
-    { required: true, message: 'Total timesteps is required', trigger: 'blur' },
+    { required: true, message: '総タイムステップ数は必須です', trigger: 'blur' },
     {
       type: 'number' as 'number',
       min: 1000,
       max: 1000000,
-      message: 'Must be between 1,000 and 1,000,000',
+      message: '1,000から1,000,000の間で設定してください',
       trigger: 'blur',
     },
   ],
+}
+
+// Parameter tooltips with detailed explanations
+const parameterTooltips = {
+  name: '学習セッションを識別するための名前。後で確認しやすい名前を付けてください。',
+  algorithm: '使用する強化学習アルゴリズム。PPOは安定性が高く、A3Cは高速です。',
+  environmentType: '学習に使用する環境のタイプ。標準環境は基本的な設定、拡張環境はより複雑な設定です。',
+  totalTimesteps: '学習全体で環境とやり取りする総ステップ数。値が大きいほど学習時間が長くなります。',
+  envWidth: '環境のグリッド幅。大きいほど探索空間が広くなります。',
+  envHeight: '環境のグリッド高さ。大きいほど探索空間が広くなります。',
+  coverageWeight: 'エリアカバー率に対する報酬の重み。大きいほどカバー率を優先します。',
+  explorationWeight: '新しいエリアの探索に対する報酬の重み。大きいほど探索を促進します。',
+  diversityWeight: '行動の多様性に対する報酬の重み。大きいほど多様な行動を促進します。',
 }
 
 const startTraining = async () => {
@@ -46,13 +60,13 @@ const startTraining = async () => {
 
   const session = await createSession(trainingConfig.value)
   if (session) {
-    ElMessage.success(`Training session "${session.name}" started successfully!`)
+    ElMessage.success(`学習セッション「${session.name}」を開始しました`)
     showForm.value = false
 
     // Navigate to session detail page
     router.push(`/training/${session.id}`)
   } else {
-    ElMessage.error('Failed to start training session')
+    ElMessage.error('学習セッションの開始に失敗しました')
   }
 }
 
@@ -66,23 +80,43 @@ const cancelForm = () => {
   <div class="training-control">
     <div v-if="!showForm" class="training-control__start">
       <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="showForm = true">
-        Start New Training Session
+        新規学習セッションを開始
       </el-button>
     </div>
 
     <el-card v-else class="training-control__form">
       <template #header>
-        <span>New Training Session Configuration</span>
+        <span>新規学習セッション設定</span>
       </template>
 
       <el-form ref="formRef" :model="trainingConfig" :rules="rules" label-width="160px" label-position="left">
-        <el-form-item label="Session Name" prop="name">
-          <el-input v-model="trainingConfig.name" placeholder="e.g., PPO Training Run 1" />
+        <el-form-item prop="name">
+          <template #label>
+            <span class="training-control__label">
+              セッション名
+              <el-tooltip :content="parameterTooltips.name" placement="top">
+                <el-icon class="training-control__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input v-model="trainingConfig.name" placeholder="例: PPO学習 実行1" />
         </el-form-item>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="Algorithm" prop="algorithm">
+            <el-form-item prop="algorithm">
+              <template #label>
+                <span class="training-control__label">
+                  アルゴリズム
+                  <el-tooltip :content="parameterTooltips.algorithm" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-select v-model="trainingConfig.algorithm" style="width: 100%">
                 <el-option label="PPO (Proximal Policy Optimization)" value="ppo" />
                 <el-option label="A3C (Asynchronous Advantage Actor-Critic)" value="a3c" />
@@ -90,16 +124,36 @@ const cancelForm = () => {
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Environment Type" prop="environmentType">
+            <el-form-item prop="environmentType">
+              <template #label>
+                <span class="training-control__label">
+                  環境タイプ
+                  <el-tooltip :content="parameterTooltips.environmentType" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-select v-model="trainingConfig.environmentType" style="width: 100%">
-                <el-option label="Standard Environment" value="standard" />
-                <el-option label="Enhanced Environment" value="enhanced" />
+                <el-option label="標準環境" value="standard" />
+                <el-option label="拡張環境" value="enhanced" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="Total Timesteps" prop="totalTimesteps">
+        <el-form-item prop="totalTimesteps">
+          <template #label>
+            <span class="training-control__label">
+              総タイムステップ数
+              <el-tooltip :content="parameterTooltips.totalTimesteps" placement="top">
+                <el-icon class="training-control__help-icon">
+                  <QuestionFilled />
+                </el-icon>
+              </el-tooltip>
+            </span>
+          </template>
           <el-input-number
             v-model="trainingConfig.totalTimesteps"
             :min="1000"
@@ -109,26 +163,56 @@ const cancelForm = () => {
           />
         </el-form-item>
 
-        <el-divider content-position="left">Environment Settings</el-divider>
+        <el-divider content-position="left">環境設定</el-divider>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="Environment Width">
+            <el-form-item>
+              <template #label>
+                <span class="training-control__label">
+                  環境の幅
+                  <el-tooltip :content="parameterTooltips.envWidth" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-input-number v-model="trainingConfig.envWidth" :min="5" :max="50" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Environment Height">
+            <el-form-item>
+              <template #label>
+                <span class="training-control__label">
+                  環境の高さ
+                  <el-tooltip :content="parameterTooltips.envHeight" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-input-number v-model="trainingConfig.envHeight" :min="5" :max="50" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-divider content-position="left">Reward Weights</el-divider>
+        <el-divider content-position="left">報酬の重み</el-divider>
 
         <el-row :gutter="20">
           <el-col :span="8">
-            <el-form-item label="Coverage Weight">
+            <el-form-item>
+              <template #label>
+                <span class="training-control__label">
+                  カバー率重み
+                  <el-tooltip :content="parameterTooltips.coverageWeight" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-input-number
                 v-model="trainingConfig.coverageWeight"
                 :min="0"
@@ -140,7 +224,17 @@ const cancelForm = () => {
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="Exploration Weight">
+            <el-form-item>
+              <template #label>
+                <span class="training-control__label">
+                  探索重み
+                  <el-tooltip :content="parameterTooltips.explorationWeight" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-input-number
                 v-model="trainingConfig.explorationWeight"
                 :min="0"
@@ -152,7 +246,17 @@ const cancelForm = () => {
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="Diversity Weight">
+            <el-form-item>
+              <template #label>
+                <span class="training-control__label">
+                  多様性重み
+                  <el-tooltip :content="parameterTooltips.diversityWeight" placement="top">
+                    <el-icon class="training-control__help-icon">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </span>
+              </template>
               <el-input-number
                 v-model="trainingConfig.diversityWeight"
                 :min="0"
@@ -166,8 +270,8 @@ const cancelForm = () => {
         </el-row>
 
         <el-form-item>
-          <el-button type="primary" :loading="isLoading" @click="startTraining"> Start Training </el-button>
-          <el-button @click="cancelForm">Cancel</el-button>
+          <el-button type="primary" :loading="isLoading" @click="startTraining">学習を開始</el-button>
+          <el-button @click="cancelForm">キャンセル</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -184,6 +288,23 @@ const cancelForm = () => {
   &__form {
     .el-divider {
       margin: 20px 0;
+    }
+  }
+
+  &__label {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  &__help-icon {
+    color: #909399;
+    cursor: help;
+    font-size: 16px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #409eff;
     }
   }
 }

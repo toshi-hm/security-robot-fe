@@ -60,7 +60,7 @@ const getStatusText = (status: string) => {
 <template>
   <div class="training-page">
     <div class="training-page__header">
-      <h2>Training Sessions</h2>
+      <h2>学習セッション</h2>
     </div>
 
     <el-card class="training-page__control">
@@ -70,9 +70,9 @@ const getStatusText = (status: string) => {
     <el-card v-loading="isLoading" class="training-page__sessions">
       <template #header>
         <div class="training-page__sessions-header">
-          <span>Active Sessions</span>
+          <span>アクティブセッション</span>
           <el-button size="small" :loading="isLoading" @click="fetchSessions">
-            <i class="el-icon-refresh"></i> Refresh
+            <i class="el-icon-refresh"></i> 更新
           </el-button>
         </div>
       </template>
@@ -84,20 +84,20 @@ const getStatusText = (status: string) => {
         @row-click="handleSessionClick"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="Name" min-width="150" />
-        <el-table-column label="Algorithm" width="120">
+        <el-table-column prop="name" label="セッション名" min-width="150" />
+        <el-table-column label="アルゴリズム" width="120">
           <template #default="{ row }">
             {{ row.algorithmDisplayName }}
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="120">
+        <el-table-column label="ステータス" width="120">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Progress" width="120">
+        <el-table-column label="進捗" width="120">
           <template #default="{ row }">
             <el-progress
               :percentage="row.progress"
@@ -106,22 +106,22 @@ const getStatusText = (status: string) => {
             />
           </template>
         </el-table-column>
-        <el-table-column label="Timestep" width="150">
+        <el-table-column label="タイムステップ" width="150">
           <template #default="{ row }"> {{ row.currentTimestep }} / {{ row.totalTimesteps }} </template>
         </el-table-column>
-        <el-table-column label="Episodes" width="100">
+        <el-table-column label="エピソード数" width="120">
           <template #default="{ row }">
             {{ row.episodesCompleted }}
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="150" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click.stop="handleSessionClick(row.id)"> View Details </el-button>
+            <el-button type="primary" size="small" @click.stop="handleSessionClick(row.id)">詳細を表示</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-empty v-if="sessions.length === 0 && !isLoading" description="No training sessions found" />
+      <el-empty v-if="sessions.length === 0 && !isLoading" description="学習セッションが見つかりません" />
     </el-card>
   </div>
 </template>

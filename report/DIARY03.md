@@ -11,11 +11,116 @@
 
 ## 📑 目次
 
-- [Session 027 - TBD](#session-027---tbd-2025-10-14)
+- [Session 028 - Training Pages Japanese Localization](#session-028---training-pages-japanese-localization-2025-10-14)
+- [Session 027 - Functions Coverage Improvement](#session-027---functions-coverage-improvement-2025-10-14)
 
 ---
 
 ## 📝 セッション記録
+
+<a id="session-028---training-pages-japanese-localization-2025-10-14"></a>
+### Session 028 - Training Pages Japanese Localization (2025-10-14)
+
+**目的**: `/training` ページと `/settings/training` ページの日本語化とツールチップ追加
+
+**実施内容**:
+1. **pages/settings/training.vue - ツールチップ機能追加**:
+   - QuestionFilled アイコンをインポート
+   - 10個のパラメータに詳細説明ツールチップを追加:
+     - アルゴリズム、総タイムステップ数、学習率、ガンマ
+     - バッチサイズ、エポック数、クリップ範囲
+     - 価値関数係数、エントロピー係数、最大勾配ノルム
+   - 各ラベルをカスタムテンプレートで実装し、ヘルプアイコン配置
+   - ホバースタイル追加 (グレー → ブルー)
+
+2. **components/training/TrainingControl.vue - 完全日本語化とツールチップ追加**:
+   - ボタンテキスト: "Start New Training Session" → "新規学習セッションを開始"
+   - カードヘッダー: "New Training Session Configuration" → "新規学習セッション設定"
+   - 9個のパラメータにツールチップ追加:
+     - セッション名、アルゴリズム、環境タイプ、総タイムステップ数
+     - 環境の幅、環境の高さ、カバー率重み、探索重み、多様性重み
+   - バリデーションメッセージ完全日本語化
+   - セレクトオプション: "Standard Environment" → "標準環境"など
+   - セクションタイトル: "Environment Settings" → "環境設定"
+   - ボタン: "Start Training" → "学習を開始", "Cancel" → "キャンセル"
+   - 成功/エラーメッセージ日本語化
+
+3. **pages/training/index.vue - 完全日本語化**:
+   - ページタイトル: "Training Sessions" → "学習セッション"
+   - カードヘッダー: "Active Sessions" → "アクティブセッション"
+   - テーブル列ヘッダー完全日本語化:
+     - Name → セッション名, Algorithm → アルゴリズム
+     - Status → ステータス, Progress → 進捗
+     - Timestep → タイムステップ, Episodes → エピソード数
+     - Actions → 操作
+   - ボタン: "View Details" → "詳細を表示", "Refresh" → "更新"
+   - 空状態: "No training sessions found" → "学習セッションが見つかりません"
+
+**技術的実装**:
+1. **ツールチップパターン**:
+   ```vue
+   <el-form-item prop="paramName">
+     <template #label>
+       <span class="component__label">
+         ラベル名
+         <el-tooltip :content="parameterTooltips.paramName" placement="top">
+           <el-icon class="component__help-icon">
+             <QuestionFilled />
+           </el-icon>
+         </el-tooltip>
+       </span>
+     </template>
+     <!-- input field -->
+   </el-form-item>
+   ```
+
+2. **スタイリング**:
+   ```scss
+   &__label {
+     align-items: center;
+     display: inline-flex;
+     gap: 6px;
+   }
+
+   &__help-icon {
+     color: #909399;
+     cursor: help;
+     font-size: 16px;
+     transition: color 0.2s;
+     &:hover { color: #409eff; }
+   }
+   ```
+
+**パラメータ説明の例**:
+- **総タイムステップ数**: "学習全体で環境とやり取りする総ステップ数。値が大きいほど学習時間が長くなりますが、より良い性能を得られる可能性があります。"
+- **学習率**: "ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。"
+- **カバー率重み**: "エリアカバー率に対する報酬の重み。大きいほどカバー率を優先します。"
+
+**成果物**:
+- ✅ `pages/settings/training.vue` - 10個のツールチップ追加
+- ✅ `components/training/TrainingControl.vue` - 完全日本語化 + 9個のツールチップ
+- ✅ `pages/training/index.vue` - 完全日本語化
+- ✅ TypeScript 型チェック: 今回の変更に関するエラーなし
+- ✅ 開発サーバー: 正常にビルド・起動
+
+**UI/UX改善**:
+- 全パラメータにはてなマークアイコン (?) が表示
+- マウスホバーで詳細な説明がツールチップ表示
+- アイコン色がホバーでグレー → ブルーに変化
+- cursor: help でツールチップ機能が直感的に理解可能
+- 完全な日本語UI (英語テキストゼロ)
+
+**変更ファイル統計**:
+```
+components/training/TrainingControl.vue    | 169 +++++++++++++++++---
+pages/settings/training.vue                | 155 +++++++++++++++++--
+pages/training/index.vue                   |  24 +--
+```
+
+**時間**: 約1時間
+**ステータス**: ✅ 完了
+
+---
 
 <a id="session-027---functions-coverage-improvement-2025-10-14"></a>
 ### Session 027 - Functions Coverage Improvement (2025-10-14)
