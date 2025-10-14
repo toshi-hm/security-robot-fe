@@ -229,4 +229,78 @@ describe('useChart', () => {
       expect(mockChart.update).toHaveBeenCalled()
     })
   })
+
+  describe('lifecycle hooks', () => {
+    it('calls onMounted hook when available', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      const onMountedMock = vi.fn()
+      vi.stubGlobal('onMounted', onMountedMock)
+
+      useChart(mockConfig, mockChartConstructor)
+
+      expect(onMountedMock).toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+
+    it('calls onBeforeUnmount hook when available', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      const onBeforeUnmountMock = vi.fn()
+      vi.stubGlobal('onBeforeUnmount', onBeforeUnmountMock)
+
+      useChart(mockConfig, mockChartConstructor)
+
+      expect(onBeforeUnmountMock).toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+
+    it('handles missing lifecycle hooks gracefully', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      vi.stubGlobal('onMounted', undefined)
+      vi.stubGlobal('onBeforeUnmount', undefined)
+
+      expect(() => useChart(mockConfig, mockChartConstructor)).not.toThrow()
+
+      vi.unstubAllGlobals()
+    })
+  })
+
+  describe('getChart', () => {
+    it('returns the chart instance', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      const { canvas, render, getChart } = useChart(mockConfig, mockChartConstructor)
+      canvas.value = mockCanvas
+      render()
+
+      expect(getChart()).toBe(mockChart)
+    })
+
+    it('returns null when chart is not initialized', () => {
+      const mockConfig: ChartConfiguration = {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+      }
+
+      const { getChart } = useChart(mockConfig, mockChartConstructor)
+
+      expect(getChart()).toBeNull()
+    })
+  })
 })
