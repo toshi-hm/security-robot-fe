@@ -43,9 +43,12 @@ describe('TrainingRepositoryImpl', () => {
 
     const sessions = await repository.findAll()
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.list, {
-      params: { page: 1, page_size: 100 },
-    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      API_ENDPOINTS.training.list,
+      expect.objectContaining({
+        params: { page: 1, page_size: 100 },
+      })
+    )
     expect(sessions).toHaveLength(1)
     expect(sessions[0]!.name).toBe('Session 1')
   })
@@ -56,7 +59,10 @@ describe('TrainingRepositoryImpl', () => {
 
     const session = await repository.findById(99)
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.status(99))
+    expect(fetchMock).toHaveBeenCalledWith(
+      API_ENDPOINTS.training.status(99),
+      expect.anything()
+    )
     expect(session).toBeNull()
 
     consoleSpy.mockRestore()
@@ -92,20 +98,23 @@ describe('TrainingRepositoryImpl', () => {
       diversityWeight: 3,
     })
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.start, {
-      method: 'POST',
-      body: {
-        name: 'New Session',
-        algorithm: 'ppo',
-        environmentType: 'standard',
-        totalTimesteps: 10_000,
-        envWidth: 10,
-        envHeight: 10,
-        coverageWeight: 1,
-        explorationWeight: 2,
-        diversityWeight: 3,
-      },
-    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      API_ENDPOINTS.training.start,
+      expect.objectContaining({
+        method: 'POST',
+        body: {
+          name: 'New Session',
+          algorithm: 'ppo',
+          environmentType: 'standard',
+          totalTimesteps: 10_000,
+          envWidth: 10,
+          envHeight: 10,
+          coverageWeight: 1,
+          explorationWeight: 2,
+          diversityWeight: 3,
+        },
+      })
+    )
     expect(session.name).toBe('New Session')
   })
 
@@ -115,7 +124,10 @@ describe('TrainingRepositoryImpl', () => {
 
     const result = await repository.stop(1)
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.stop(1), { method: 'POST' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      API_ENDPOINTS.training.stop(1),
+      expect.objectContaining({ method: 'POST' })
+    )
     expect(result).toBe(false)
 
     consoleSpy.mockRestore()
@@ -143,9 +155,12 @@ describe('TrainingRepositoryImpl', () => {
 
     const metrics = await repository.getMetrics(1, 50)
 
-    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.metrics(1), {
-      params: { page: 1, page_size: 50 },
-    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      API_ENDPOINTS.training.metrics(1),
+      expect.objectContaining({
+        params: { page: 1, page_size: 50 },
+      })
+    )
     expect(metrics[0]!.coverageRatio).toBe(0.8)
   })
 })

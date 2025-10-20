@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 import { useWebSocket } from '~/composables/useWebSocket'
+import type { TrainingRepository } from '~/libs/repositories/training/TrainingRepository'
 
 // Mock useRuntimeConfig globally
 vi.stubGlobal('useRuntimeConfig', () => ({
@@ -9,10 +10,28 @@ vi.stubGlobal('useRuntimeConfig', () => ({
   },
 }))
 
+// Mock TrainingRepository
+const createMockRepository = (): TrainingRepository => ({
+  create: vi.fn(),
+  findAll: vi.fn(),
+  findById: vi.fn().mockResolvedValue({
+    id: 1,
+    name: 'Test Session',
+    status: 'running',
+  }),
+  getMetrics: vi.fn().mockResolvedValue([
+    { timestep: 100, reward: 10 },
+    { timestep: 200, reward: 20 },
+  ]),
+  stop: vi.fn(),
+})
+
 describe('useWebSocket', () => {
   let mockWebSocket: any
 
   beforeEach(() => {
+    vi.useFakeTimers()
+
     // Native WebSocketのモック作成
     mockWebSocket = {
       readyState: 0,
@@ -32,6 +51,11 @@ describe('useWebSocket', () => {
     MockWebSocket.CLOSED = 3
 
     global.WebSocket = MockWebSocket as any
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
   })
 
   describe('connect', () => {
@@ -201,6 +225,116 @@ describe('useWebSocket', () => {
       const { error } = useWebSocket()
 
       expect(error.value).toBeNull()
+    })
+
+    it('has useFallbackPolling false initially', () => {
+      const { useFallbackPolling } = useWebSocket()
+
+      expect(useFallbackPolling.value).toBe(false)
+    })
+  })
+
+  describe('fallback polling', () => {
+    it('starts polling after max reconnection attempts', async () => {
+      const mockRepository = createMockRepository()
+      const { connect, useFallbackPolling } = useWebSocket(mockRepository)
+
+      // 初回接続
+      connect(1)
+
+      // 5回の再接続を失敗させる
+      for (let i = 0; i < 5; i++) {
+        mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+        await vi.runAllTimersAsync()
+      }
+
+      // 6回目の切断で最大再接続回数に達する
+      mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+
+      expect(useFallbackPolling.value).toBe(true)
+    })
+
+    it('polls for metrics during fallback mode', async () => {
+      const mockRepository = createMockRepository()
+      const { connect, on } = useWebSocket(mockRepository)
+      const metricsHandler = vi.fn()
+
+      on('metrics', metricsHandler)
+
+      // 初回接続
+      connect(1)
+
+      // 5回の再接続を失敗させる
+      for (let i = 0; i < 5; i++) {
+        mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+        await vi.runAllTimersAsync()
+      }
+
+      // 6回目の切断で最大再接続回数に達し、ポーリング開始
+      mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+
+      // 3秒待機（ポーリング間隔）
+      await vi.advanceTimersByTimeAsync(3000)
+
+      expect(mockRepository.findById).toHaveBeenCalledWith(1)
+      expect(mockRepository.getMetrics).toHaveBeenCalledWith(1, 10)
+      expect(metricsHandler).toHaveBeenCalledWith({
+        type: 'metrics',
+        data: [
+          { timestep: 100, reward: 10 },
+          { timestep: 200, reward: 20 },
+        ],
+      })
+    })
+
+    it('stops polling on disconnect', async () => {
+      const mockRepository = createMockRepository()
+      const { connect, disconnect, useFallbackPolling } = useWebSocket(mockRepository)
+
+      // 初回接続
+      connect(1)
+
+      // 5回の再接続を失敗させる
+      for (let i = 0; i < 5; i++) {
+        mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+        await vi.runAllTimersAsync()
+      }
+
+      // 6回目の切断で最大再接続回数に達し、ポーリング開始
+      mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+
+      expect(useFallbackPolling.value).toBe(true)
+
+      // 切断
+      disconnect()
+
+      expect(useFallbackPolling.value).toBe(false)
+    })
+
+    it('does not start multiple polling intervals', async () => {
+      const mockRepository = createMockRepository()
+      const { connect } = useWebSocket(mockRepository)
+
+      // 初回接続
+      connect(1)
+
+      // 5回の再接続を失敗させる
+      for (let i = 0; i < 5; i++) {
+        mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+        await vi.runAllTimersAsync()
+      }
+
+      // 6回目の切断で最大再接続回数に達し、ポーリング開始
+      mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+
+      // さらに切断イベントを発生させる
+      mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' })
+
+      // 3秒待機
+      await vi.advanceTimersByTimeAsync(3000)
+
+      // findByIdは1回のみ呼ばれる（重複したポーリングが開始されていない）
+      expect(mockRepository.findById).toHaveBeenCalledTimes(1)
     })
   })
 })

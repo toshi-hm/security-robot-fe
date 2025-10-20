@@ -12,6 +12,7 @@ const mockError = vi.fn()
 vi.stubGlobal('useTraining', () => ({
   createSession: mockCreateSession,
   isLoading: ref(false),
+  error: ref(null),
 }))
 
 vi.stubGlobal('useRouter', () => ({
@@ -273,7 +274,9 @@ describe('TrainingControl.vue', () => {
     await vm.startTraining()
 
     expect(mockCreateSession).toHaveBeenCalled()
-    expect(mockError).toHaveBeenCalledWith('学習セッションの開始に失敗しました')
+    expect(mockError).toHaveBeenCalledWith(
+      expect.stringContaining('開始に失敗しました')
+    )
     expect(mockPush).not.toHaveBeenCalled()
   })
 

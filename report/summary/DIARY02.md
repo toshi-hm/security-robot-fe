@@ -267,6 +267,37 @@ export const ElMessageBox = {
 }
 ```
 
+### 5. WebSocketフォールバックポーリング (Session 027+)
+```typescript
+// composables/useWebSocket.ts
+const startFallbackPolling = (sessionId: number) => {
+  console.log('Starting fallback polling for session:', sessionId)
+  useFallbackPolling.value = true
+
+  pollingInterval.value = setInterval(async () => {
+    try {
+      const session = await repository.findById(sessionId)
+      if (session) {
+        const metrics = await repository.getMetrics(sessionId, 10)
+        const handler = messageHandlers.value.get('metrics')
+        if (handler) {
+          handler({ type: 'metrics', data: metrics })
+        }
+      }
+    } catch (e) {
+      console.error('Fallback polling error:', e)
+    }
+  }, 3000) // 3秒ごと
+}
+
+// 5回の再接続失敗後、自動的にポーリングモードに切り替え
+if (reconnectAttempts.value >= maxReconnectAttempts) {
+  error.value = 'Maximum reconnection attempts reached'
+  console.warn('WebSocket再接続失敗。ポーリングモードに切替え')
+  startFallbackPolling(sessionId)
+}
+```
+
 ---
 
 ## 📈 進捗推移
@@ -282,6 +313,7 @@ export const ElMessageBox = {
 | 024 | 373 | - | - | PlaybackControl 100% |
 | 025 | 373 | - | 1.98 MB | Settings Pages完成 |
 | 026 | 384 | 76.67% | - | Test Refactoring |
+| 027+ | 401 | 76.67% | - | WebSocketフォールバックポーリング |
 
 ---
 

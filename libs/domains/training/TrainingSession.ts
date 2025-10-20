@@ -1,6 +1,6 @@
 export type TrainingAlgorithm = 'ppo' | 'a3c'
 export type TrainingEnvironmentType = 'standard' | 'enhanced'
-export type TrainingStatus = 'created' | 'running' | 'paused' | 'completed' | 'failed'
+export type TrainingStatus = 'created' | 'queued' | 'running' | 'paused' | 'completed' | 'failed'
 
 /**
  * 学習セッションドメインモデル

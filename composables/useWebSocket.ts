@@ -1,18 +1,22 @@
 import { ref, readonly, onBeforeUnmount } from 'vue'
+import type { TrainingRepository } from '~/libs/repositories/training/TrainingRepository'
+import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
 /**
  * WebSocket管理Composable
  *
  * 依存性注入パターンでテスタビリティを確保
- * @param socketFactory - Socket.IO接続ファクトリ (テスト時はモック注入可能)
+ * @param repository - TrainingRepository (テスト時はモック注入可能)
  */
-export const useWebSocket = () => {
+export const useWebSocket = (repository: TrainingRepository = new TrainingRepositoryImpl()) => {
   const socket = ref<WebSocket | null>(null)
   const isConnected = ref(false)
   const error = ref<string | null>(null)
   const reconnectAttempts = ref(0)
   const maxReconnectAttempts = 5
   const reconnectDelay = 1000
+  const useFallbackPolling = ref(false)
+  const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
   const config = useRuntimeConfig()
 
@@ -63,6 +67,8 @@ export const useWebSocket = () => {
           }, reconnectDelay * reconnectAttempts.value)
         } else if (reconnectAttempts.value >= maxReconnectAttempts) {
           error.value = 'Maximum reconnection attempts reached'
+          console.warn('WebSocket再接続失敗。ポーリングモードに切替え')
+          startFallbackPolling(sessionId)
         }
       }
     } catch (e) {
@@ -75,6 +81,7 @@ export const useWebSocket = () => {
    * WebSocket切断
    */
   const disconnect = () => {
+    stopFallbackPolling()
     if (socket.value) {
       socket.value.close(1000, 'Client initiated disconnect')
       socket.value = null
@@ -128,15 +135,59 @@ export const useWebSocket = () => {
     messageHandlers.value.delete(messageType)
   }
 
+  /**
+   * フォールバックポーリング開始
+   */
+  const startFallbackPolling = (sessionId: number) => {
+    if (pollingInterval.value) {
+      return // すでにポーリング中
+    }
+
+    console.log('Starting fallback polling for session:', sessionId)
+    useFallbackPolling.value = true
+
+    pollingInterval.value = setInterval(async () => {
+      try {
+        // セッション状態を取得
+        const session = await repository.findById(sessionId)
+        if (session) {
+          // メトリクスハンドラーを呼び出す
+          const handler = messageHandlers.value.get('metrics')
+          if (handler) {
+            // メトリクスを取得して更新通知
+            const metrics = await repository.getMetrics(sessionId, 10)
+            handler({ type: 'metrics', data: metrics })
+          }
+        }
+      } catch (e) {
+        console.error('Fallback polling error:', e)
+      }
+    }, 3000) // 3秒ごと
+  }
+
+  /**
+   * フォールバックポーリング停止
+   */
+  const stopFallbackPolling = () => {
+    if (pollingInterval.value) {
+      clearInterval(pollingInterval.value)
+      pollingInterval.value = null
+      useFallbackPolling.value = false
+      console.log('Fallback polling stopped')
+    }
+  }
+
   // Lifecycle hooks
   onBeforeUnmount(() => {
     disconnect()
+    stopFallbackPolling()
   })
 
   return {
     socket: readonly(socket),
     isConnected: readonly(isConnected),
     error: readonly(error),
+    useFallbackPolling: readonly(useFallbackPolling),
     connect,
     disconnect,
     send,

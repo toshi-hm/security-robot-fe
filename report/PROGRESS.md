@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-14 (Session 028)
+最終更新日: 2025-10-21 (Session 029)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,8 +21,8 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 384テスト (ユニットテスト)
-  - ✅ パス: 384テスト (100%)
+- **総テスト数**: 401テスト (ユニットテスト)
+  - ✅ パス: 401テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 76.67% (目標: 85%以上)
   - Lines: 76.67%
@@ -87,9 +87,9 @@
 - [x] モック問題解決 - Repository依存性注入で解決
 
 #### ✅ useWebSocket (完成)
-- [x] useWebSocket.ts (83.33%カバレッジ, 11テスト)
+- [x] useWebSocket.ts (83.33%カバレッジ, 21テスト)
 - [x] 依存性注入パターン適用
-- [x] Socket.IOモック対応
+- [x] フォールバックポーリング機能追加 (Session 029)
 
 #### ✅ usePlayback (完成)
 - [x] usePlayback.ts (100%カバレッジ, 7テスト)
@@ -652,8 +652,8 @@ export const useEnvironment = (
 ## 🎉 プロジェクト完了状況
 
 ### Testing Suite完全達成 ✅
-- **Phase 7-24**: 全フェーズ完了
-- **Total Tests**: 373 (unit tests) - 100% passing
+- **Phase 7-26**: 全フェーズ完了
+- **Total Tests**: 401 (unit tests) - 100% passing
 - **Build**: ✅ Production ready (1.97 MB)
 - **Code Quality**: ✅ Lint clean (0 errors), TypeScript strict (0 errors)
 
@@ -705,6 +705,42 @@ export const useEnvironment = (
   - TypeScript: 0 errors (no type issues)
   - Dev server: Successful build and hot reload
   - All tooltips functional with hover display
+
+### Phase 26: WebSocket Fallback Polling - UX Improvement ✅
+- [x] useWebSocket.ts enhancement - Fallback polling mechanism (composables/useWebSocket.ts)
+  - New state: useFallbackPolling (readonly ref), pollingInterval (interval ID)
+  - startFallbackPolling(sessionId): Start polling every 3 seconds after WebSocket failures
+  - stopFallbackPolling(): Stop polling and cleanup interval
+  - Repository dependency injection: TrainingRepository parameter added
+  - Auto-switch to polling mode after 5 reconnection failures
+  - Polling logic: repository.findById() + repository.getMetrics()
+  - Call metrics handler with polled data
+  - Cleanup on disconnect() and onBeforeUnmount()
+- [x] Reconnection failure handling
+  - Detect max reconnection attempts (5 attempts)
+  - Log warning: "WebSocket再接続失敗。ポーリングモードに切替え"
+  - Automatically invoke startFallbackPolling(sessionId)
+  - Continue updating UI even without WebSocket connection
+- [x] Test updates (tests/unit/composables/useWebSocket.spec.ts)
+  - Mock TrainingRepository: createMockRepository() function
+  - Fake timers: vi.useFakeTimers() / vi.useRealTimers()
+  - 5 new test cases for fallback polling:
+    1. Initial state: useFallbackPolling is false
+    2. Start polling after max reconnection attempts
+    3. Poll for metrics during fallback mode (3-second interval)
+    4. Stop polling on disconnect
+    5. Prevent multiple polling intervals
+  - All 21 tests passing for useWebSocket (100%)
+- [x] Quality verification
+  - Total tests: 401 tests passing (100%)
+  - TypeScript: 0 errors
+  - ESLint: 0 errors
+  - Build: Successful
+- [x] User benefits
+  - Improved UX: Training progress continues to update even with unstable network
+  - Graceful degradation: Auto-fallback from WebSocket to polling
+  - No manual intervention required
+  - 3-second polling interval balances responsiveness and server load
 
 ### 次のステップ候補
 - Visual regression tests (スクリーンショット比較)

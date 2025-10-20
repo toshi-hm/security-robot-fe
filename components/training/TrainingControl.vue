@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 
-const { createSession, isLoading } = useTraining()
+const { createSession, isLoading, error } = useTraining()
 const router = useRouter()
 
 const formRef = ref()
@@ -52,21 +52,57 @@ const parameterTooltips = {
   diversityWeight: '行動の多様性に対する報酬の重み。大きいほど多様な行動を促進します。',
 }
 
+/**
+ * エラーステータスコードに応じたメッセージマッピング
+ */
+const getErrorMessage = (error: any): string => {
+  const errorMessages: Record<number, string> = {
+    400: 'セッション設定が無効です。パラメータを確認してください。',
+    502: 'トレーニングワーカーが起動していません。稍お待ちください。',
+    503: 'サーバーが高負荷状態です。後でお試しください。',
+    500: 'サーバー内部エラーが発生しました。',
+  }
+
+  // エラーオブジェクトからステータスコードを取得
+  const status = error?.status || error?.response?.status
+
+  if (status && errorMessages[status]) {
+    return errorMessages[status]
+  }
+
+  // タイムアウトエラー
+  if (error?.message?.includes('タイムアウト')) {
+    return 'API応答タイムアウト。Workerが起動していない可能性があります。'
+  }
+
+  // デフォルトメッセージ
+  return error?.message || '学習セッションの開始に失敗しました'
+}
+
 const startTraining = async () => {
   if (!formRef.value) return
 
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
-  const session = await createSession(trainingConfig.value)
-  if (session) {
-    ElMessage.success(`学習セッション「${session.name}」を開始しました`)
-    showForm.value = false
+  try {
+    const session = await createSession(trainingConfig.value)
+    if (session) {
+      ElMessage.success(`学習セッション「${session.name}」を開始しました`)
+      showForm.value = false
 
-    // Navigate to session detail page
-    router.push(`/training/${session.id}`)
-  } else {
-    ElMessage.error('学習セッションの開始に失敗しました')
+      // Navigate to session detail page
+      router.push(`/training/${session.id}`)
+    } else {
+      // createSessionがnullを返した場合（エラーが発生した場合）
+      const errorMsg = error.value || '学習セッションの開始に失敗しました'
+      ElMessage.error(`開始に失敗しました: ${errorMsg}`)
+    }
+  } catch (err: any) {
+    // 予期しないエラーをキャッチ
+    const errorMsg = getErrorMessage(err)
+    ElMessage.error(`開始に失敗しました: ${errorMsg}`)
+    console.error('Training session creation error:', err)
   }
 }
 

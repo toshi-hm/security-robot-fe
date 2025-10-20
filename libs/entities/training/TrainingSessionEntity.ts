@@ -5,7 +5,7 @@ export interface TrainingSessionDTO {
   name: string
   algorithm: 'ppo' | 'a3c'
   environment_type: 'standard' | 'enhanced'
-  status: 'created' | 'running' | 'paused' | 'completed' | 'failed'
+  status: 'created' | 'queued' | 'running' | 'paused' | 'completed' | 'failed'
   total_timesteps: number
   current_timestep: number
   episodes_completed: number
