@@ -14,17 +14,11 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
-      include: [
-        'composables/**/*.ts',
-        'stores/**/*.ts',
-        'utils/**/*.ts',
-        'pages/**/*.vue',
-        'components/**/*.vue',
-        'layouts/**/*.vue',
-      ],
+      include: ['composables/**/*.ts', 'stores/**/*.ts', 'utils/**/*.ts', 'components/**/*.vue', 'layouts/**/*.vue'],
       exclude: [
         'node_modules/',
         'tests/',
+        'pages/**',
         '**/*.spec.ts',
         '**/*.test.ts',
         '.nuxt/',
