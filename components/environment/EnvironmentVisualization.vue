@@ -7,6 +7,7 @@ interface Props {
   robotPosition?: { x: number; y: number } | null
   coverageMap?: boolean[][]
   threatGrid?: number[][]
+  trajectory?: Array<{ x: number; y: number }>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   robotPosition: null,
   coverageMap: () => [],
   threatGrid: () => [],
+  trajectory: () => [],
 })
 
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -61,6 +63,9 @@ const drawEnvironment = () => {
     }
   }
 
+  // Draw robot trajectory
+  drawTrajectory(ctx)
+
   // Draw robot position
   if (props.robotPosition) {
     const robotX = Math.floor(props.robotPosition.x) * cellSize + cellSize / 2
@@ -104,17 +109,62 @@ const getThreatColor = (level: number): string => {
 }
 
 /**
+ * Draw robot trajectory (path history)
+ */
+const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
+  if (!props.trajectory || props.trajectory.length === 0) return
+
+  // Draw trajectory path
+  ctx.strokeStyle = 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
+  ctx.lineWidth = 3
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  ctx.beginPath()
+  props.trajectory.forEach((pos, index) => {
+    const x = Math.floor(pos.x) * cellSize + cellSize / 2
+    const y = Math.floor(pos.y) * cellSize + cellSize / 2
+
+    if (index === 0) {
+      ctx.moveTo(x, y)
+    } else {
+      ctx.lineTo(x, y)
+    }
+  })
+  ctx.stroke()
+
+  // Draw trajectory points (fade from old to recent)
+  props.trajectory.forEach((pos, index) => {
+    const x = Math.floor(pos.x) * cellSize + cellSize / 2
+    const y = Math.floor(pos.y) * cellSize + cellSize / 2
+
+    // Calculate opacity based on position in trajectory (older = more transparent)
+    const opacity = 0.2 + (index / props.trajectory.length) * 0.6
+
+    ctx.fillStyle = `rgba(64, 158, 255, ${opacity})`
+    ctx.beginPath()
+    ctx.arc(x, y, 4, 0, Math.PI * 2)
+    ctx.fill()
+
+    // White border for visibility
+    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
+    ctx.lineWidth = 1
+    ctx.stroke()
+  })
+}
+
+/**
  * Draw legend for threat levels and coverage
  */
 const drawLegend = (ctx: CanvasRenderingContext2D) => {
   const legendX = 10
-  const legendY = canvasHeight.value - 80
+  const legendY = canvasHeight.value - 100
 
   // Legend background
   ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-  ctx.fillRect(legendX, legendY, 150, 70)
+  ctx.fillRect(legendX, legendY, 150, 90)
   ctx.strokeStyle = '#999'
-  ctx.strokeRect(legendX, legendY, 150, 70)
+  ctx.strokeRect(legendX, legendY, 150, 90)
 
   // Threat level legend
   ctx.fillStyle = '#000'
@@ -138,11 +188,21 @@ const drawLegend = (ctx: CanvasRenderingContext2D) => {
   ctx.fillRect(legendX + 5, legendY + 45, 20, 15)
   ctx.fillStyle = '#000'
   ctx.fillText('Visited', legendX + 30, legendY + 57)
+
+  // Trajectory legend
+  ctx.strokeStyle = 'rgba(64, 158, 255, 0.5)'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(legendX + 5, legendY + 72)
+  ctx.lineTo(legendX + 25, legendY + 72)
+  ctx.stroke()
+  ctx.fillStyle = '#000'
+  ctx.fillText('Trajectory', legendX + 30, legendY + 77)
 }
 
 // Watch for prop changes and redraw
 watch(
-  () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight],
+  () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight, props.trajectory],
   () => {
     drawEnvironment()
   },

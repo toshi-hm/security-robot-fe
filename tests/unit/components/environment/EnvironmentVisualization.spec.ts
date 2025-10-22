@@ -18,6 +18,8 @@ describe('EnvironmentVisualization', () => {
       fill: vi.fn(),
       stroke: vi.fn(),
       fillText: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
     }
 
     HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasMock)
@@ -113,6 +115,21 @@ describe('EnvironmentVisualization', () => {
     expect(wrapper.props('threatGrid')).toEqual(threatGrid)
   })
 
+  it('accepts trajectory prop', async () => {
+    const trajectory = [
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+    ]
+    const wrapper = mount(EnvironmentVisualization, {
+      props: {
+        trajectory,
+      },
+    })
+
+    expect(wrapper.props('trajectory')).toEqual(trajectory)
+  })
+
   describe('Canvas Drawing', () => {
     it('calls clearRect when drawing environment', () => {
       mount(EnvironmentVisualization)
@@ -191,6 +208,42 @@ describe('EnvironmentVisualization', () => {
       mount(EnvironmentVisualization)
 
       expect(canvasMock.fillText).toHaveBeenCalled()
+    })
+
+    it('draws trajectory path when provided', () => {
+      const trajectory = [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 2 },
+      ]
+
+      mount(EnvironmentVisualization, {
+        props: {
+          trajectory,
+        },
+      })
+
+      // Trajectory is drawn with stroke (line)
+      expect(canvasMock.beginPath).toHaveBeenCalled()
+      expect(canvasMock.stroke).toHaveBeenCalled()
+      // Trajectory points are drawn with arc (circles)
+      expect(canvasMock.arc).toHaveBeenCalled()
+    })
+
+    it('does not draw trajectory when empty', () => {
+      const arcCallsBefore = canvasMock.arc.mock.calls.length
+      canvasMock.arc.mockClear()
+
+      mount(EnvironmentVisualization, {
+        props: {
+          trajectory: [],
+        },
+      })
+
+      // Should still draw robot direction and legend, but not trajectory points
+      const arcCallsAfter = canvasMock.arc.mock.calls.length
+      // Trajectory would add multiple arc calls if it had points
+      expect(arcCallsAfter).toBeLessThan(5)
     })
   })
 
@@ -273,6 +326,30 @@ describe('EnvironmentVisualization', () => {
       await wrapper.setProps({
         gridWidth: 6,
         gridHeight: 6,
+      })
+      await nextTick()
+
+      expect(canvasMock.clearRect).toHaveBeenCalled()
+    })
+
+    it('redraws when trajectory changes', async () => {
+      const wrapper = mount(EnvironmentVisualization, {
+        props: {
+          trajectory: [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ],
+        },
+      })
+
+      canvasMock.clearRect.mockClear()
+
+      await wrapper.setProps({
+        trajectory: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+          { x: 2, y: 2 },
+        ],
       })
       await nextTick()
 

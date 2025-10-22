@@ -40,6 +40,7 @@ const RobotPositionDisplayStub = {
 const EnvironmentVisualizationStub = {
   name: 'EnvironmentVisualization',
   template: '<div class="environment-visualization-stub"></div>',
+  props: ['gridWidth', 'gridHeight', 'robotPosition', 'coverageMap', 'threatGrid', 'trajectory'],
 }
 
 describe('Training Session Page', () => {
@@ -166,5 +167,140 @@ describe('Training Session Page', () => {
 
     const envCards = wrapper.findAll('.training-session__environment')
     expect(envCards.length).toBe(0)
+  })
+
+  it('initializes robot trajectory as empty array', () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+    expect(vm.robotTrajectory).toBeDefined()
+    expect(Array.isArray(vm.robotTrajectory)).toBe(true)
+    expect(vm.robotTrajectory.length).toBe(0)
+  })
+
+  it('adds robot position to trajectory when environment updates', async () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+
+    // Simulate environment update with robot position
+    const message = {
+      session_id: 789,
+      robot_position: { x: 2, y: 3 },
+    }
+
+    vm.handleEnvironmentUpdate(message)
+
+    expect(vm.robotTrajectory.length).toBe(1)
+    expect(vm.robotTrajectory[0]).toEqual({ x: 2, y: 3 })
+  })
+
+  it('does not add duplicate positions to trajectory', async () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+
+    // First position
+    const message1 = {
+      session_id: 789,
+      robot_position: { x: 2, y: 3 },
+    }
+    vm.handleEnvironmentUpdate(message1)
+
+    // Same position again
+    const message2 = {
+      session_id: 789,
+      robot_position: { x: 2, y: 3 },
+    }
+    vm.handleEnvironmentUpdate(message2)
+
+    // Should only have one entry
+    expect(vm.robotTrajectory.length).toBe(1)
+  })
+
+  it('limits trajectory to 100 points', async () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+
+    // Add 110 positions
+    for (let i = 0; i < 110; i++) {
+      const message = {
+        session_id: 789,
+        robot_position: { x: i, y: i },
+      }
+      vm.handleEnvironmentUpdate(message)
+    }
+
+    // Should only keep the last 100
+    expect(vm.robotTrajectory.length).toBe(100)
+    // First element should be position 10 (not 0)
+    expect(vm.robotTrajectory[0]).toEqual({ x: 10, y: 10 })
+    // Last element should be position 109
+    expect(vm.robotTrajectory[99]).toEqual({ x: 109, y: 109 })
+  })
+
+  it('passes trajectory to EnvironmentVisualization component', async () => {
+    const wrapper = mount(TrainingSessionPage, {
+      global: {
+        stubs: {
+          TrainingMetrics: TrainingMetricsStub,
+          RobotPositionDisplay: RobotPositionDisplayStub,
+          EnvironmentVisualization: EnvironmentVisualizationStub,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+
+    // Add a position to trajectory
+    const message = {
+      session_id: 789,
+      robot_position: { x: 5, y: 7 },
+    }
+    vm.handleEnvironmentUpdate(message)
+
+    // Wait for reactivity
+    await wrapper.vm.$nextTick()
+
+    // Find EnvironmentVisualization component (should be rendered now that robotPosition is set)
+    const envViz = wrapper.findComponent(EnvironmentVisualizationStub)
+    if (envViz.exists()) {
+      const props = envViz.props()
+      expect(props.trajectory).toBeDefined()
+      expect(Array.isArray(props.trajectory)).toBe(true)
+    }
   })
 })

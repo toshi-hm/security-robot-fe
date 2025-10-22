@@ -29,6 +29,7 @@ const showStatusAlert = ref(false)
 
 // Environment update state
 const robotPosition = ref<{ x: number; y: number } | null>(null)
+const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
 const gridWidth = ref<number>(8)
@@ -112,10 +113,26 @@ const handleEnvironmentUpdate = (message: any) => {
   if (message.session_id === sessionId.value) {
     // Update robot position
     if (message.robot_position) {
-      robotPosition.value = {
+      const newPosition = {
         x: message.robot_position.x ?? message.robot_position[0] ?? 0,
         y: message.robot_position.y ?? message.robot_position[1] ?? 0,
       }
+
+      // Add to trajectory if position changed
+      if (
+        !robotPosition.value ||
+        robotPosition.value.x !== newPosition.x ||
+        robotPosition.value.y !== newPosition.y
+      ) {
+        robotTrajectory.value.push({ ...newPosition })
+
+        // Limit trajectory length to 100 points for performance
+        if (robotTrajectory.value.length > 100) {
+          robotTrajectory.value.shift()
+        }
+      }
+
+      robotPosition.value = newPosition
     }
 
     // Update action and reward
@@ -220,6 +237,7 @@ onBeforeUnmount(() => {
             :robot-position="robotPosition"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
+            :trajectory="robotTrajectory"
           />
         </el-card>
       </el-col>

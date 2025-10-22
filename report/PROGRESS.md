@@ -64,7 +64,7 @@
 
 #### ⚠️ その他ドメイン
 - [ ] Playback関連 - 未テスト
-- [ ] Model関連 - 未テスト
+- [x] Model関連 - ドメイン層削除済み (Phase 23)
 
 ### Phase 5: エンティティ層 (libs/entities/)
 - [x] TrainingSessionEntity.ts (100%カバレッジ, 2テスト)
@@ -453,10 +453,10 @@
   - `/models` page: Fully functional
 
 ### 次フェーズ候補
-  - 2D grid visualization of robot position
-  - Coverage heatmap overlay
-  - Real-time position updates
-  - Interactive map with zoom/pan
+- [x] 2D grid visualization of robot position (Phase 22完了)
+- [x] Coverage heatmap overlay (Phase 22完了)
+- [x] Real-time position updates (Phase 22完了)
+- [ ] Interactive map with zoom/pan
 - [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
