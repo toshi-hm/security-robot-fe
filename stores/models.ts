@@ -16,6 +16,7 @@ export const useModelsStore = defineStore('models', () => {
   // Additional state for UI
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const uploadProgress = ref(0)
 
   /**
    * Fetch all model files
@@ -41,11 +42,16 @@ export const useModelsStore = defineStore('models', () => {
   const uploadModel = async (file: File, metadata?: Record<string, any>) => {
     isLoading.value = true
     error.value = null
+    uploadProgress.value = 0
 
     try {
-      await service.uploadModel(file, metadata)
+      await service.uploadModel(file, metadata, (progress: number) => {
+        uploadProgress.value = progress
+      })
+      uploadProgress.value = 100
     } catch (err) {
       error.value = 'モデルのアップロードに失敗しました'
+      uploadProgress.value = 0
       console.error('Failed to upload model:', err)
       throw err
     } finally {
@@ -107,6 +113,7 @@ export const useModelsStore = defineStore('models', () => {
     // Additional state
     isLoading,
     error,
+    uploadProgress,
 
     // Actions
     fetchModels,

@@ -138,6 +138,9 @@ const formatDate = (date: string | Date): string => {
         </div>
       </el-upload>
 
+      <!-- Upload Progress Bar -->
+      <el-progress v-if="modelsStore.uploadProgress > 0" :percentage="modelsStore.uploadProgress" class="models__progress" />
+
       <template #footer>
         <el-button @click="uploadDialogVisible = false"> キャンセル </el-button>
         <el-button type="primary" :loading="modelsStore.isLoading" @click="handleUpload"> アップロード </el-button>
@@ -182,6 +185,10 @@ const formatDate = (date: string | Date): string => {
   &__upload-content {
     padding: 40px 20px;
     text-align: center;
+  }
+
+  &__progress {
+    margin-top: 20px;
   }
 }
 </style>

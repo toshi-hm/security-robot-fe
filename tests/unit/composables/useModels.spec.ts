@@ -137,7 +137,7 @@ describe('useModels', () => {
 
       const result = await uploadModel(file, metadata)
 
-      expect(mockRepository.uploadModel).toHaveBeenCalledWith(file, metadata)
+      expect(mockRepository.uploadModel).toHaveBeenCalledWith(file, metadata, undefined)
       expect(result).toEqual(newModel)
       expect(models.value[0]).toEqual(newModel)
       expect(models.value).toHaveLength(1)
@@ -150,7 +150,7 @@ describe('useModels', () => {
 
       await uploadModel(file)
 
-      expect(mockRepository.uploadModel).toHaveBeenCalledWith(file, undefined)
+      expect(mockRepository.uploadModel).toHaveBeenCalledWith(file, undefined, undefined)
     })
 
     it('should add uploaded model to existing models', async () => {

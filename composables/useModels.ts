@@ -18,8 +18,12 @@ export const useModels = (repository?: ModelRepository) => {
     models.value = await repo.listModels()
   }
 
-  const uploadModel = async (file: File, metadata?: Record<string, any>): Promise<ModelEntity> => {
-    const newModel = await repo.uploadModel(file, metadata)
+  const uploadModel = async (
+    file: File,
+    metadata?: Record<string, any>,
+    onProgress?: (progress: number) => void
+  ): Promise<ModelEntity> => {
+    const newModel = await repo.uploadModel(file, metadata, onProgress)
     models.value.push(newModel)
     return newModel
   }

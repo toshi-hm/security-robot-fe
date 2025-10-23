@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-24 (Session 030 - Phase 27)
+最終更新日: 2025-10-24 (Session 031 - Phase 28)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -21,8 +21,8 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 427テスト (ユニットテスト)
-  - ✅ パス: 427テスト (100%)
+- **総テスト数**: 433テスト (ユニットテスト)
+  - ✅ パス: 433テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 76.67% (目標: 85%以上)
   - Lines: 76.67%
@@ -457,11 +457,11 @@
 - [x] Coverage heatmap overlay (Phase 22完了)
 - [x] Real-time position updates (Phase 22完了)
 - [x] Interactive map with zoom/pan (Phase 27完了)
+- [x] Upload progress indicator - Progress bar実装 (Phase 28完了)
 - [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
 - [ ] Performance tests - ロード時間測定
-- [ ] Upload progress indicator - Progress bar実装
 
 ---
 
@@ -793,9 +793,62 @@ export const useEnvironment = (
   - Intuitive controls: Standard zoom/pan interaction pattern
   - Visual feedback: Cursor changes (grab/grabbing)
 
+### Phase 28: Upload Progress Indicator - Progress Bar ✅
+- [x] Models Store enhancement (stores/models.ts)
+  - New state: uploadProgress ref (0-100 number)
+  - uploadModel action enhancement:
+    - Progress tracking callback integration
+    - Progress state updates (0 → progress → 100)
+    - Reset progress on start and error
+  - Export uploadProgress as readonly ref
+- [x] useModels composable enhancement (composables/useModels.ts)
+  - uploadModel signature updated: Added onProgress callback parameter
+  - Pass progress callback from store to repository
+  - Maintain backward compatibility (optional parameter)
+- [x] ModelRepository interface update (libs/repositories/model/ModelRepository.ts)
+  - uploadModel signature: Added onProgress?: (progress: number) => void parameter
+- [x] ModelRepositoryImpl enhancement (libs/repositories/model/ModelRepositoryImpl.ts)
+  - Migrated from $fetch to XMLHttpRequest for progress tracking
+  - xhr.upload.addEventListener('progress') implementation
+  - Calculate percentage: Math.round((event.loaded / event.total) * 100)
+  - onProgress callback invocation on progress events
+  - Promise-based wrapper maintaining async/await compatibility
+  - Error handling: load, error, abort event listeners
+  - Status code validation (200-299 success range)
+- [x] Models Page UI enhancement (pages/models/index.vue)
+  - el-progress component integration in upload dialog
+  - Conditional rendering: v-if="modelsStore.uploadProgress > 0"
+  - Percentage binding: :percentage="modelsStore.uploadProgress"
+  - BEM CSS styling: .models__progress class
+  - Progress bar positioning: Below upload area, above footer
+- [x] Test updates (TDD Red-Green cycle)
+  - stores/models.spec.ts: 4 new tests (17 total)
+    - uploadProgress initialization (default: 0)
+    - Upload progress tracking during upload
+    - Progress reset on upload start
+    - Progress reset on upload error
+  - composables/useModels.spec.ts: 2 test fixes
+    - Updated toHaveBeenCalledWith assertions for 3rd parameter
+    - Backward compatibility tests (undefined onProgress)
+  - pages/models/index.spec.ts: 3 new tests (19 total)
+    - ElProgressStub component added to global stubs
+    - Progress bar display when uploadProgress > 0 and dialog open
+    - No progress bar when uploadProgress is 0
+    - Progress bar display at 100% completion
+  - All tests passing: 433 tests (100% success rate)
+- [x] Quality verification
+  - TypeScript: 0 errors
+  - ESLint: 0 errors
+  - Build: Successful (1.98 MB)
+- [x] User benefits
+  - Improved UX: Visual feedback during file upload
+  - Real-time progress tracking (0-100%)
+  - Better user experience for large file uploads
+  - No blocking UI during upload process
+  - Standard progress bar styling with Element Plus
+
 ### 次のステップ候補
 - Visual regression tests (スクリーンショット比較)
 - Performance tests (ロード時間測定)
 - Settings API integration (Backend連携)
-- Upload progress indicator (Progress bar実装)
 - Other pages localization (Dashboard, Playback, Models, Environment visualization)

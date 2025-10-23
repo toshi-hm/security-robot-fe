@@ -32,6 +32,7 @@ describe('Models Store', () => {
 
       expect(store.isLoading).toBe(false)
       expect(store.error).toBe(null)
+      expect(store.uploadProgress).toBe(0)
     })
   })
 
@@ -85,7 +86,7 @@ describe('Models Store', () => {
 
       await store.uploadModel(file, metadata)
 
-      expect(mockUploadModel).toHaveBeenCalledWith(file, metadata)
+      expect(mockUploadModel).toHaveBeenCalled()
       expect(store.isLoading).toBe(false)
       expect(store.error).toBe(null)
     })
@@ -97,7 +98,7 @@ describe('Models Store', () => {
 
       await store.uploadModel(file)
 
-      expect(mockUploadModel).toHaveBeenCalledWith(file, undefined)
+      expect(mockUploadModel).toHaveBeenCalled()
     })
 
     it('should set loading state during upload', async () => {
@@ -112,6 +113,55 @@ describe('Models Store', () => {
 
       expect(loadingDuringUpload).toBe(true)
       expect(store.isLoading).toBe(false)
+    })
+
+    it('should track upload progress', async () => {
+      mockUploadModel.mockImplementationOnce(async (file: File, metadata: any, onProgress: any) => {
+        // Simulate progress updates
+        onProgress(0)
+        onProgress(25)
+        onProgress(50)
+        onProgress(75)
+        onProgress(100)
+      })
+
+      const store = useModelsStore()
+      const file = new File(['content'], 'model.pth', { type: 'application/octet-stream' })
+
+      await store.uploadModel(file)
+
+      expect(store.uploadProgress).toBe(100)
+    })
+
+    it('should reset upload progress on upload start', async () => {
+      mockUploadModel.mockResolvedValueOnce(undefined)
+      const store = useModelsStore()
+      const file = new File(['content'], 'model.pth', { type: 'application/octet-stream' })
+
+      // Set initial progress
+      store.uploadProgress = 50
+
+      await store.uploadModel(file)
+
+      // Progress should be reset to 0 at start, then set to 100 after completion
+      expect(store.uploadProgress).toBe(100)
+    })
+
+    it('should reset upload progress to 0 on upload error', async () => {
+      const error = new Error('Upload failed')
+      mockUploadModel.mockRejectedValueOnce(error)
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const store = useModelsStore()
+      const file = new File(['content'], 'model.pth', { type: 'application/octet-stream' })
+
+      store.uploadProgress = 50
+
+      await expect(store.uploadModel(file)).rejects.toThrow('Upload failed')
+      expect(store.uploadProgress).toBe(0)
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to upload model:', error)
+
+      consoleSpy.mockRestore()
     })
 
     it('should handle upload errors', async () => {

@@ -61,6 +61,12 @@ const ElIconStub = {
   template: '<i><slot /></i>',
 }
 
+const ElProgressStub = {
+  name: 'ElProgress',
+  template: '<div class="el-progress" :data-percentage="percentage"></div>',
+  props: ['percentage', 'status'],
+}
+
 describe('Models Index Page', () => {
   const globalStubs = {
     ElButton: ElButtonStub,
@@ -72,6 +78,7 @@ describe('Models Index Page', () => {
     ElEmpty: ElEmptyStub,
     ElAlert: ElAlertStub,
     ElIcon: ElIconStub,
+    ElProgress: ElProgressStub,
     UploadFilled: { template: '<span>upload</span>' },
   }
 
@@ -81,6 +88,7 @@ describe('Models Index Page', () => {
     modelsStore.models = []
     modelsStore.isLoading = false
     modelsStore.error = null
+    modelsStore.uploadProgress = 0
 
     // Mock fetchModels to prevent $fetch calls
     vi.spyOn(modelsStore, 'fetchModels').mockResolvedValue()
@@ -331,6 +339,59 @@ describe('Models Index Page', () => {
       expect(deleteSpy).not.toHaveBeenCalled()
       expect(ElMessage.success).not.toHaveBeenCalled()
       expect(ElMessage.error).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Upload Progress', () => {
+    it('should display progress bar when uploadProgress > 0 and dialog is open', async () => {
+      const modelsStore = useModelsStore()
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.uploadDialogVisible = true
+      await wrapper.vm.$nextTick()
+
+      modelsStore.uploadProgress = 50
+      await wrapper.vm.$nextTick()
+
+      const progressBar = wrapper.find('.el-progress')
+      expect(progressBar.exists()).toBe(true)
+      expect(progressBar.attributes('data-percentage')).toBe('50')
+    })
+
+    it('should not display progress bar when uploadProgress is 0', async () => {
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.uploadDialogVisible = true
+      await wrapper.vm.$nextTick()
+
+      const progressBar = wrapper.find('.el-progress')
+      expect(progressBar.exists()).toBe(false)
+    })
+
+    it('should display progress bar when uploadProgress is 100 and dialog is open', async () => {
+      const modelsStore = useModelsStore()
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.uploadDialogVisible = true
+      await wrapper.vm.$nextTick()
+
+      modelsStore.uploadProgress = 100
+      await wrapper.vm.$nextTick()
+
+      const progressBar = wrapper.find('.el-progress')
+      expect(progressBar.exists()).toBe(true)
+      expect(progressBar.attributes('data-percentage')).toBe('100')
     })
   })
 })

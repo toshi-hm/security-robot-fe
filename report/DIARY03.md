@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 031 - Upload Progress Indicator](#session-031---upload-progress-indicator-2025-10-24)
 - [Session 030 - Interactive Map with Zoom/Pan](#session-030---interactive-map-with-zoompan-2025-10-24)
 - [Session 028 - Training Pages Japanese Localization](#session-028---training-pages-japanese-localization-2025-10-14)
 - [Session 027 - Functions Coverage Improvement](#session-027---functions-coverage-improvement-2025-10-14)
@@ -18,6 +19,177 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-031---upload-progress-indicator-2025-10-24"></a>
+### Session 031 - Upload Progress Indicator (2025-10-24)
+
+**目的**: モデルファイルアップロード時のプログレスバー実装（Phase 28）
+
+**実施内容**:
+
+1. **Phase 28: Upload Progress Indicator 実装 (TDD方式)**:
+   - **Red phase**: 9個の新規テスト作成・失敗確認
+     - stores/models.spec.ts: 4テスト（uploadProgress初期化、進捗追跡、開始時リセット、エラー時リセット）
+     - pages/models/index.spec.ts: 3テスト（進捗バー表示条件、0%時非表示、100%時表示）
+     - composables/useModels.spec.ts: 2テスト修正（第3パラメータonProgress対応）
+   - **Green phase**: 完全実装
+     - stores/models.ts: uploadProgress状態管理追加
+     - composables/useModels.ts: onProgressコールバック対応
+     - ModelRepository/ModelRepositoryImpl: XMLHttpRequest移行（progress tracking対応）
+     - pages/models/index.vue: el-progress UIコンポーネント統合
+
+2. **stores/models.ts enhancement**:
+   - **新規状態**: `uploadProgress` ref (0-100の数値)
+   - **uploadModel action強化**:
+     - Progress tracking callback統合
+     - Progress state更新 (0 → progress → 100)
+     - 開始時・エラー時に0リセット
+   - **Export**: uploadProgress as readonly ref
+
+3. **composables/useModels.ts enhancement**:
+   - **uploadModel signature更新**: onProgress?: (progress: number) => void パラメータ追加
+   - Progress callbackをstore → repository へ伝播
+   - 後方互換性維持（optional parameter）
+
+4. **ModelRepositoryImpl.ts enhancement**:
+   - **$fetch → XMLHttpRequest 移行**:
+     ```typescript
+     return await new Promise<ModelEntity>((resolve, reject) => {
+       const xhr = new XMLHttpRequest()
+
+       xhr.upload.addEventListener('progress', (event) => {
+         if (event.lengthComputable && onProgress) {
+           const percentComplete = Math.round((event.loaded / event.total) * 100)
+           onProgress(percentComplete)
+         }
+       })
+
+       xhr.addEventListener('load', () => {
+         if (xhr.status >= 200 && xhr.status < 300) {
+           resolve(JSON.parse(xhr.responseText))
+         } else {
+           reject(new Error(`Upload failed with status ${xhr.status}`))
+         }
+       })
+
+       xhr.open('POST', API_ENDPOINTS.files.upload)
+       xhr.send(formData)
+     })
+     ```
+   - Progress calculation: `Math.round((event.loaded / event.total) * 100)`
+   - Error handling: load, error, abort event listeners
+   - Status code validation (200-299 success range)
+
+5. **pages/models/index.vue UI enhancement**:
+   - **el-progress コンポーネント統合**:
+     ```vue
+     <el-progress
+       v-if="modelsStore.uploadProgress > 0"
+       :percentage="modelsStore.uploadProgress"
+       class="models__progress"
+     />
+     ```
+   - Conditional rendering: uploadProgress > 0 かつ dialog open時のみ表示
+   - Percentage binding: リアルタイム進捗表示
+   - BEM CSS: `.models__progress` クラス追加
+
+6. **テスト更新**:
+   - **stores/models.spec.ts**: 4新規テスト（17テスト total）
+     - uploadProgress初期化（default: 0）
+     - Upload progress tracking during upload
+     - Progress reset on upload start
+     - Progress reset on upload error
+   - **composables/useModels.spec.ts**: 2テスト修正
+     - toHaveBeenCalledWith assertions に第3パラメータ追加
+     - 後方互換性テスト（undefined onProgress）
+   - **pages/models/index.spec.ts**: 3新規テスト（19テスト total）
+     - ElProgressStub コンポーネント追加
+     - Progress bar display when uploadProgress > 0 and dialog open
+     - No progress bar when uploadProgress is 0
+     - Progress bar display at 100% completion
+
+**技術的実装詳細**:
+
+1. **XMLHttpRequest progress tracking**:
+   ```typescript
+   xhr.upload.addEventListener('progress', (event) => {
+     if (event.lengthComputable && onProgress) {
+       const percentComplete = Math.round((event.loaded / event.total) * 100)
+       onProgress(percentComplete)
+     }
+   })
+   ```
+
+2. **Store progress state management**:
+   ```typescript
+   const uploadProgress = ref(0)
+
+   const uploadModel = async (file: File, metadata?: Record<string, any>) => {
+     uploadProgress.value = 0
+     await service.uploadModel(file, metadata, (progress: number) => {
+       uploadProgress.value = progress
+     })
+     uploadProgress.value = 100
+   }
+   ```
+
+3. **UI conditional rendering**:
+   ```vue
+   <el-progress
+     v-if="modelsStore.uploadProgress > 0"
+     :percentage="modelsStore.uploadProgress"
+   />
+   ```
+
+**成果物**:
+- ✅ `stores/models.ts` - uploadProgress状態管理追加
+- ✅ `composables/useModels.ts` - onProgressコールバック対応
+- ✅ `libs/repositories/model/ModelRepositoryImpl.ts` - XMLHttpRequest移行
+- ✅ `libs/repositories/model/ModelRepository.ts` - Interface更新
+- ✅ `pages/models/index.vue` - el-progress UI統合
+- ✅ `tests/unit/stores/models.spec.ts` - 4テスト追加（17 total）
+- ✅ `tests/unit/composables/useModels.spec.ts` - 2テスト修正（17 total）
+- ✅ `tests/unit/pages/models/index.spec.ts` - 3テスト追加（19 total）
+- ✅ Total: 433 tests passing (427 → 433, +6追加)
+- ✅ TypeScript: 0 errors
+- ✅ ESLint: 0 errors
+- ✅ Build: Success (1.98 MB)
+
+**テスト結果**:
+| Component          | Before | After | Change |
+|--------------------|--------|-------|--------|
+| stores/models      | 13     | 17    | +4     |
+| useModels          | 17     | 17    | ±0 (2修正) |
+| models/index page  | 16     | 19    | +3     |
+| Total tests        | 427    | 433   | +6     |
+
+**ユーザーメリット**:
+- 📊 **Visual Feedback**: ファイルアップロード中のリアルタイム進捗表示
+- 📈 **Progress Tracking**: 0-100%の正確な進捗率表示
+- ⏳ **Better UX**: 大きなファイルアップロード時の待ち時間可視化
+- 🚫 **Non-blocking UI**: アップロード中もUIがブロックされない
+- 🎨 **Standard Styling**: Element Plusの標準プログレスバー
+
+**変更ファイル統計**:
+```
+stores/models.ts                                   |  15 +++++++
+composables/useModels.ts                           |   3 +-
+libs/repositories/model/ModelRepository.ts         |   2 +-
+libs/repositories/model/ModelRepositoryImpl.ts     |  47 ++++++++++++++++----
+pages/models/index.vue                             |   4 ++
+tests/unit/stores/models.spec.ts                   |  45 ++++++++++++++++++-
+tests/unit/composables/useModels.spec.ts           |   4 +-
+tests/unit/pages/models/index.spec.ts              |  48 +++++++++++++++++++-
+report/PROGRESS.md                                 |  58 +++++++++++++++++++++++++
+report/DIARY03.md                                  | 175 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+
+**時間**: 約1.5時間
+**ステータス**: ✅ 完了
+**Phase**: 28
+**TDD**: ✅ Red-Green cycle完全実施
+
+---
 
 <a id="session-030---interactive-map-with-zoompan-2025-10-24"></a>
 ### Session 030 - Interactive Map with Zoom/Pan (2025-10-24)

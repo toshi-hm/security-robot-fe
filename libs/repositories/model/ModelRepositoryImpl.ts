@@ -41,7 +41,7 @@ export class ModelRepositoryImpl implements ModelRepository {
     }
   }
 
-  async uploadModel(file: File, metadata?: Record<string, any>): Promise<ModelEntity> {
+  async uploadModel(file: File, metadata?: Record<string, any>, onProgress?: (progress: number) => void): Promise<ModelEntity> {
     try {
       // Backend: POST /api/v1/files/ (multipart/form-data)
       const formData = new FormData()
@@ -51,9 +51,44 @@ export class ModelRepositoryImpl implements ModelRepository {
         formData.append('metadata', JSON.stringify(metadata))
       }
 
-      return await $fetch<ModelEntity>(API_ENDPOINTS.files.upload, {
-        method: 'POST',
-        body: formData,
+      // Use XMLHttpRequest for progress tracking
+      return await new Promise<ModelEntity>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+
+        // Track upload progress
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable && onProgress) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100)
+            onProgress(percentComplete)
+          }
+        })
+
+        // Handle completion
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText)
+              resolve(response)
+            } catch (err) {
+              reject(new Error('Failed to parse response'))
+            }
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`))
+          }
+        })
+
+        // Handle errors
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'))
+        })
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload aborted'))
+        })
+
+        // Open and send request
+        xhr.open('POST', API_ENDPOINTS.files.upload)
+        xhr.send(formData)
       })
     } catch (error) {
       console.error('Failed to upload model:', error)
