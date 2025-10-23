@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-21 (Session 029)
+最終更新日: 2025-10-24 (Session 030 - Phase 27)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -16,13 +16,13 @@
 - **テスト設計**: instructions/04_test_design_standalone.md
 
 ### ビルド・品質状況 ✅
-- **ビルド**: ✅ Success (1.97 MB, node-server preset)
+- **ビルド**: ✅ Success (1.98 MB, node-server preset)
 - **Lint**: ✅ 0 errors (55 warnings - test `any` types)
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 401テスト (ユニットテスト)
-  - ✅ パス: 401テスト (100%)
+- **総テスト数**: 427テスト (ユニットテスト)
+  - ✅ パス: 427テスト (100%)
   - ❌ 失敗: 0テスト
 - **Unit Test Coverage**: 76.67% (目標: 85%以上)
   - Lines: 76.67%
@@ -121,7 +121,7 @@
 - [x] TrainingProgress.vue (6テスト, 100%カバレッジ)
 - [x] TrainingMetrics.vue (5テスト, 100%カバレッジ)
 - [x] ConfigurationPanel.vue (5テスト, 100%カバレッジ)
-- [x] EnvironmentVisualization.vue (5テスト, 100%カバレッジ)
+- [x] EnvironmentVisualization.vue (48テスト, 100%カバレッジ) - Phase 27でzoom/pan機能追加
 - [x] RobotPositionDisplay.vue (5テスト, 100%カバレッジ)
 - [x] CoverageMap.vue (5テスト, 100%カバレッジ)
 - [x] ThreatLevelMap.vue (5テスト, 100%カバレッジ)
@@ -456,7 +456,7 @@
 - [x] 2D grid visualization of robot position (Phase 22完了)
 - [x] Coverage heatmap overlay (Phase 22完了)
 - [x] Real-time position updates (Phase 22完了)
-- [ ] Interactive map with zoom/pan
+- [x] Interactive map with zoom/pan (Phase 27完了)
 - [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
 - [ ] Visual regression tests - スクリーンショット比較
@@ -741,6 +741,57 @@ export const useEnvironment = (
   - Graceful degradation: Auto-fallback from WebSocket to polling
   - No manual intervention required
   - 3-second polling interval balances responsiveness and server load
+
+### Phase 27: Interactive Map with Zoom/Pan ✅
+- [x] EnvironmentVisualization.vue enhancement - Interactive controls (components/environment/EnvironmentVisualization.vue)
+  - Zoom functionality: Mouse wheel event handling
+    - State: scale ref (min: 0.5, max: 3.0, default: 1.0)
+    - handleWheel(): Zoom in/out with constraints
+    - Smooth zoom with 0.1 increment per wheel event
+  - Pan functionality: Mouse drag event handling
+    - State: offsetX, offsetY refs (default: 0)
+    - State: isPanning ref, panStart ref
+    - handleMouseDown(): Start panning, record initial position
+    - handleMouseMove(): Update offset while dragging
+    - handleMouseUp(), handleMouseLeave(): Stop panning
+  - Reset functionality: resetView() method
+    - Reset scale to 1.0
+    - Reset offsets to 0
+    - Trigger redraw
+  - Canvas transformation application
+    - ctx.save() before drawing
+    - ctx.translate(offsetX, offsetY)
+    - ctx.scale(scale, scale)
+    - ctx.restore() after drawing
+  - Event bindings on canvas element
+    - @wheel="handleWheel"
+    - @mousedown="handleMouseDown"
+    - @mousemove="handleMouseMove"
+    - @mouseup="handleMouseUp"
+    - @mouseleave="handleMouseLeave"
+  - CSS cursor styling
+    - cursor: grab (default)
+    - cursor: grabbing (when active/dragging)
+- [x] Test updates (tests/unit/components/environment/EnvironmentVisualization.spec.ts)
+  - Canvas context mock enhancement
+    - Added save(), restore(), scale(), translate() methods to canvasMock
+  - 16 new test cases (TDD Red-Green cycle):
+    - Zoom: 6 tests (initial scale, wheel up/down, min/max constraints, transformation)
+    - Pan: 7 tests (initial offsets, mousedown/move/up/leave, transformation)
+    - Reset: 4 tests (resetView method, scale reset, offset reset, redraw trigger)
+  - All 48 tests passing (32 existing + 16 new)
+- [x] Quality verification
+  - Total tests: 427 tests passing (100%)
+  - TypeScript: 0 errors
+  - ESLint: 0 errors
+  - Build: Successful (1.98 MB)
+- [x] User benefits
+  - Improved UX: Full control over environment visualization
+  - Zoom: Inspect details with mouse wheel (50% - 300% zoom range)
+  - Pan: Navigate large environments with drag-and-drop
+  - Reset: Quick return to default view
+  - Intuitive controls: Standard zoom/pan interaction pattern
+  - Visual feedback: Cursor changes (grab/grabbing)
 
 ### 次のステップ候補
 - Visual regression tests (スクリーンショット比較)

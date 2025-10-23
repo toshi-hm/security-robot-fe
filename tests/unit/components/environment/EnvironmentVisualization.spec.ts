@@ -20,6 +20,10 @@ describe('EnvironmentVisualization', () => {
       fillText: vi.fn(),
       moveTo: vi.fn(),
       lineTo: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      scale: vi.fn(),
+      translate: vi.fn(),
     }
 
     HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasMock)
@@ -424,6 +428,212 @@ describe('EnvironmentVisualization', () => {
       })
 
       expect(canvasMock.arc).toHaveBeenCalled()
+    })
+  })
+
+  describe('Interactive Zoom Functionality', () => {
+    it('initializes with default scale of 1.0', () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const vm = wrapper.vm as any
+
+      expect(vm.scale).toBe(1.0)
+    })
+
+    it('increases scale on wheel up event', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('wheel', { deltaY: -100 })
+
+      expect(vm.scale).toBeGreaterThan(1.0)
+    })
+
+    it('decreases scale on wheel down event', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('wheel', { deltaY: 100 })
+
+      expect(vm.scale).toBeLessThan(1.0)
+    })
+
+    it('restricts minimum scale to 0.5', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      // Zoom out excessively
+      for (let i = 0; i < 20; i++) {
+        await canvas.trigger('wheel', { deltaY: 100 })
+      }
+
+      expect(vm.scale).toBeGreaterThanOrEqual(0.5)
+    })
+
+    it('restricts maximum scale to 3.0', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      // Zoom in excessively
+      for (let i = 0; i < 20; i++) {
+        await canvas.trigger('wheel', { deltaY: -100 })
+      }
+
+      expect(vm.scale).toBeLessThanOrEqual(3.0)
+    })
+
+    it('applies scale transformation to canvas context', async () => {
+      canvasMock.scale = vi.fn()
+      canvasMock.translate = vi.fn()
+      canvasMock.save = vi.fn()
+      canvasMock.restore = vi.fn()
+
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+
+      await canvas.trigger('wheel', { deltaY: -100 })
+      await nextTick()
+
+      expect(canvasMock.save).toHaveBeenCalled()
+      expect(canvasMock.scale).toHaveBeenCalled()
+      expect(canvasMock.restore).toHaveBeenCalled()
+    })
+  })
+
+  describe('Interactive Pan Functionality', () => {
+    it('initializes with offsetX and offsetY at 0', () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const vm = wrapper.vm as any
+
+      expect(vm.offsetX).toBe(0)
+      expect(vm.offsetY).toBe(0)
+    })
+
+    it('sets isPanning to true on mousedown', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+
+      expect(vm.isPanning).toBe(true)
+    })
+
+    it('updates offset on mousemove while panning', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+      await canvas.trigger('mousemove', { clientX: 150, clientY: 150 })
+
+      expect(vm.offsetX).not.toBe(0)
+      expect(vm.offsetY).not.toBe(0)
+    })
+
+    it('does not update offset on mousemove when not panning', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      // No mousedown
+      await canvas.trigger('mousemove', { clientX: 150, clientY: 150 })
+
+      expect(vm.offsetX).toBe(0)
+      expect(vm.offsetY).toBe(0)
+    })
+
+    it('sets isPanning to false on mouseup', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+      await canvas.trigger('mouseup')
+
+      expect(vm.isPanning).toBe(false)
+    })
+
+    it('sets isPanning to false on mouseleave', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+      await canvas.trigger('mouseleave')
+
+      expect(vm.isPanning).toBe(false)
+    })
+
+    it('applies pan offset transformation to canvas context', async () => {
+      canvasMock.translate = vi.fn()
+      canvasMock.save = vi.fn()
+      canvasMock.restore = vi.fn()
+
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+      await canvas.trigger('mousemove', { clientX: 150, clientY: 150 })
+      await nextTick()
+
+      expect(canvasMock.translate).toHaveBeenCalled()
+    })
+  })
+
+  describe('Reset View Functionality', () => {
+    it('exposes resetView method', () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const vm = wrapper.vm as any
+
+      expect(vm.resetView).toBeDefined()
+      expect(typeof vm.resetView).toBe('function')
+    })
+
+    it('resets scale to 1.0 when resetView is called', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      // Zoom in first
+      await canvas.trigger('wheel', { deltaY: -100 })
+      expect(vm.scale).toBeGreaterThan(1.0)
+
+      // Reset
+      vm.resetView()
+
+      expect(vm.scale).toBe(1.0)
+    })
+
+    it('resets offsets to 0 when resetView is called', async () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const canvas = wrapper.find('canvas')
+      const vm = wrapper.vm as any
+
+      // Pan first
+      await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
+      await canvas.trigger('mousemove', { clientX: 150, clientY: 150 })
+      expect(vm.offsetX).not.toBe(0)
+
+      // Reset
+      vm.resetView()
+
+      expect(vm.offsetX).toBe(0)
+      expect(vm.offsetY).toBe(0)
+    })
+
+    it('triggers redraw when resetView is called', () => {
+      const wrapper = mount(EnvironmentVisualization)
+      const vm = wrapper.vm as any
+
+      canvasMock.clearRect.mockClear()
+
+      vm.resetView()
+
+      expect(canvasMock.clearRect).toHaveBeenCalled()
     })
   })
 })

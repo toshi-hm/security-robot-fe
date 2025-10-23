@@ -26,6 +26,75 @@ const cellSize = 60 // pixels per cell
 const canvasWidth = computed(() => props.gridWidth * cellSize)
 const canvasHeight = computed(() => props.gridHeight * cellSize)
 
+// Zoom and pan state
+const scale = ref(1.0)
+const offsetX = ref(0)
+const offsetY = ref(0)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+
+/**
+ * Handle mouse wheel event for zooming
+ */
+const handleWheel = (event: WheelEvent) => {
+  event.preventDefault()
+
+  const zoomSpeed = 0.1
+  const delta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed
+
+  // Update scale with min/max constraints
+  scale.value = Math.max(0.5, Math.min(3.0, scale.value + delta))
+
+  drawEnvironment()
+}
+
+/**
+ * Handle mouse down event for panning start
+ */
+const handleMouseDown = (event: MouseEvent) => {
+  isPanning.value = true
+  panStart.value = {
+    x: event.clientX - offsetX.value,
+    y: event.clientY - offsetY.value,
+  }
+}
+
+/**
+ * Handle mouse move event for panning
+ */
+const handleMouseMove = (event: MouseEvent) => {
+  if (!isPanning.value) return
+
+  offsetX.value = event.clientX - panStart.value.x
+  offsetY.value = event.clientY - panStart.value.y
+
+  drawEnvironment()
+}
+
+/**
+ * Handle mouse up event for panning end
+ */
+const handleMouseUp = () => {
+  isPanning.value = false
+}
+
+/**
+ * Handle mouse leave event for panning end
+ */
+const handleMouseLeave = () => {
+  isPanning.value = false
+}
+
+/**
+ * Reset view to default zoom and pan
+ */
+const resetView = () => {
+  scale.value = 1.0
+  offsetX.value = 0
+  offsetY.value = 0
+  drawEnvironment()
+}
+
 /**
  * Draw the environment grid on canvas
  */
@@ -37,6 +106,11 @@ const drawEnvironment = () => {
 
   // Clear canvas
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
+
+  // Apply transformations (zoom and pan)
+  ctx.save()
+  ctx.translate(offsetX.value, offsetY.value)
+  ctx.scale(scale.value, scale.value)
 
   // Draw grid cells with threat level heatmap
   for (let y = 0; y < props.gridHeight; y++) {
@@ -91,6 +165,9 @@ const drawEnvironment = () => {
 
   // Draw legend
   drawLegend(ctx)
+
+  // Restore canvas context
+  ctx.restore()
 }
 
 /**
@@ -216,7 +293,17 @@ onMounted(() => {
 
 <template>
   <div class="environment-visualization">
-    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="environment-visualization__canvas" />
+    <canvas
+      ref="canvas"
+      :width="canvasWidth"
+      :height="canvasHeight"
+      class="environment-visualization__canvas"
+      @wheel="handleWheel"
+      @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove"
+      @mouseup="handleMouseUp"
+      @mouseleave="handleMouseLeave"
+    />
   </div>
 </template>
 
@@ -232,6 +319,11 @@ onMounted(() => {
     background-color: #fff;
     border: 2px solid #ddd;
     border-radius: 4px;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
   }
 }
 </style>
