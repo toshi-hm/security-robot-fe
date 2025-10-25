@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { ref } from 'vue'
-
-import type { FormInstance, FormRules } from 'element-plus'
 
 definePageMeta({
   title: '環境設定',

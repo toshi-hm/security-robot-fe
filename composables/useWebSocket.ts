@@ -1,4 +1,5 @@
 import { ref, readonly, onBeforeUnmount } from 'vue'
+
 import type { TrainingRepository } from '~/libs/repositories/training/TrainingRepository'
 import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 

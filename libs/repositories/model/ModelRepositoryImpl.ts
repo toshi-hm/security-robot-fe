@@ -41,7 +41,11 @@ export class ModelRepositoryImpl implements ModelRepository {
     }
   }
 
-  async uploadModel(file: File, metadata?: Record<string, any>, onProgress?: (progress: number) => void): Promise<ModelEntity> {
+  async uploadModel(
+    file: File,
+    metadata?: Record<string, any>,
+    onProgress?: (progress: number) => void
+  ): Promise<ModelEntity> {
     try {
       // Backend: POST /api/v1/files/ (multipart/form-data)
       const formData = new FormData()
@@ -70,7 +74,7 @@ export class ModelRepositoryImpl implements ModelRepository {
               const response = JSON.parse(xhr.responseText)
               resolve(response)
             } catch (err) {
-              reject(new Error('Failed to parse response'))
+              reject(new Error('Failed to parse response', { cause: err }))
             }
           } else {
             reject(new Error(`Upload failed with status ${xhr.status}`))

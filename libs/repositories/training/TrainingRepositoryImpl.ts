@@ -39,12 +39,12 @@ async function fetchWithRetry<T>(
         return response
       } catch (fetchError: any) {
         clearTimeout(timeoutId)
-        
+
         // AbortError（タイムアウト）の場合
         if (fetchError.name === 'AbortError') {
           throw new Error('API応答タイムアウト。Worker が起動していない可能性があります。')
         }
-        
+
         throw fetchError
       }
     } catch (error: any) {

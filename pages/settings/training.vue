@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { QuestionFilled } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { ref } from 'vue'
-
-import type { FormInstance, FormRules } from 'element-plus'
 
 definePageMeta({
   title: '学習設定',

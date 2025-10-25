@@ -59,10 +59,7 @@ describe('TrainingRepositoryImpl', () => {
 
     const session = await repository.findById(99)
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      API_ENDPOINTS.training.status(99),
-      expect.anything()
-    )
+    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.status(99), expect.anything())
     expect(session).toBeNull()
 
     consoleSpy.mockRestore()
@@ -124,10 +121,7 @@ describe('TrainingRepositoryImpl', () => {
 
     const result = await repository.stop(1)
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      API_ENDPOINTS.training.stop(1),
-      expect.objectContaining({ method: 'POST' })
-    )
+    expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.training.stop(1), expect.objectContaining({ method: 'POST' }))
     expect(result).toBe(false)
 
     consoleSpy.mockRestore()

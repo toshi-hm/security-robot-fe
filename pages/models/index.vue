@@ -139,7 +139,11 @@ const formatDate = (date: string | Date): string => {
       </el-upload>
 
       <!-- Upload Progress Bar -->
-      <el-progress v-if="modelsStore.uploadProgress > 0" :percentage="modelsStore.uploadProgress" class="models__progress" />
+      <el-progress
+        v-if="modelsStore.uploadProgress > 0"
+        :percentage="modelsStore.uploadProgress"
+        class="models__progress"
+      />
 
       <template #footer>
         <el-button @click="uploadDialogVisible = false"> キャンセル </el-button>

@@ -274,9 +274,7 @@ describe('TrainingControl.vue', () => {
     await vm.startTraining()
 
     expect(mockCreateSession).toHaveBeenCalled()
-    expect(mockError).toHaveBeenCalledWith(
-      expect.stringContaining('開始に失敗しました')
-    )
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('開始に失敗しました'))
     expect(mockPush).not.toHaveBeenCalled()
   })
 

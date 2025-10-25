@@ -119,11 +119,7 @@ const handleEnvironmentUpdate = (message: any) => {
       }
 
       // Add to trajectory if position changed
-      if (
-        !robotPosition.value ||
-        robotPosition.value.x !== newPosition.x ||
-        robotPosition.value.y !== newPosition.y
-      ) {
+      if (!robotPosition.value || robotPosition.value.x !== newPosition.x || robotPosition.value.y !== newPosition.y) {
         robotTrajectory.value.push({ ...newPosition })
 
         // Limit trajectory length to 100 points for performance

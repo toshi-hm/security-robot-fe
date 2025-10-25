@@ -235,7 +235,6 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('does not draw trajectory when empty', () => {
-      const arcCallsBefore = canvasMock.arc.mock.calls.length
       canvasMock.arc.mockClear()
 
       mount(EnvironmentVisualization, {

@@ -6,6 +6,7 @@ import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import eslintPluginImport from 'eslint-plugin-import'
 import eslintPluginPrettier from 'eslint-plugin-prettier/recommended'
+import unusedImports from 'eslint-plugin-unused-imports'
 import eslintPluginVue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
 
@@ -39,6 +40,7 @@ const config = [
     plugins: {
       import: eslintPluginImport,
       '@typescript-eslint': tseslint,
+      'unused-imports': unusedImports,
     },
     rules: {
       // Import order rules
@@ -74,7 +76,13 @@ const config = [
           },
         },
       ],
-      'import/no-duplicates': 'error',
+      'import/no-duplicates': [
+        'error',
+        {
+          'prefer-inline': true,
+        },
+      ],
+      'no-duplicate-imports': 'off',
       'import/no-unresolved': 'off', // Nuxt auto-imports handling
       'import/named': 'off',
       'import/namespace': 'off',
@@ -94,11 +102,15 @@ const config = [
       'vue/padding-line-between-blocks': ['error', 'always'],
 
       // TypeScript rules
-      '@typescript-eslint/no-unused-vars': [
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^_',
+          vars: 'all',
           varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
         },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -107,9 +119,11 @@ const config = [
         'error',
         {
           prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
           disallowTypeAnnotations: false,
         },
       ],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
@@ -131,6 +145,7 @@ const config = [
     plugins: {
       import: eslintPluginImport,
       '@typescript-eslint': tseslint,
+      'unused-imports': unusedImports,
     },
     rules: {
       // Import order rules
@@ -166,7 +181,13 @@ const config = [
           },
         },
       ],
-      'import/no-duplicates': 'error',
+      'import/no-duplicates': [
+        'error',
+        {
+          'prefer-inline': true,
+        },
+      ],
+      'no-duplicate-imports': 'off',
       'import/no-unresolved': 'off', // Nuxt auto-imports handling
       'import/named': 'off',
       'import/namespace': 'off',
@@ -178,11 +199,15 @@ const config = [
       'vue/require-default-prop': 'off',
 
       // TypeScript rules
-      '@typescript-eslint/no-unused-vars': [
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^_',
+          vars: 'all',
           varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
         },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -191,9 +216,11 @@ const config = [
         'error',
         {
           prefer: 'type-imports',
+          fixStyle: 'inline-type-imports',
           disallowTypeAnnotations: false,
         },
       ],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],

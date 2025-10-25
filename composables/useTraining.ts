@@ -1,10 +1,8 @@
 import { computed, ref } from 'vue'
 
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
-import type { TrainingMetrics } from '~/libs/domains/training/TrainingMetrics'
-import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
-import { TrainingSession as TrainingSessionClass } from '~/libs/domains/training/TrainingSession'
-import { TrainingMetrics as TrainingMetricsClass } from '~/libs/domains/training/TrainingMetrics'
+import { type TrainingMetrics, TrainingMetrics as TrainingMetricsClass } from '~/libs/domains/training/TrainingMetrics'
+import { type TrainingSession, TrainingSession as TrainingSessionClass } from '~/libs/domains/training/TrainingSession'
 import { TrainingRepositoryImpl } from '~/libs/repositories/training/TrainingRepositoryImpl'
 
 /**
@@ -134,16 +132,16 @@ export const useTraining = () => {
     const pollInterval = setInterval(async () => {
       try {
         const session = await repository.findById(sessionId)
-        
+
         if (session?.status === 'running') {
           // Worker が起動した!
           clearInterval(pollInterval)
           pollingIntervals.value.delete(sessionId)
           ElMessage.success('学習が開始されました')
-          
+
           // セッションリストを更新
           await fetchSessions()
-          
+
           // currentSessionも更新
           if (currentSession.value?.id === sessionId) {
             currentSession.value = session
@@ -153,7 +151,7 @@ export const useTraining = () => {
           clearInterval(pollInterval)
           pollingIntervals.value.delete(sessionId)
           ElMessage.error('セッション作成に失敗しました')
-          
+
           // セッションリストを更新
           await fetchSessions()
         }
@@ -195,26 +193,26 @@ export const useTraining = () => {
         const dummySession = createDummySession(config)
         sessions.value.push(dummySession)
         currentSession.value = dummySession
-        
+
         // ダミーメトリクスを生成して配信
         startSimulatedMetrics(dummySession)
-        
+
         // 成功メッセージ
         ElMessage.success('シミュレーションモード: 学習セッションを開始しました')
-        
+
         return dummySession
       }
-      
+
       // 通常のAPI呼び出し
       const newSession = await repository.create(config)
       sessions.value.push(newSession)
       currentSession.value = newSession
-      
+
       // セッションが 'queued' 状態の場合、ポーリングを開始
       if (newSession.status === 'queued') {
         startPollingSessionStatus(newSession.id)
       }
-      
+
       return newSession
     } catch (err) {
       error.value = 'Failed to create training session'
