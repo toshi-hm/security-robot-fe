@@ -2,42 +2,137 @@ name: CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  unit-tests:
+  unit-test:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.12.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Run Vitest suite
-        run: pnpm test -- --run
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          version: 9.12.0
-      - uses: actions/setup-node@v4
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Playwright end-to-end tests
-        run: pnpm e2e --reporter=line
-        env:
-          CI: true
+
+      - name: Run E2E tests
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  lint:
+    name: Lint Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Run each lint check independently with continue-on-error
+      # Store results for final check
+      
+      - name: Run ESLint
+        id: eslint
+        continue-on-error: true
+        run: pnpm lint:es
+
+      - name: Run Stylelint
+        id: stylelint
+        continue-on-error: true
+        run: pnpm lint:style
+
+      - name: Run TypeScript compiler check
+        id: tsc
+        continue-on-error: true
+        run: pnpm lint:tsc
+
+      - name: Run TypeScript type check
+        id: typecheck
+        continue-on-error: true
+        run: pnpm lint:typecheck
+
+      # Check if any lint step failed
+      - name: Check lint results
+        if: |
+          steps.eslint.outcome == 'failure' ||
+          steps.stylelint.outcome == 'failure' ||
+          steps.tsc.outcome == 'failure' ||
+          steps.typecheck.outcome == 'failure'
+        run: |
+          echo "❌ Lint checks failed:"
+          echo "  - ESLint: ${{ steps.eslint.outcome }}"
+          echo "  - Stylelint: ${{ steps.stylelint.outcome }}"
+          echo "  - TypeScript Compiler: ${{ steps.tsc.outcome }}"
+          echo "  - TypeScript Type Check: ${{ steps.typecheck.outcome }}"
+          exit 1
+
+      - name: All lint checks passed
+        if: |
+          steps.eslint.outcome == 'success' &&
+          steps.stylelint.outcome == 'success' &&
+          steps.tsc.outcome == 'success' &&
+          steps.typecheck.outcome == 'success'
+        run: echo "✅ All lint checks passed!"
