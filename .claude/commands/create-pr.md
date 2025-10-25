@@ -48,6 +48,12 @@ allowed-tools: Bash(git:*, gh:*)
    - Get list of commits since branching from main: `git log main..HEAD --oneline`
    - Read recent commit messages to understand the scope of changes
    - Optionally check `report/DIARY*.md` for session summary
+   - **Check changed files**: `git diff --name-only main...HEAD`
+   - **Determine if docs-only changes**:
+     - All changed files are `.md` files, OR
+     - All changed files are in `docs/` directory, OR
+     - All changed files are in `.claude/` directory, OR
+     - All changed files are in `report/` directory (DIARY, PROGRESS, etc.)
 
 5. **Generate PR Content**
 
@@ -55,6 +61,9 @@ allowed-tools: Bash(git:*, gh:*)
      - Format: `[Type] Short description`
      - Types: feat, fix, docs, test, refactor, chore
      - Example: `feat: improve test coverage to 85%`
+     - **Add `[skip ci]` suffix if docs-only changes**:
+       - Example: `docs: update API documentation [skip ci]`
+       - Example: `docs: add session 034 report [skip ci]`
 
    - **Description**: Detailed PR body including:
      ```markdown
@@ -88,10 +97,16 @@ allowed-tools: Bash(git:*, gh:*)
      --body "<generated-description>"
    ```
 
+   Examples:
+   - Code changes: `--title "feat: add user authentication"`
+   - Docs only: `--title "docs: update README [skip ci]"`
+   - Reports only: `--title "docs: add session 034 report [skip ci]"`
+
 7. **Confirmation**
 
    - Display PR URL
    - Show PR number
+   - Indicate if CI will be skipped (if `[skip ci]` was added)
    - Provide next steps (e.g., request review, check CI status)
 
 ---
