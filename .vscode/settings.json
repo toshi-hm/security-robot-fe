@@ -16,20 +16,21 @@
   "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
   // stylelint
   "stylelint.configFile": "stylelint.config.mjs",
-  "stylelint.validate": ["css", "scss", "vue"],
+  "stylelint.validate": ["typescript", "css", "scss", "vue"],
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
   "[scss]": {
     "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {
-      "source.fixAll.stylelint": "explicit"
+      "source.fixAll.stylelint": "always"
     }
   },
   "[vue]": {
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit",
-      "source.fixAll.stylelint": "explicit"
+      "source.fixAll": "always",
+      "source.fixAll.eslint": "always",
+      "source.fixAll.stylelint": "always"
     },
     "editor.formatOnSave": true
   }
