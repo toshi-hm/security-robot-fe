@@ -4,15 +4,16 @@ on:
   pull_request:
     types: [opened, synchronize]
     # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.vue"
+      - "**/*.js"
+      - "**/*.jsx"
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
+    # Optional: Filter by PR author - uncomment if needed
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
@@ -40,18 +41,23 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            Please review this pull request for the Nuxt 3 + TypeScript + Pinia frontend application and provide feedback on:
+            - Vue.js / Nuxt 3 best practices and conventions
+            - TypeScript type safety and type definitions
+            - Code quality and maintainability
+            - Potential bugs or runtime issues
+            - Performance considerations (especially for reactive state)
+            - Security concerns (XSS, CSRF, etc.)
+            - Test coverage and test quality
+            - Component design and composable patterns
+            - Clean Architecture compliance (Domain/Entity/Repository/Composable layers)
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
 
             Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
 
+            IMPORTANT: Provide your entire review in Japanese. Do not include English explanations unless they are part of code snippets or identifiers.
+
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-
