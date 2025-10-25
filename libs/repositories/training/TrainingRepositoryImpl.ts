@@ -4,6 +4,7 @@ import type { TrainingMetrics } from '~/libs/domains/training/TrainingMetrics'
 import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingMetricsEntity, type TrainingMetricsDTO } from '~/libs/entities/training/TrainingMetricsEntity'
 import { TrainingSessionEntity, type TrainingSessionDTO } from '~/libs/entities/training/TrainingSessionEntity'
+import type { TrainingSessionCreateRequest } from '~/types/api'
 
 import type { TrainingRepository } from './TrainingRepository'
 
@@ -16,10 +17,16 @@ import type { TrainingRepository } from './TrainingRepository'
 /**
  * リトライ付きfetch関数
  * ネットワーク不安定時に自動的にリトライする
+ *
+ * @param url - リクエストURL
+ * @param options - $fetchのオプション (method, body, params等)
+ * @param maxRetries - 最大リトライ回数
+ * @param delayMs - 初期リトライ遅延(ms)
+ * @param timeoutMs - タイムアウト時間(ms)
  */
 async function fetchWithRetry<T>(
   url: string,
-  options?: any,
+  options?: any, // $fetch options with params support
   maxRetries: number = 3,
   delayMs: number = 1000,
   timeoutMs: number = 10000
@@ -110,7 +117,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
   async create(config: TrainingConfig): Promise<TrainingSession> {
     try {
       // Convert camelCase to snake_case for backend API
-      const apiRequest = {
+      const apiRequest: TrainingSessionCreateRequest = {
         name: config.name,
         algorithm: config.algorithm,
         environment_type: config.environmentType,

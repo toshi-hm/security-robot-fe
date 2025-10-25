@@ -64,4 +64,23 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
       throw new Error(`${label} must be between 0 and 10`)
     }
   })
+
+  // 追加パラメータのバリデーション
+  if (config.learningRate !== undefined) {
+    if (config.learningRate <= 0 || config.learningRate > 1) {
+      throw new Error('Learning rate must be between 0 and 1')
+    }
+  }
+
+  if (config.batchSize !== undefined) {
+    if (config.batchSize < 1 || config.batchSize > 1024) {
+      throw new Error('Batch size must be between 1 and 1024')
+    }
+  }
+
+  if (config.numWorkers !== undefined) {
+    if (config.numWorkers < 1 || config.numWorkers > 16) {
+      throw new Error('Number of workers must be between 1 and 16')
+    }
+  }
 }

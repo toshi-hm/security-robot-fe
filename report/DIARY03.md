@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 036 - Code Quality Improvements](#session-036---code-quality-improvements-2025-10-26)
 - [Session 035 - Fix Training API 422 Error](#session-035---fix-training-api-422-error-2025-10-25)
 - [Session 034 - Functions Coverage 85% Achievement](#session-034---functions-coverage-85-achievement-2025-10-25)
 - [Session 033 - Test Warnings Fix & Coverage Improvement](#session-033---test-warnings-fix--coverage-improvement-2025-10-25)
@@ -23,6 +24,169 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-036---code-quality-improvements-2025-10-26"></a>
+### Session 036 - Code Quality Improvements (2025-10-26)
+
+**目的**: 既存コードの品質改善（型安全性、バリデーション、型定義の一元管理）
+
+**改善提案の実装内容**:
+
+### 1. 型安全性の強化（重要度: 中）
+
+**問題箇所**: `TrainingRepositoryImpl.ts:22`
+- `fetchWithRetry`関数の`options`パラメータが`any`型
+
+**対応内容**:
+- Nuxt/Nitroの`$fetch`型システムとの互換性を考慮
+- `RequestInit & { params?: Record<string, any> }`への変更を試みたが、`$fetch`の型制約により実装困難
+- **採用した解決策**: JSDocでパラメータを詳細に文書化
+  ```typescript
+  /**
+   * @param url - リクエストURL
+   * @param options - $fetchのオプション (method, body, params等)
+   * @param maxRetries - 最大リトライ回数
+   * @param delayMs - 初期リトライ遅延(ms)
+   * @param timeoutMs - タイムアウト時間(ms)
+   */
+  async function fetchWithRetry<T>(
+    url: string,
+    options?: any, // $fetch options with params support
+    maxRetries: number = 3,
+    delayMs: number = 1000,
+    timeoutMs: number = 10000
+  ): Promise<T>
+  ```
+
+**理由**: Nuxtの`$fetch`は独自の型システムを持ち、標準の`RequestInit`と直接互換性がない。実用性を重視し、コメントで型の意図を明示する方針を採用。
+
+---
+
+### 2. バリデーション強化（重要度: 中） ✅
+
+**問題箇所**: `TrainingConfig.ts:39-67`
+- `learningRate`, `batchSize`, `numWorkers`パラメータのバリデーションが不足
+
+**実装内容**:
+```typescript
+export const validateTrainingConfig = (config: TrainingConfig): void => {
+  // ... 既存のバリデーション
+
+  // 追加パラメータのバリデーション
+  if (config.learningRate !== undefined) {
+    if (config.learningRate <= 0 || config.learningRate > 1) {
+      throw new Error('Learning rate must be between 0 and 1')
+    }
+  }
+
+  if (config.batchSize !== undefined) {
+    if (config.batchSize < 1 || config.batchSize > 1024) {
+      throw new Error('Batch size must be between 1 and 1024')
+    }
+  }
+
+  if (config.numWorkers !== undefined) {
+    if (config.numWorkers < 1 || config.numWorkers > 16) {
+      throw new Error('Number of workers must be between 1 and 16')
+    }
+  }
+}
+```
+
+**テスト追加**:
+- `tests/unit/libs/domains/training/TrainingConfig.spec.ts`に3個のテストケース追加:
+  1. `validates learning rate bounds` - 0以下と1超のケース
+  2. `validates batch size bounds` - 0以下と1024超のケース
+  3. `validates num workers bounds` - 0以下と16超のケース
+
+**理由**: フロントエンド側で不正な値を早期に検出し、ユーザーエクスペリエンスを向上。
+
+---
+
+### 3. 型定義の一元管理（重要度: 低） ✅
+
+**問題箇所**: `TrainingRepositoryImpl.ts:113-126`
+- API Request型が暗黙的に定義されている
+
+**実装内容**:
+
+1. **`types/api.ts`に型定義追加**:
+   ```typescript
+   /**
+    * Training Session作成リクエスト型
+    * Backend API schema (TrainingSessionCreate) との契約を明示
+    */
+   export interface TrainingSessionCreateRequest {
+     name: string
+     algorithm: 'ppo' | 'a3c'
+     environment_type: 'standard' | 'enhanced'
+     total_timesteps: number
+     env_width: number
+     env_height: number
+     coverage_weight: number
+     exploration_weight: number
+     diversity_weight: number
+     learning_rate: number
+     batch_size: number
+     num_workers: number
+   }
+   ```
+
+2. **`TrainingRepositoryImpl.ts`で型使用**:
+   ```typescript
+   import type { TrainingSessionCreateRequest } from '~/types/api'
+
+   async create(config: TrainingConfig): Promise<TrainingSession> {
+     const apiRequest: TrainingSessionCreateRequest = {
+       name: config.name,
+       algorithm: config.algorithm,
+       environment_type: config.environmentType,
+       // ... (snake_case変換)
+     }
+   }
+   ```
+
+**理由**: API契約を明示的な型として管理し、変更時の影響範囲を明確化。
+
+---
+
+**成果物**:
+- ✅ `libs/repositories/training/TrainingRepositoryImpl.ts` - JSDoc追加で型意図を明示
+- ✅ `libs/domains/training/TrainingConfig.ts` - バリデーション3個追加
+- ✅ `types/api.ts` - `TrainingSessionCreateRequest`型定義追加
+- ✅ `tests/unit/libs/domains/training/TrainingConfig.spec.ts` - 3テスト追加
+- ✅ Total: **442 tests passing** (439 → 442, +3追加)
+- ✅ ESLint: 0 errors, 131 warnings (test any types - acceptable)
+- ✅ TypeScript: 既存エラーのみ（今回の修正と無関係）
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 442/442 | ✅ 100% |
+| Statements | 91.65%  | ✅ +6.65pt |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Lines      | 91.65%  | ✅ +6.65pt |
+
+**変更ファイル統計**:
+```
+libs/repositories/training/TrainingRepositoryImpl.ts                 | 12 ++++++++----
+libs/domains/training/TrainingConfig.ts                              | 20 ++++++++++++++++++++
+types/api.ts                                                         | 18 ++++++++++++++++++
+tests/unit/libs/domains/training/TrainingConfig.spec.ts              | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+report/DIARY03.md                                                    | xxx +++++++++++++++
+```
+
+**時間**: 約45分
+**ステータス**: ✅ 完了
+**Phase**: Code Quality Improvement
+
+**次のステップ候補**:
+- [ ] TrainingControl.vueに新パラメータのフォーム入力を追加（UI改善）
+- [ ] Settings/Trainingページにも同様の入力フィールド追加
+- [ ] Advanced Settingsセクションとして実装（初心者向けにデフォルト値で隠す）
+
+---
 
 <a id="session-035---fix-training-api-422-error-2025-10-25"></a>
 ### Session 035 - Fix Training API 422 Error (2025-10-25)
