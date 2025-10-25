@@ -114,4 +114,56 @@ describe('TrainingMetrics.vue', () => {
     // Should have 4 canvas elements (reward, loss, coverage, exploration)
     expect(canvases.length).toBe(4)
   })
+
+  it('computes summary stats correctly', () => {
+    const mockMetrics = {
+      timestep: 2000,
+      episode: 20,
+      reward: 987.654,
+      loss: 0.0567,
+      coverageRatio: 0.85,
+      explorationScore: 0.92,
+    }
+    const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
+
+    expect(wrapper.text()).toContain('2000')
+    expect(wrapper.text()).toContain('20')
+    expect(wrapper.text()).toContain('987.654')
+    expect(wrapper.text()).toContain('0.0567')
+    expect(wrapper.text()).toContain('85.0%')
+    expect(wrapper.text()).toContain('0.920')
+  })
+
+  it('triggers watch when metrics change', async () => {
+    const initialMetrics = {
+      timestep: 1000,
+      episode: 10,
+      reward: 100,
+      loss: 0.5,
+      coverageRatio: 0.5,
+      explorationScore: 0.6,
+    }
+    const wrapper = mountComponent({ realtimeMetrics: initialMetrics })
+
+    // Verify initial render
+    expect(wrapper.text()).toContain('1000')
+
+    // Update props
+    const newMetrics = {
+      timestep: 2000,
+      episode: 20,
+      reward: 200,
+      loss: 0.3,
+      coverageRatio: 0.7,
+      explorationScore: 0.8,
+    }
+    await wrapper.setProps({ realtimeMetrics: newMetrics })
+
+    // Wait for reactivity
+    await wrapper.vm.$nextTick()
+
+    // Verify updated values are displayed
+    expect(wrapper.text()).toContain('2000')
+    expect(wrapper.text()).toContain('20')
+  })
 })

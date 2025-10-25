@@ -44,14 +44,23 @@ const EnvironmentVisualizationStub = {
 }
 
 describe('Training Session Page', () => {
+  const commonStubs = {
+    TrainingMetrics: TrainingMetricsStub,
+    RobotPositionDisplay: RobotPositionDisplayStub,
+    EnvironmentVisualization: EnvironmentVisualizationStub,
+    'el-tag': true,
+    'el-alert': true,
+    'el-card': true,
+    'el-row': true,
+    'el-col': true,
+    'el-descriptions': true,
+    'el-descriptions-item': true,
+  }
+
   it('renders the page', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -61,11 +70,7 @@ describe('Training Session Page', () => {
   it('displays the session ID in title', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -75,11 +80,7 @@ describe('Training Session Page', () => {
   it('renders TrainingMetrics component', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -89,11 +90,7 @@ describe('Training Session Page', () => {
   it('passes realtime metrics to TrainingMetrics', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -122,11 +119,7 @@ describe('Training Session Page', () => {
 
     mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -141,11 +134,7 @@ describe('Training Session Page', () => {
   it('does not show status alert initially', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -157,11 +146,7 @@ describe('Training Session Page', () => {
   it('does not show environment card when robotPosition is null', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -172,11 +157,7 @@ describe('Training Session Page', () => {
   it('initializes robot trajectory as empty array', () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -189,11 +170,7 @@ describe('Training Session Page', () => {
   it('adds robot position to trajectory when environment updates', async () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -214,11 +191,7 @@ describe('Training Session Page', () => {
   it('does not add duplicate positions to trajectory', async () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -245,11 +218,7 @@ describe('Training Session Page', () => {
   it('limits trajectory to 100 points', async () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 
@@ -275,11 +244,7 @@ describe('Training Session Page', () => {
   it('passes trajectory to EnvironmentVisualization component', async () => {
     const wrapper = mount(TrainingSessionPage, {
       global: {
-        stubs: {
-          TrainingMetrics: TrainingMetricsStub,
-          RobotPositionDisplay: RobotPositionDisplayStub,
-          EnvironmentVisualization: EnvironmentVisualizationStub,
-        },
+        stubs: commonStubs,
       },
     })
 

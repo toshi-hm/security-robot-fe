@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 034 - Functions Coverage 85% Achievement](#session-034---functions-coverage-85-achievement-2025-10-25)
 - [Session 033 - Test Warnings Fix & Coverage Improvement](#session-033---test-warnings-fix--coverage-improvement-2025-10-25)
 - [Session 032 - Reset View Button Addition](#session-032---reset-view-button-addition-2025-10-25)
 - [Session 031 - Upload Progress Indicator](#session-031---upload-progress-indicator-2025-10-24)
@@ -21,6 +22,124 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-034---functions-coverage-85-achievement-2025-10-25"></a>
+### Session 034 - Functions Coverage 85% Achievement (2025-10-25)
+
+**目的**: Functions カバレッジ85%達成（目標達成）
+
+**実施内容**:
+
+1. **Vue警告修正 (training/[sessionId]/index.spec.ts)**:
+   - Element Plusコンポーネントのスタブ追加:
+     - `el-tag`, `el-alert`, `el-card`, `el-row`, `el-col`
+     - `el-descriptions`, `el-descriptions-item`
+   - `commonStubs`オブジェクトで一括管理
+   - すべてのテストケースで再利用
+   - Vue警告完全解消
+
+2. **TrainingMetrics.vue カバレッジ改善**:
+   - Functions: 0% → **100%** (+100pt) 🎉
+   - 2個の新規テスト追加:
+     - `computes summary stats correctly` - Computed propertyテスト
+     - `triggers watch when metrics change` - Watch関数テスト
+   - Props更新時のリアクティブ動作確認
+   - 失敗したテストを修正（mockReturnValue削除、実際のprop更新に変更）
+
+**技術的実装詳細**:
+
+1. **commonStubsパターン**:
+   ```typescript
+   const commonStubs = {
+     TrainingMetrics: TrainingMetricsStub,
+     RobotPositionDisplay: RobotPositionDisplayStub,
+     EnvironmentVisualization: EnvironmentVisualizationStub,
+     'el-tag': true,
+     'el-alert': true,
+     'el-card': true,
+     'el-row': true,
+     'el-col': true,
+     'el-descriptions': true,
+     'el-descriptions-item': true,
+   }
+   ```
+
+2. **Computed property test**:
+   ```typescript
+   it('computes summary stats correctly', () => {
+     const mockMetrics = {
+       timestep: 2000,
+       episode: 20,
+       reward: 987.654,
+       loss: 0.0567,
+       coverageRatio: 0.85,
+       explorationScore: 0.92,
+     }
+     const wrapper = mountComponent({ realtimeMetrics: mockMetrics })
+
+     expect(wrapper.text()).toContain('2000')
+     expect(wrapper.text()).toContain('987.654')
+     expect(wrapper.text()).toContain('85.0%')
+     expect(wrapper.text()).toContain('0.920')
+   })
+   ```
+
+3. **Watch trigger test**:
+   ```typescript
+   it('triggers watch when metrics change', async () => {
+     const initialMetrics = { timestep: 1000, ... }
+     const wrapper = mountComponent({ realtimeMetrics: initialMetrics })
+
+     const newMetrics = { timestep: 2000, ... }
+     await wrapper.setProps({ realtimeMetrics: newMetrics })
+     await wrapper.vm.$nextTick()
+
+     expect(wrapper.text()).toContain('2000')
+   })
+   ```
+
+**成果物**:
+- ✅ Tests: **439 passing** (437 → 439, +2追加)
+- ✅ **Functions Coverage: 85.05%** (83.9% → 85.05%, +1.15pt) **目標達成！** 🎉
+- ✅ Statements: 91.65% (90.85% → 91.65%, +0.80pt)
+- ✅ Branches: 92.54% (92.51% → 92.54%, +0.03pt)
+- ✅ Lines: 91.65% (90.85% → 91.65%, +0.80pt)
+- ✅ Vue Warnings: 0 (完全解消)
+- ✅ TypeScript: 0 errors
+- ✅ ESLint: 0 errors
+
+**カバレッジサマリー**:
+| Metric     | Before  | After   | Change   | Target | Status      |
+|------------|---------|---------|----------|--------|-------------|
+| Functions  | 83.9%   | 85.05%  | +1.15pt  | 85%    | ✅ **達成！** |
+| Statements | 90.85%  | 91.65%  | +0.80pt  | 85%    | ✅ +6.65pt  |
+| Branches   | 92.51%  | 92.54%  | +0.03pt  | 85%    | ✅ +7.54pt  |
+| Lines      | 90.85%  | 91.65%  | +0.80pt  | 85%    | ✅ +6.65pt  |
+
+**コンポーネント別カバレッジ**:
+| Component              | Functions | Status |
+|------------------------|-----------|--------|
+| TrainingMetrics.vue    | 100%      | ✅ (+100pt) |
+| TrainingControl.vue    | 23.07%    | - (複雑な関数多数) |
+| useTraining.ts         | 72.72%    | - (シミュレーションモード未テスト) |
+
+**変更ファイル**:
+```
+tests/unit/pages/training/[sessionId]/index.spec.ts   | 21 ++++---
+tests/unit/components/training/TrainingMetrics.spec.ts | 42 +++++++++++++
+```
+
+**時間**: 約30分
+**ステータス**: ✅ **完全達成！Functions 85.05%**
+**Phase**: カバレッジ改善完了
+
+**次のステップ候補**:
+- [ ] TrainingControl.vue の Functions カバレッジ改善（現在23.07%）
+- [ ] useTraining.ts のシミュレーションモード関数テスト（現在72.72%）
+- [ ] Pages層のカバレッジさらなる改善
+- [ ] E2Eテストの追加
+
+---
 
 <a id="session-033---test-warnings-fix--coverage-improvement-2025-10-25"></a>
 ### Session 033 - Test Warnings Fix & Coverage Improvement (2025-10-25)
