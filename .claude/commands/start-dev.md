@@ -28,41 +28,56 @@ Git 連携はカスタムコマンド **`/git-commit-push`** を用います。
 
 ## Execution Flow (Checklist)
 
-1. **Reading**
+1. **Git Branch Setup** (IMPORTANT)
+
+- **NEVER work directly on `main` branch**
+- Check current branch: `git branch --show-current`
+- If on `main`, create a new feature branch:
+  - Branch naming convention: `feature/session-NNN-short-description` or `fix/issue-description`
+  - Example: `git checkout -b feature/session-034-coverage-improvement`
+- Always create a new branch for each session or feature
+- Push feature branch to remote: `git push -u origin <branch-name>`
+
+2. **Reading**
 
 - Understand the overall picture from `instructions/00_SUMMARY.md`.
 - Extract key points from `instructions/*` (Design, API, Frontend, Test, Infrastructure).
 - Review `instructions/prompts/*` to align on implementation tone & direction.
 - Carefully read `report/PROGRESS.md`, `report/summary/*`, and `report/DIARY*.md` to extract **recent TODOs, unresolved issues, and reasons for pending tasks**.
 
-2. **Planning (record in `report/DIARY*.md`)**
+3. **Planning (record in `report/DIARY*.md`)**
 
-- Define this session’s **goals / scope / Definition of Done (DoD)**.
+- Define this session's **goals / scope / Definition of Done (DoD)**.
 - List risks, assumptions, and testing perspectives (normal, abnormal, boundary cases).
 
-3. **Implementation & Test-Driven Development**
+4. **Implementation & Test-Driven Development**
 
 - Run existing tests to identify green/red status.
 - Based on the specifications, iterate in the order of **Add Tests → Implement → Refactor**.
 
-4. **Coverage Check (Reference Commands)**
+5. **Coverage Check (Reference Commands)**
 
 - Use `pnpm test`. This command is included coverage report (`npx vitest --coverage`).
 - Achieve **at least 80%** for all metrics: statements, branches, lines, and functions.
 
-5. **Report Update**
+6. **Report Update**
 
 - `report/PROGRESS.md`: summarize progress, completed items, incomplete items, and next actions.
 - `report/DIARY*.md`: record start/end times, trial and error, decisions, issues, and reflections.
 - If **diary entries exceed 10**, create a **summary** in `report/summary/DIARY*.md`, then issue a new `report/DIARY{NN+1}.md` to continue logging.
 
-6. **Commit & Push**
+7. **Commit & Push to Feature Branch**
 
 - At each milestone, execute **`/git-commit-push`**.
+- **IMPORTANT**: Push to feature branch, NOT main: `git push origin <feature-branch-name>`
+- After session completion and all tests pass, create a Pull Request to merge into `main`
 
-7. **Exit Criteria**
+8. **Exit Criteria**
 
-- Close the session once **all unit tests pass** and **coverage ≥ 80%** is achieved, then append the completion summary to `report/PROGRESS.md`.
+- Close the session once **all unit tests pass** and **coverage ≥ 80%** is achieved
+- Append completion summary to `report/PROGRESS.md`
+- Push final commit to feature branch
+- **Do NOT merge to main directly** - create PR for review
 
 ---
 
@@ -143,9 +158,53 @@ Refs: <related issue or document reference (optional)>
 
 ---
 
+## Git Branch Strategy
+
+### Feature Branch Workflow
+
+1. **Always start by checking current branch**:
+   ```bash
+   git branch --show-current
+   ```
+
+2. **If on `main`, create a new feature branch**:
+   ```bash
+   git checkout -b feature/session-NNN-description
+   ```
+   - Examples:
+     - `feature/session-034-coverage-improvement`
+     - `feature/add-authentication`
+     - `fix/test-warnings`
+
+3. **Push feature branch to remote**:
+   ```bash
+   git push -u origin feature/session-NNN-description
+   ```
+
+4. **Commit frequently to feature branch**:
+   - Use `/git-commit-push` for automatic commit + push
+   - The command will automatically detect current branch and push to it
+
+5. **After session completion**:
+   - Ensure all tests pass and coverage ≥ 80%
+   - Push final commit to feature branch
+   - **Create Pull Request** to merge into `main` (do NOT merge directly)
+
+### Branch Naming Convention
+
+- Feature: `feature/session-NNN-short-description` or `feature/feature-name`
+- Bug fix: `fix/issue-description`
+- Documentation: `docs/update-description`
+- Test improvement: `test/coverage-improvement`
+
+---
+
 ## Output Style (for Claude)
 
+- **FIRST**: Check if on `main` branch. If yes, create and switch to a feature branch.
 - Log all changes and decisions in `report/DIARY*.md` in real time.
 - Update `report/PROGRESS.md` with a summary at the end of each session.
 - Execute `/git-commit-push` at appropriate milestones to maintain a robust commit history resilient to interruptions.
+- **Push to feature branch**, not `main`.
 - Automatically proceed to the next task only after achieving **all tests passing & coverage ≥ 80%**.
+- At session end, remind user to create a Pull Request for merging to `main`.
