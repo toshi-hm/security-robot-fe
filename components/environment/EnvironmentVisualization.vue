@@ -304,6 +304,13 @@ onMounted(() => {
       @mouseup="handleMouseUp"
       @mouseleave="handleMouseLeave"
     />
+    <el-button
+      class="environment-visualization__reset-button"
+      size="small"
+      @click="resetView"
+    >
+      Reset View
+    </el-button>
   </div>
 </template>
 
@@ -313,6 +320,7 @@ onMounted(() => {
   display: flex;
   height: 100%;
   justify-content: center;
+  position: relative;
   width: 100%;
 
   &__canvas {
@@ -324,6 +332,12 @@ onMounted(() => {
     &:active {
       cursor: grabbing;
     }
+  }
+
+  &__reset-button {
+    position: absolute;
+    right: 20px;
+    top: 20px;
   }
 }
 </style>

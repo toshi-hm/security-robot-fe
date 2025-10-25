@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 032 - Reset View Button Addition](#session-032---reset-view-button-addition-2025-10-25)
 - [Session 031 - Upload Progress Indicator](#session-031---upload-progress-indicator-2025-10-24)
 - [Session 030 - Interactive Map with Zoom/Pan](#session-030---interactive-map-with-zoompan-2025-10-24)
 - [Session 028 - Training Pages Japanese Localization](#session-028---training-pages-japanese-localization-2025-10-14)
@@ -19,6 +20,85 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-032---reset-view-button-addition-2025-10-25"></a>
+### Session 032 - Reset View Button Addition (2025-10-25)
+
+**目的**: EnvironmentVisualization.vueの未使用関数`resetView`にUIボタンを追加（Phase 27補完）
+
+**実施内容**:
+
+1. **未使用コード分析**:
+   - `resetView`関数が定義されていたが、どこからも呼び出されていなかった
+   - 関数の目的: ズーム/パン後にビューを初期状態にリセット (scale: 1.0, offset: 0,0)
+   - ユーザー要望: 必要なら使用、不要なら削除
+
+2. **Reset Viewボタン実装**:
+   - **UIコンポーネント追加**:
+     ```vue
+     <el-button
+       class="environment-visualization__reset-button"
+       size="small"
+       @click="resetView"
+     >
+       Reset View
+     </el-button>
+     ```
+   - **配置**: キャンバスの右上に絶対配置
+   - **スタイリング**:
+     ```scss
+     &__reset-button {
+       position: absolute;
+       right: 20px;
+       top: 20px;
+     }
+     ```
+   - **親要素調整**: `.environment-visualization` に `position: relative` 追加
+
+3. **ユーザー体験向上**:
+   - ズーム/パンした後、ワンクリックでデフォルト表示に戻れる
+   - 視覚的にわかりやすい配置（右上）
+   - Element Plusの標準ボタンで統一感を維持
+
+**技術的実装詳細**:
+
+1. **テンプレート変更**:
+   ```vue
+   <div class="environment-visualization">
+     <canvas ... />
+     <el-button ... @click="resetView">Reset View</el-button>
+   </div>
+   ```
+
+2. **スタイル変更**:
+   ```scss
+   .environment-visualization {
+     position: relative;  // 追加
+     // ... existing styles ...
+
+     &__reset-button {
+       position: absolute;
+       right: 20px;
+       top: 20px;
+     }
+   }
+   ```
+
+**成果物**:
+- ✅ `components/environment/EnvironmentVisualization.vue` - Reset Viewボタン追加
+- ✅ 既存のresetView関数を活用（新規実装不要）
+- ✅ Phase 27のインタラクティブ機能完全化
+
+**変更ファイル統計**:
+```
+components/environment/EnvironmentVisualization.vue  | 13 +++++++++++++
+```
+
+**時間**: 約15分
+**ステータス**: ✅ 完了
+**Phase**: 27補完（Interactive Map完全化）
+
+---
 
 <a id="session-031---upload-progress-indicator-2025-10-24"></a>
 ### Session 031 - Upload Progress Indicator (2025-10-24)

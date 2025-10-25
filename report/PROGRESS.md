@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-24 (Session 031 - Phase 28)
+最終更新日: 2025-10-25 (Session 032 - Phase 27補完)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -456,7 +456,7 @@
 - [x] 2D grid visualization of robot position (Phase 22完了)
 - [x] Coverage heatmap overlay (Phase 22完了)
 - [x] Real-time position updates (Phase 22完了)
-- [x] Interactive map with zoom/pan (Phase 27完了)
+- [x] Interactive map with zoom/pan + Reset View button (Phase 27完了, Session 032でUI追加)
 - [x] Upload progress indicator - Progress bar実装 (Phase 28完了)
 - [ ] Chart export functionality (PNG/CSV download)
 - [ ] Playback Page enhancement - Environment visualization改善
@@ -644,7 +644,7 @@ export const useEnvironment = (
 
 ---
 
-**最終更新**: 2025-10-14 (Session 028 - Training Pages Localization Complete)
+**最終更新**: 2025-10-25 (Session 032 - Reset View Button Addition)
 **次回更新予定**: 次セッション開始時
 
 ---
@@ -754,10 +754,12 @@ export const useEnvironment = (
     - handleMouseDown(): Start panning, record initial position
     - handleMouseMove(): Update offset while dragging
     - handleMouseUp(), handleMouseLeave(): Stop panning
-  - Reset functionality: resetView() method
+  - Reset functionality: resetView() method + UI button (Session 032)
     - Reset scale to 1.0
     - Reset offsets to 0
     - Trigger redraw
+    - el-button UI component (top-right corner)
+    - Absolute positioning with BEM CSS styling
   - Canvas transformation application
     - ctx.save() before drawing
     - ctx.translate(offsetX, offsetY)
@@ -789,9 +791,9 @@ export const useEnvironment = (
   - Improved UX: Full control over environment visualization
   - Zoom: Inspect details with mouse wheel (50% - 300% zoom range)
   - Pan: Navigate large environments with drag-and-drop
-  - Reset: Quick return to default view
+  - Reset: Quick return to default view with visible button (Session 032)
   - Intuitive controls: Standard zoom/pan interaction pattern
-  - Visual feedback: Cursor changes (grab/grabbing)
+  - Visual feedback: Cursor changes (grab/grabbing), reset button (top-right)
 
 ### Phase 28: Upload Progress Indicator - Progress Bar ✅
 - [x] Models Store enhancement (stores/models.ts)
