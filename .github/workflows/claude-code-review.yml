@@ -10,6 +10,9 @@ on:
       - "**/*.vue"
       - "**/*.js"
       - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.css"
+      - "**/*.scss"
 
 jobs:
   claude-review:
@@ -41,8 +44,8 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Please review this pull request for the Nuxt 3 + TypeScript + Pinia frontend application and provide feedback on:
-            - Vue.js / Nuxt 3 best practices and conventions
+            Please review this pull request for the Nuxt 4 + TypeScript + Pinia frontend application and provide feedback on:
+            - Vue.js / Nuxt 4 best practices and conventions
             - TypeScript type safety and type definitions
             - Code quality and maintainability
             - Potential bugs or runtime issues
