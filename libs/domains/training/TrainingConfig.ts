@@ -10,6 +10,10 @@ export interface TrainingConfig {
   coverageWeight: number
   explorationWeight: number
   diversityWeight: number
+  // Additional training parameters (Backend required)
+  learningRate?: number
+  batchSize?: number
+  numWorkers?: number
 }
 
 export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
@@ -22,6 +26,9 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   coverageWeight: 1.5,
   explorationWeight: 3.0,
   diversityWeight: 2.0,
+  learningRate: 0.0003,
+  batchSize: 64,
+  numWorkers: 1,
 }
 
 export const createTrainingConfig = (overrides: Partial<TrainingConfig> = {}): TrainingConfig => ({

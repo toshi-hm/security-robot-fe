@@ -102,13 +102,16 @@ describe('TrainingRepositoryImpl', () => {
         body: {
           name: 'New Session',
           algorithm: 'ppo',
-          environmentType: 'standard',
-          totalTimesteps: 10_000,
-          envWidth: 10,
-          envHeight: 10,
-          coverageWeight: 1,
-          explorationWeight: 2,
-          diversityWeight: 3,
+          environment_type: 'standard',
+          total_timesteps: 10_000,
+          env_width: 10,
+          env_height: 10,
+          coverage_weight: 1,
+          exploration_weight: 2,
+          diversity_weight: 3,
+          learning_rate: 0.0003,
+          batch_size: 64,
+          num_workers: 1,
         },
       })
     )

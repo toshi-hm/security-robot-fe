@@ -109,12 +109,28 @@ export class TrainingRepositoryImpl implements TrainingRepository {
 
   async create(config: TrainingConfig): Promise<TrainingSession> {
     try {
+      // Convert camelCase to snake_case for backend API
+      const apiRequest = {
+        name: config.name,
+        algorithm: config.algorithm,
+        environment_type: config.environmentType,
+        total_timesteps: config.totalTimesteps,
+        env_width: config.envWidth,
+        env_height: config.envHeight,
+        coverage_weight: config.coverageWeight,
+        exploration_weight: config.explorationWeight,
+        diversity_weight: config.diversityWeight,
+        learning_rate: config.learningRate ?? 0.0003,
+        batch_size: config.batchSize ?? 64,
+        num_workers: config.numWorkers ?? 1,
+      }
+
       // Backend: POST /api/v1/training/start
       const response = await fetchWithRetry<TrainingSessionDTO>(
         API_ENDPOINTS.training.start,
         {
           method: 'POST',
-          body: config,
+          body: apiRequest,
         },
         2 // POSTリクエストは2回までリトライ（createは冪等でない可能性があるため）
       )

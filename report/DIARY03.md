@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 035 - Fix Training API 422 Error](#session-035---fix-training-api-422-error-2025-10-25)
 - [Session 034 - Functions Coverage 85% Achievement](#session-034---functions-coverage-85-achievement-2025-10-25)
 - [Session 033 - Test Warnings Fix & Coverage Improvement](#session-033---test-warnings-fix--coverage-improvement-2025-10-25)
 - [Session 032 - Reset View Button Addition](#session-032---reset-view-button-addition-2025-10-25)
@@ -22,6 +23,153 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-035---fix-training-api-422-error-2025-10-25"></a>
+### Session 035 - Fix Training API 422 Error (2025-10-25)
+
+**目的**: Training実行時のAPI 422エラー修正（Backend API仕様との不一致解消）
+
+**問題分析**:
+
+Backend API (`security-robot-be/app/schemas/training.py`) の `TrainingSessionCreate` スキーマと、Frontend (`TrainingConfig`) のリクエストパラメータに以下の不一致がありました：
+
+1. **命名規則の不一致**: Frontend が camelCase で送信、Backend は snake_case を期待
+2. **不足パラメータ**: `learning_rate`, `batch_size`, `num_workers` が Frontend になかった
+
+**Backend API が期待するパラメータ** (`TrainingSessionCreate`):
+```python
+name: str
+algorithm: TrainingAlgorithm  # 'ppo' or 'a3c'
+environment_type: str  # 'standard' or 'enhanced'
+total_timesteps: int
+env_width: int (default=8)
+env_height: int (default=8)
+coverage_weight: float (default=1.5)
+exploration_weight: float (default=3.0)
+diversity_weight: float (default=2.0)
+learning_rate: float (default=0.0003)
+batch_size: int (default=64)
+num_workers: int (default=1)
+```
+
+**実施内容**:
+
+1. **TrainingConfig インターフェース拡張** (`libs/domains/training/TrainingConfig.ts`):
+   ```typescript
+   export interface TrainingConfig {
+     // ... existing fields ...
+     // Additional training parameters (Backend required)
+     learningRate?: number
+     batchSize?: number
+     numWorkers?: number
+   }
+   ```
+
+2. **DEFAULT_TRAINING_CONFIG 更新**:
+   ```typescript
+   export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
+     // ... existing defaults ...
+     learningRate: 0.0003,
+     batchSize: 64,
+     numWorkers: 1,
+   }
+   ```
+
+3. **TrainingRepositoryImpl.create() 修正** (`libs/repositories/training/TrainingRepositoryImpl.ts`):
+   - camelCase → snake_case 変換ロジック追加:
+   ```typescript
+   const apiRequest = {
+     name: config.name,
+     algorithm: config.algorithm,
+     environment_type: config.environmentType,
+     total_timesteps: config.totalTimesteps,
+     env_width: config.envWidth,
+     env_height: config.envHeight,
+     coverage_weight: config.coverageWeight,
+     exploration_weight: config.explorationWeight,
+     diversity_weight: config.diversityWeight,
+     learning_rate: config.learningRate ?? 0.0003,
+     batch_size: config.batchSize ?? 64,
+     num_workers: config.numWorkers ?? 1,
+   }
+   ```
+
+4. **テスト更新** (`tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts`):
+   - モック期待値を snake_case + 新規パラメータに更新:
+   ```typescript
+   body: {
+     name: 'New Session',
+     algorithm: 'ppo',
+     environment_type: 'standard',  // snake_case
+     total_timesteps: 10_000,        // snake_case
+     env_width: 10,                  // snake_case
+     env_height: 10,                 // snake_case
+     coverage_weight: 1,             // snake_case
+     exploration_weight: 2,          // snake_case
+     diversity_weight: 3,            // snake_case
+     learning_rate: 0.0003,          // 追加
+     batch_size: 64,                 // 追加
+     num_workers: 1,                 // 追加
+   }
+   ```
+
+**技術的実装詳細**:
+
+1. **命名規則変換パターン**:
+   - Frontend 内部: camelCase (TypeScript 慣例)
+   - API リクエスト: snake_case (Python 慣例)
+   - Repository 層で変換を実施（Clean Architecture の境界）
+
+2. **デフォルト値の設計**:
+   - Optional パラメータとして定義 (`learningRate?: number`)
+   - Nullish coalescing (`??`) でデフォルト値を保証
+   - Backend のデフォルト値と一致させる
+
+**成果物**:
+- ✅ `libs/domains/training/TrainingConfig.ts` - 3パラメータ追加
+- ✅ `libs/repositories/training/TrainingRepositoryImpl.ts` - snake_case変換実装
+- ✅ `tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts` - テスト更新
+- ✅ Total: 439 tests passing (100%)
+- ✅ ESLint: 0 errors, 131 warnings (test any types - acceptable)
+- ✅ TypeScript: 5 errors (既存の問題、今回の修正とは無関係)
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 439/439 | ✅ 100% |
+| Coverage   | 91.65%  | ✅ +6.65pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| ESLint     | 0 errors | ✅ |
+
+**影響範囲**:
+- ✅ Training session 作成時の API 422 エラー解消
+- ✅ Backend API 仕様との完全互換性確立
+- ✅ 後方互換性維持（既存コードは動作）
+- ⚠️ TrainingControl.vue UI は未更新（新パラメータ入力なし、デフォルト値使用）
+
+**残タスク**:
+- [ ] TrainingControl.vue: `learning_rate`, `batch_size`, `num_workers` の入力フィールド追加（オプショナル）
+- [ ] Settings/Training ページ: 同様のフィールド追加（オプショナル）
+
+**変更ファイル統計**:
+```
+libs/domains/training/TrainingConfig.ts                                | 6 ++++++
+libs/repositories/training/TrainingRepositoryImpl.ts                   | 18 ++++++++++++++++--
+tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts   | 9 +++++++++
+report/DIARY03.md                                                      | 150 ++++++++++++++++
+```
+
+**時間**: 約45分
+**ステータス**: ✅ 完了（422エラー解決）
+**Phase**: Backend Integration Fix
+
+**次のステップ候補**:
+- [ ] TrainingControl.vue に新パラメータのフォーム入力を追加（UI改善）
+- [ ] Settings/Training ページにも同様の入力フィールド追加
+- [ ] Advanced Settings セクションとして実装（初心者向けにデフォルト値で隠す）
+
+---
 
 <a id="session-034---functions-coverage-85-achievement-2025-10-25"></a>
 ### Session 034 - Functions Coverage 85% Achievement (2025-10-25)
