@@ -1,56 +1,68 @@
+---
+description: '設計書と進捗レポートを参照し、テストが全て成功するまで自律的に開発を継続します。進捗は report/DIARY*.md / report/PROGRESS.md に記録され、必要に応じて /git-commit-push を実行します。'
+allowed-tools: Bash(pnpm, git:*), View, Read, Write
+---
+
 # Claude Code カスタムスラッシュコマンド: 開発開始 (`/start-dev`)
 
-このスラッシュコマンドは、設計書・進捗レポートを読み込み、**テストが全て成功するまで開発を継続**する自律的な実装ループを開始します。  
+このスラッシュコマンドは、設計書・進捗レポートを読み込み、**テストが全て成功するまで開発を継続**する自律的な実装ループを開始します。
 Git 連携はカスタムコマンド **`/git-commit-push`** を用います。
 
 ---
 
 ## Main Instruction (Initial Prompt for Claude)
 
-> **Instruction**: Based on the design documents (`instructions/*`) and prompts (`instructions/prompts/*`), please continue the implementation. Progress and development logs up to this point are recorded in `report/PROGRESS.md`, `report/summary/*`, and `report/DIARY*.md`, so make sure to review these first.
+**Instruction**: Based on the design documents (`instructions/*`) and prompts (`instructions/prompts/*`), please continue the implementation. Progress and development logs up to this point are recorded in `report/PROGRESS.md`, `report/summary/*`, and `report/DIARY*.md`, so make sure to review these first.
 
-> **Constraints and Operational Rules**
->
-> - **ALWAYS answer in Japanese**.
-> - For each session, always update `report/PROGRESS.md` and the corresponding `report/DIARY*.md`.
-> - When the number of entries in `report/DIARY*.md` exceeds **10**, create a **comprehensive summary** in `report/summary/DIARY*.md`, then create a **new index `report/DIARY*.md` file** and **continue appending entries to the new file**.
-> - Maintain and achieve **at least 80% unit test coverage** (continue implementing and testing if coverage is insufficient).
-> - **Do not stop development until all tests pass**.
-> - At logical milestones (each small, self-contained completion), execute **`/git-commit-push`** (Claude Code custom slash command).
-> - When encountering ambiguities in the specifications, form a **consistent hypothesis** based on design documents, existing code, and testing policy, then proceed and record the reasoning in the diary.
+**Constraints and Operational Rules**
+
+- **ALWAYS answer in Japanese**.
+- For each session, always update `report/PROGRESS.md` and the corresponding `report/DIARY*.md`.
+- When the number of entries in `report/DIARY*.md` exceeds **10**, create a **comprehensive summary** in `report/summary/DIARY*.md`, then create a **new index `report/DIARY*.md` file** and **continue appending entries to the new file**.
+- Maintain and achieve **at least 80% unit test coverage** (continue implementing and testing if coverage is insufficient).
+- **Do not stop development until all tests pass**.
+- At logical milestones (each small, self-contained completion), execute **`/git-commit-push`** (Claude Code custom slash command).
+- When encountering ambiguities in the specifications, form a **consistent hypothesis** based on design documents, existing code, and testing policy, then proceed and record the reasoning in the diary.
 
 ---
 
 ## Execution Flow (Checklist)
 
 1. **Reading**
-   - Understand the overall picture from `instructions/00_SUMMARY.md`.
-   - Extract key points from `instructions/*` (Design, API, Frontend, Test, Infrastructure).
-   - Review `instructions/prompts/*` to align on implementation tone & direction.
-   - Carefully read `report/PROGRESS.md`, `report/summary/*`, and `report/DIARY*.md` to extract **recent TODOs, unresolved issues, and reasons for pending tasks**.
+
+- Understand the overall picture from `instructions/00_SUMMARY.md`.
+- Extract key points from `instructions/*` (Design, API, Frontend, Test, Infrastructure).
+- Review `instructions/prompts/*` to align on implementation tone & direction.
+- Carefully read `report/PROGRESS.md`, `report/summary/*`, and `report/DIARY*.md` to extract **recent TODOs, unresolved issues, and reasons for pending tasks**.
 
 2. **Planning (record in `report/DIARY*.md`)**
-   - Define this session’s **goals / scope / Definition of Done (DoD)**.
-   - List risks, assumptions, and testing perspectives (normal, abnormal, boundary cases).
+
+- Define this session’s **goals / scope / Definition of Done (DoD)**.
+- List risks, assumptions, and testing perspectives (normal, abnormal, boundary cases).
 
 3. **Implementation & Test-Driven Development**
-   - Run existing tests to identify green/red status.
-   - Based on the specifications, iterate in the order of **Add Tests → Implement → Refactor**.
+
+- Run existing tests to identify green/red status.
+- Based on the specifications, iterate in the order of **Add Tests → Implement → Refactor**.
 
 4. **Coverage Check (Reference Commands)**
-   - Use `pnpm test`. This command is included coverage report (`npx vitest --coverage`).
-   - Achieve **at least 80%** for all metrics: statements, branches, lines, and functions.
+
+- Use `pnpm test`. This command is included coverage report (`npx vitest --coverage`).
+- Achieve **at least 80%** for all metrics: statements, branches, lines, and functions.
 
 5. **Report Update**
-   - `report/PROGRESS.md`: summarize progress, completed items, incomplete items, and next actions.
-   - `report/DIARY*.md`: record start/end times, trial and error, decisions, issues, and reflections.
-   - If **diary entries exceed 10**, create a **summary** in `report/summary/DIARY*.md`, then issue a new `report/DIARY{NN+1}.md` to continue logging.
+
+- `report/PROGRESS.md`: summarize progress, completed items, incomplete items, and next actions.
+- `report/DIARY*.md`: record start/end times, trial and error, decisions, issues, and reflections.
+- If **diary entries exceed 10**, create a **summary** in `report/summary/DIARY*.md`, then issue a new `report/DIARY{NN+1}.md` to continue logging.
 
 6. **Commit & Push**
-   - At each milestone, execute **`/git-commit-push`**.
+
+- At each milestone, execute **`/git-commit-push`**.
 
 7. **Exit Criteria**
-   - Close the session once **all unit tests pass** and **coverage ≥ 80%** is achieved, then append the completion summary to `report/PROGRESS.md`.
+
+- Close the session once **all unit tests pass** and **coverage ≥ 80%** is achieved, then append the completion summary to `report/PROGRESS.md`.
 
 ---
 
@@ -65,8 +77,8 @@ feat(scope): concise summary of the purpose
 
 Refs: <related issue or document reference (optional)>
 
-> **Scope examples**: `ui`, `api`, `domain`, `infrastructure`, `tests`, `docs`, etc.  
-> **Commit frequency**: keep commits small and meaningful (recommended: logically complete unit of about 1–3 files)
+**Scope examples**: `ui`, `api`, `domain`, `infrastructure`, `tests`, `docs`, etc.
+**Commit frequency**: keep commits small and meaningful (recommended: logically complete unit of about 1–3 files)
 
 ---
 
