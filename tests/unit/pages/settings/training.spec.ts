@@ -67,6 +67,12 @@ describe('Training Settings Page', () => {
           'el-space': {
             template: '<div><slot></slot></div>',
           },
+          'el-icon': {
+            template: '<i><slot></slot></i>',
+          },
+          'el-tooltip': {
+            template: '<span><slot></slot></span>',
+          },
         },
       },
     })

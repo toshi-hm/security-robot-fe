@@ -77,6 +77,14 @@ const mountComponent = (options = {}) => {
           name: 'ElDivider',
           template: '<div class="el-divider"><slot /></div>',
         },
+        'el-icon': {
+          name: 'ElIcon',
+          template: '<i class="el-icon"><slot /></i>',
+        },
+        'el-tooltip': {
+          name: 'ElTooltip',
+          template: '<span class="el-tooltip"><slot /></span>',
+        },
       },
     },
     ...options,

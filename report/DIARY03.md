@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 033 - Test Warnings Fix & Coverage Improvement](#session-033---test-warnings-fix--coverage-improvement-2025-10-25)
 - [Session 032 - Reset View Button Addition](#session-032---reset-view-button-addition-2025-10-25)
 - [Session 031 - Upload Progress Indicator](#session-031---upload-progress-indicator-2025-10-24)
 - [Session 030 - Interactive Map with Zoom/Pan](#session-030---interactive-map-with-zoompan-2025-10-24)
@@ -20,6 +21,51 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-033---test-warnings-fix--coverage-improvement-2025-10-25"></a>
+### Session 033 - Test Warnings Fix & Coverage Improvement (2025-10-25)
+
+**目的**: テスト警告修正とFunctions カバレッジ85%達成を目指す
+
+**実施内容**:
+
+1. **テスト警告修正**:
+   - EnvironmentVisualization.spec.ts: `el-button` スタブ追加
+   - TrainingControl.spec.ts: `el-icon`, `el-tooltip` スタブ追加
+   - settings/training.spec.ts: `el-icon`, `el-tooltip` スタブ追加
+
+2. **useTraining.ts カバレッジ改善**:
+   - 5個の新規テスト追加:
+     - `activeSessions` computed property test
+     - `completedSessions` computed property test
+     - `stopAllPolling()` function test
+     - `stopPollingSessionStatus()` function test
+   - Functions カバレッジ: 54.54% → 72.72% (+18.18pt)
+
+**成果物**:
+- ✅ Tests: 433 passing (100%)
+- ✅ Functions Coverage: 81.6% → 83.9% (+2.3pt)
+- ✅ Composables Functions Coverage: 93.02%
+- ⚠️ Overall Functions Coverage: 83.9% (目標85%まであと1.1pt)
+
+**カバレッジサマリー**:
+| Metric     | Before  | After   | Change   | Target | Gap    |
+|------------|---------|---------|----------|--------|--------|
+| Functions  | 81.6%   | 83.9%   | +2.3pt   | 85%    | -1.1pt |
+| Statements | -       | 90.85%  | -        | 85%    | ✅ +5.85pt |
+| Branches   | -       | 92.51%  | -        | 85%    | ✅ +7.51pt |
+| Lines      | -       | 90.85%  | -        | 85%    | ✅ +5.85pt |
+
+**残課題**:
+- useTraining.ts: Functions 72.72%, Statements 50.53% (未カバー: ライン 186-214, 244-246)
+  - シミュレーションモード関連の関数未テスト
+  - ポーリング機能の詳細なテスト不足
+
+**時間**: 約45分
+**ステータス**: ⚠️ 部分完了（Functions 83.9%、目標85%まであと1.1pt）
+**Phase**: カバレッジ改善継続中
+
+---
 
 <a id="session-032---reset-view-button-addition-2025-10-25"></a>
 ### Session 032 - Reset View Button Addition (2025-10-25)

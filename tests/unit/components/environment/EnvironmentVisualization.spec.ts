@@ -6,6 +6,13 @@ import EnvironmentVisualization from '~/components/environment/EnvironmentVisual
 
 describe('EnvironmentVisualization', () => {
   let canvasMock: any
+  const mountOptions = {
+    global: {
+      stubs: {
+        'el-button': true,
+      },
+    },
+  }
 
   beforeEach(() => {
     // Mock canvas context
@@ -29,19 +36,19 @@ describe('EnvironmentVisualization', () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasMock)
   })
   it('renders the container element', () => {
-    const wrapper = mount(EnvironmentVisualization)
+    const wrapper = mount(EnvironmentVisualization, mountOptions)
 
     expect(wrapper.find('.environment-visualization').exists()).toBe(true)
   })
 
   it('renders a canvas element', () => {
-    const wrapper = mount(EnvironmentVisualization)
+    const wrapper = mount(EnvironmentVisualization, mountOptions)
 
     expect(wrapper.find('canvas').exists()).toBe(true)
   })
 
   it('sets correct canvas dimensions with default props', () => {
-    const wrapper = mount(EnvironmentVisualization)
+    const wrapper = mount(EnvironmentVisualization, mountOptions)
     const canvas = wrapper.find('canvas').element as HTMLCanvasElement
 
     // Default: 8x8 grid with cellSize 60 = 480x480
@@ -51,6 +58,7 @@ describe('EnvironmentVisualization', () => {
 
   it('sets correct canvas dimensions with custom grid size', () => {
     const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
       props: {
         gridWidth: 10,
         gridHeight: 12,
@@ -64,14 +72,14 @@ describe('EnvironmentVisualization', () => {
   })
 
   it('has ref to canvas element', () => {
-    const wrapper = mount(EnvironmentVisualization)
+    const wrapper = mount(EnvironmentVisualization, mountOptions)
     const vm = wrapper.vm as any
 
     expect(vm.canvas).toBeDefined()
   })
 
   it('applies correct styling to container', () => {
-    const wrapper = mount(EnvironmentVisualization)
+    const wrapper = mount(EnvironmentVisualization, mountOptions)
     const container = wrapper.find('.environment-visualization')
 
     expect(container.exists()).toBe(true)
@@ -79,6 +87,7 @@ describe('EnvironmentVisualization', () => {
 
   it('accepts robot position prop', async () => {
     const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
       props: {
         robotPosition: { x: 2, y: 3 },
       },
@@ -93,6 +102,7 @@ describe('EnvironmentVisualization', () => {
       [false, true],
     ]
     const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
       props: {
         gridWidth: 2,
         gridHeight: 2,
@@ -109,6 +119,7 @@ describe('EnvironmentVisualization', () => {
       [0.3, 0.9],
     ]
     const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
       props: {
         gridWidth: 2,
         gridHeight: 2,
@@ -126,6 +137,7 @@ describe('EnvironmentVisualization', () => {
       { x: 2, y: 2 },
     ]
     const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
       props: {
         trajectory,
       },
@@ -136,14 +148,15 @@ describe('EnvironmentVisualization', () => {
 
   describe('Canvas Drawing', () => {
     it('calls clearRect when drawing environment', () => {
-      mount(EnvironmentVisualization)
+      mount(EnvironmentVisualization, mountOptions)
 
       expect(canvasMock.clearRect).toHaveBeenCalled()
     })
 
     it('draws grid cells', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 2,
           gridHeight: 2,
         },
@@ -156,7 +169,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws robot position when provided', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           robotPosition: { x: 1, y: 1 },
         },
       })
@@ -168,7 +182,8 @@ describe('EnvironmentVisualization', () => {
 
     it('does not draw robot when position is null', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           robotPosition: null,
         },
       })
@@ -180,7 +195,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws coverage overlay for visited cells', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 2,
           gridHeight: 2,
           coverageMap: [
@@ -195,7 +211,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws threat level heatmap', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 2,
           gridHeight: 2,
           threatGrid: [
@@ -209,7 +226,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('draws legend', () => {
-      mount(EnvironmentVisualization)
+      mount(EnvironmentVisualization, mountOptions)
 
       expect(canvasMock.fillText).toHaveBeenCalled()
     })
@@ -222,7 +239,8 @@ describe('EnvironmentVisualization', () => {
       ]
 
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           trajectory,
         },
       })
@@ -238,7 +256,8 @@ describe('EnvironmentVisualization', () => {
       canvasMock.arc.mockClear()
 
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           trajectory: [],
         },
       })
@@ -253,7 +272,8 @@ describe('EnvironmentVisualization', () => {
   describe('Reactivity', () => {
     it('redraws when robot position changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           robotPosition: { x: 0, y: 0 },
         },
       })
@@ -268,7 +288,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when coverage map changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 2,
           gridHeight: 2,
           coverageMap: [
@@ -293,7 +314,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when threat grid changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 2,
           gridHeight: 2,
           threatGrid: [
@@ -318,7 +340,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when grid dimensions change', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 4,
           gridHeight: 4,
         },
@@ -337,7 +360,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when trajectory changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           trajectory: [
             { x: 0, y: 0 },
             { x: 1, y: 1 },
@@ -362,7 +386,7 @@ describe('EnvironmentVisualization', () => {
 
   describe('getThreatColor', () => {
     it('returns gray for zero threat level', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       const color = vm.getThreatColor(0)
@@ -370,7 +394,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('returns yellow-ish for low threat level', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       const color = vm.getThreatColor(0.2)
@@ -378,7 +402,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('returns red for high threat level', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       const color = vm.getThreatColor(1.0)
@@ -386,7 +410,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('interpolates colors for medium threat level', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       const color = vm.getThreatColor(0.5)
@@ -397,7 +421,8 @@ describe('EnvironmentVisualization', () => {
   describe('Edge Cases', () => {
     it('handles undefined threat grid cells', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 3,
           gridHeight: 3,
           threatGrid: [[0.5]], // Sparse array
@@ -409,7 +434,8 @@ describe('EnvironmentVisualization', () => {
 
     it('handles undefined coverage map cells', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           gridWidth: 3,
           gridHeight: 3,
           coverageMap: [[true]], // Sparse array
@@ -421,7 +447,8 @@ describe('EnvironmentVisualization', () => {
 
     it('handles fractional robot positions', () => {
       mount(EnvironmentVisualization, {
-        props: {
+      ...mountOptions,
+      props: {
           robotPosition: { x: 1.7, y: 2.3 },
         },
       })
@@ -432,14 +459,14 @@ describe('EnvironmentVisualization', () => {
 
   describe('Interactive Zoom Functionality', () => {
     it('initializes with default scale of 1.0', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       expect(vm.scale).toBe(1.0)
     })
 
     it('increases scale on wheel up event', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -449,7 +476,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('decreases scale on wheel down event', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -459,7 +486,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('restricts minimum scale to 0.5', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -472,7 +499,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('restricts maximum scale to 3.0', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -490,7 +517,7 @@ describe('EnvironmentVisualization', () => {
       canvasMock.save = vi.fn()
       canvasMock.restore = vi.fn()
 
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
 
       await canvas.trigger('wheel', { deltaY: -100 })
@@ -504,7 +531,7 @@ describe('EnvironmentVisualization', () => {
 
   describe('Interactive Pan Functionality', () => {
     it('initializes with offsetX and offsetY at 0', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       expect(vm.offsetX).toBe(0)
@@ -512,7 +539,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('sets isPanning to true on mousedown', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -522,7 +549,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('updates offset on mousemove while panning', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -534,7 +561,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('does not update offset on mousemove when not panning', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -546,7 +573,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('sets isPanning to false on mouseup', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -557,7 +584,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('sets isPanning to false on mouseleave', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -572,7 +599,7 @@ describe('EnvironmentVisualization', () => {
       canvasMock.save = vi.fn()
       canvasMock.restore = vi.fn()
 
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
 
       await canvas.trigger('mousedown', { clientX: 100, clientY: 100 })
@@ -585,7 +612,7 @@ describe('EnvironmentVisualization', () => {
 
   describe('Reset View Functionality', () => {
     it('exposes resetView method', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       expect(vm.resetView).toBeDefined()
@@ -593,7 +620,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('resets scale to 1.0 when resetView is called', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -608,7 +635,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('resets offsets to 0 when resetView is called', async () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const canvas = wrapper.find('canvas')
       const vm = wrapper.vm as any
 
@@ -625,7 +652,7 @@ describe('EnvironmentVisualization', () => {
     })
 
     it('triggers redraw when resetView is called', () => {
-      const wrapper = mount(EnvironmentVisualization)
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
       const vm = wrapper.vm as any
 
       canvasMock.clearRect.mockClear()

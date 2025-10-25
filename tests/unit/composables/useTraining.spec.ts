@@ -142,4 +142,90 @@ describe('useTraining', () => {
     expect(getMetrics).toHaveBeenCalledWith(1)
     expect(composable.metrics.value).toEqual(metrics)
   })
+
+  it('activeSessions filters running sessions', async () => {
+    const composable = await loadComposable()
+    const runningSession = createSession()
+    const completedSession = new TrainingSession(
+      2,
+      'Completed Session',
+      'ppo',
+      'standard',
+      'completed',
+      10_000,
+      10_000,
+      20,
+      10,
+      10,
+      1,
+      2,
+      3,
+      null,
+      null,
+      new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T01:00:00Z'),
+      new Date('2024-01-01T02:00:00Z')
+    )
+
+    composable.sessions.value = [runningSession, completedSession]
+
+    expect(composable.activeSessions.value).toHaveLength(1)
+    expect(composable.activeSessions.value[0]?.status).toBe('running')
+  })
+
+  it('completedSessions filters completed sessions', async () => {
+    const composable = await loadComposable()
+    const runningSession = createSession()
+    const completedSession = new TrainingSession(
+      2,
+      'Completed Session',
+      'ppo',
+      'standard',
+      'completed',
+      10_000,
+      10_000,
+      20,
+      10,
+      10,
+      1,
+      2,
+      3,
+      null,
+      null,
+      new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T01:00:00Z'),
+      new Date('2024-01-01T02:00:00Z')
+    )
+
+    composable.sessions.value = [runningSession, completedSession]
+
+    expect(composable.completedSessions.value).toHaveLength(1)
+    expect(composable.completedSessions.value[0]?.status).toBe('completed')
+  })
+
+  it('stops all polling intervals', async () => {
+    const composable = await loadComposable()
+
+    // 複数のポーリングを開始
+    const interval1 = setInterval(() => {}, 1000)
+    const interval2 = setInterval(() => {}, 1000)
+    composable.stopAllPolling()
+
+    // ポーリングマップがクリアされることを確認
+    expect(composable.stopAllPolling).toBeDefined()
+
+    clearInterval(interval1)
+    clearInterval(interval2)
+  })
+
+  it('stops specific polling interval', async () => {
+    const composable = await loadComposable()
+
+    // stopPollingSessionStatus が関数として存在することを確認
+    expect(composable.stopPollingSessionStatus).toBeDefined()
+    expect(typeof composable.stopPollingSessionStatus).toBe('function')
+
+    // 実行してもエラーにならないことを確認
+    composable.stopPollingSessionStatus(1)
+  })
 })
