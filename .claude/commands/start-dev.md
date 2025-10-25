@@ -1,12 +1,12 @@
 ---
-description: '設計書と進捗レポートを参照し、テストが全て成功するまで自律的に開発を継続します。進捗は report/DIARY*.md / report/PROGRESS.md に記録され、必要に応じて /git-commit-push を実行します。'
-allowed-tools: Bash(pnpm, git:*), View, Read, Write
+description: '設計書と進捗レポートを参照し、テストが全て成功するまで自律的に開発を継続します。進捗は report/DIARY*.md / report/PROGRESS.md に記録され、必要に応じて /git-commit-push を実行します。セッション終了時にPRが未作成の場合は /create-pr を実行します。'
+allowed-tools: Bash(pnpm, git:*, gh:*), View, Read, Write
 ---
 
 # Claude Code カスタムスラッシュコマンド: 開発開始 (`/start-dev`)
 
 このスラッシュコマンドは、設計書・進捗レポートを読み込み、**テストが全て成功するまで開発を継続**する自律的な実装ループを開始します。
-Git 連携はカスタムコマンド **`/git-commit-push`** を用います。
+Git 連携はカスタムコマンド **`/git-commit-push`** を用い、セッション終了時には **`/create-pr`** で Pull Request を作成します（PRが未作成の場合）。
 
 ---
 
@@ -70,14 +70,27 @@ Git 連携はカスタムコマンド **`/git-commit-push`** を用います。
 
 - At each milestone, execute **`/git-commit-push`**.
 - **IMPORTANT**: Push to feature branch, NOT main: `git push origin <feature-branch-name>`
-- After session completion and all tests pass, create a Pull Request to merge into `main`
+- `/git-commit-push` automatically detects the current branch and pushes to it
 
-8. **Exit Criteria**
+8. **Pull Request Management**
+
+- **Check PR status**: Use `gh pr list --head <current-branch>` to check if PR already exists
+- **If NO PR exists yet**:
+  - Execute **`/create-pr`** to create a new Pull Request to `main`
+  - The command automatically generates PR title and description from commits
+  - Returns PR URL for review
+- **If PR already exists**:
+  - Continue using **`/git-commit-push`** to push additional commits
+  - Additional commits are automatically added to the existing PR
+  - No need to create a new PR
+
+9. **Exit Criteria**
 
 - Close the session once **all unit tests pass** and **coverage ≥ 80%** is achieved
 - Append completion summary to `report/PROGRESS.md`
 - Push final commit to feature branch
-- **Do NOT merge to main directly** - create PR for review
+- Ensure Pull Request is created (use `/create-pr` if not yet created)
+- **Do NOT merge to main directly** - PR requires review before merge
 
 ---
 
@@ -185,10 +198,17 @@ Refs: <related issue or document reference (optional)>
    - Use `/git-commit-push` for automatic commit + push
    - The command will automatically detect current branch and push to it
 
-5. **After session completion**:
+5. **Pull Request workflow**:
+   - Check if PR already exists: `gh pr list --head <current-branch>`
+   - **First time (no PR yet)**: Use `/create-pr` to create Pull Request
+   - **Subsequent commits (PR exists)**: Use `/git-commit-push` to add commits to existing PR
+   - PR will automatically update with new commits from the feature branch
+
+6. **After session completion**:
    - Ensure all tests pass and coverage ≥ 80%
-   - Push final commit to feature branch
-   - **Create Pull Request** to merge into `main` (do NOT merge directly)
+   - Push final commit to feature branch with `/git-commit-push`
+   - Create PR with `/create-pr` if not yet created
+   - PR requires review before merging to `main` (do NOT merge directly)
 
 ### Branch Naming Convention
 
@@ -207,4 +227,8 @@ Refs: <related issue or document reference (optional)>
 - Execute `/git-commit-push` at appropriate milestones to maintain a robust commit history resilient to interruptions.
 - **Push to feature branch**, not `main`.
 - Automatically proceed to the next task only after achieving **all tests passing & coverage ≥ 80%**.
-- At session end, remind user to create a Pull Request for merging to `main`.
+- **At session end**:
+  - Check if PR exists for current branch: `gh pr list --head <current-branch>`
+  - If NO PR: Execute `/create-pr` to create Pull Request
+  - If PR exists: Inform user that commits have been added to existing PR
+  - Display PR URL for user to review
