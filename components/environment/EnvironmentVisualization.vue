@@ -304,13 +304,7 @@ onMounted(() => {
       @mouseup="handleMouseUp"
       @mouseleave="handleMouseLeave"
     />
-    <el-button
-      class="environment-visualization__reset-button"
-      size="small"
-      @click="resetView"
-    >
-      Reset View
-    </el-button>
+    <el-button class="environment-visualization__reset-button" size="small" @click="resetView"> Reset View </el-button>
   </div>
 </template>
 
