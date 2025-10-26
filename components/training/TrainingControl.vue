@@ -2,7 +2,7 @@
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 
-import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
+import { TRAINING_CONSTRAINTS, type TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 
 const { createSession, isLoading, error } = useTraining()
 const router = useRouter()
@@ -20,6 +20,10 @@ const trainingConfig = ref<TrainingConfig>({
   coverageWeight: 1.5,
   explorationWeight: 3.0,
   diversityWeight: 2.0,
+  // Advanced Settings (optional)
+  learningRate: 0.0003,
+  batchSize: 64,
+  numWorkers: 1,
 })
 
 const rules = {
@@ -50,6 +54,11 @@ const parameterTooltips = {
   coverageWeight: 'エリアカバー率に対する報酬の重み。大きいほどカバー率を優先します。',
   explorationWeight: '新しいエリアの探索に対する報酬の重み。大きいほど探索を促進します。',
   diversityWeight: '行動の多様性に対する報酬の重み。大きいほど多様な行動を促進します。',
+  // Advanced Settings
+  learningRate:
+    'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
+  batchSize: '1回の更新で使用するサンプル数。大きいほど安定しますが、メモリを多く使用します。推奨値: 64',
+  numWorkers: '並列実行するワーカー数（A3C使用時のみ有効）。CPUコア数に応じて調整してください。推奨値: 1-4',
 }
 
 /**
@@ -305,6 +314,92 @@ const cancelForm = () => {
           </el-col>
         </el-row>
 
+        <el-divider content-position="left">詳細設定 (オプション)</el-divider>
+
+        <el-collapse class="training-control__advanced-settings">
+          <el-collapse-item title="Advanced Settings" name="advanced">
+            <template #title>
+              <span class="training-control__collapse-title"> Advanced Settings（上級者向け） </span>
+            </template>
+
+            <el-alert type="info" :closable="false" show-icon class="training-control__advanced-note">
+              <template #default>
+                デフォルト値で適切に設定されています。変更が不要な場合はそのまま学習を開始してください。
+              </template>
+            </el-alert>
+
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item>
+                  <template #label>
+                    <span class="training-control__label">
+                      学習率
+                      <el-tooltip :content="parameterTooltips.learningRate" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-input-number
+                    v-model="trainingConfig.learningRate"
+                    :min="TRAINING_CONSTRAINTS.learningRate.min"
+                    :max="TRAINING_CONSTRAINTS.learningRate.max"
+                    :step="TRAINING_CONSTRAINTS.learningRate.step"
+                    :precision="TRAINING_CONSTRAINTS.learningRate.precision"
+                    style="width: 100%"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item>
+                  <template #label>
+                    <span class="training-control__label">
+                      バッチサイズ
+                      <el-tooltip :content="parameterTooltips.batchSize" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-input-number
+                    v-model="trainingConfig.batchSize"
+                    :min="TRAINING_CONSTRAINTS.batchSize.min"
+                    :max="TRAINING_CONSTRAINTS.batchSize.max"
+                    :step="TRAINING_CONSTRAINTS.batchSize.step"
+                    style="width: 100%"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item>
+                  <template #label>
+                    <span class="training-control__label">
+                      ワーカー数
+                      <el-tooltip :content="parameterTooltips.numWorkers" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-input-number
+                    v-model="trainingConfig.numWorkers"
+                    :min="TRAINING_CONSTRAINTS.numWorkers.min"
+                    :max="TRAINING_CONSTRAINTS.numWorkers.max"
+                    :step="TRAINING_CONSTRAINTS.numWorkers.step"
+                    style="width: 100%"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-collapse-item>
+        </el-collapse>
+
         <el-form-item>
           <el-button type="primary" :loading="isLoading" @click="startTraining">学習を開始</el-button>
           <el-button @click="cancelForm">キャンセル</el-button>
@@ -342,6 +437,20 @@ const cancelForm = () => {
     &:hover {
       color: #409eff;
     }
+  }
+
+  &__advanced-settings {
+    margin-bottom: 20px;
+  }
+
+  &__collapse-title {
+    color: #606266;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__advanced-note {
+    margin-bottom: 20px;
   }
 }
 </style>

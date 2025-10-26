@@ -30,4 +30,58 @@ describe('TrainingConfig utilities', () => {
       })
     ).toThrow('Coverage weight must be between 0 and 10')
   })
+
+  it('validates learning rate bounds', () => {
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        learningRate: 1.5,
+      })
+    ).toThrow('Learning rate must be between 0.00001 and 1')
+
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        learningRate: 0,
+      })
+    ).toThrow('Learning rate must be between 0.00001 and 1')
+  })
+
+  it('validates batch size bounds', () => {
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        batchSize: 0,
+      })
+    ).toThrow('Batch size must be between 1 and 1024')
+
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        batchSize: 2000,
+      })
+    ).toThrow('Batch size must be between 1 and 1024')
+  })
+
+  it('validates num workers bounds', () => {
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        numWorkers: 0,
+      })
+    ).toThrow('Number of workers must be between 1 and 16')
+
+    expect(() =>
+      validateTrainingConfig({
+        ...DEFAULT_TRAINING_CONFIG,
+        name: 'Valid Name',
+        numWorkers: 20,
+      })
+    ).toThrow('Number of workers must be between 1 and 16')
+  })
 })

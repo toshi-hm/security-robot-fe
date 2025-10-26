@@ -38,3 +38,5 @@ tests/e2e/**/*.zip
 
 # Misc
 *.tsbuildinfo
+.eslintcache
+

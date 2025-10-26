@@ -16,7 +16,6 @@
     "lintfix:es": "eslint '**/*.{js,ts,vue,mjs}' --fix",
     "lint:style": "stylelint '**/*.{css,scss,vue}'",
     "lintfix:style": "stylelint '**/*.{css,scss,vue}' --fix",
-    "lint:tsc": "tsc --pretty --noEmit",
     "lint:typecheck": "vue-tsc --noEmit --skipLibCheck",
     "test": "vitest --coverage",
     "e2e": "playwright test -c tests/e2e/playwright.config.ts"

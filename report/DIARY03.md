@@ -11,6 +11,10 @@
 
 ## 📑 目次
 
+- [Session 038 - TrainingControl UI Enhancement (Advanced Settings)](#session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26)
+- [Session 037 - Critical Bug Fixes (Pre-Merge)](#session-037---critical-bug-fixes-pre-merge-2025-10-26)
+- [Session 036 - Code Quality Improvements](#session-036---code-quality-improvements-2025-10-26)
+- [Session 035 - Fix Training API 422 Error](#session-035---fix-training-api-422-error-2025-10-25)
 - [Session 034 - Functions Coverage 85% Achievement](#session-034---functions-coverage-85-achievement-2025-10-25)
 - [Session 033 - Test Warnings Fix & Coverage Improvement](#session-033---test-warnings-fix--coverage-improvement-2025-10-25)
 - [Session 032 - Reset View Button Addition](#session-032---reset-view-button-addition-2025-10-25)
@@ -22,6 +26,561 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26"></a>
+### Session 038 - TrainingControl UI Enhancement (Advanced Settings) (2025-10-26)
+
+**目的**: TrainingControl.vueにAdvanced Settings（上級者向け設定）のUI追加
+
+**実施内容**:
+
+### 1. Advanced Settings UI実装
+
+**TrainingControl.vue enhancement**:
+- **el-collapseコンポーネント導入**:
+  - アコーディオン形式で初心者向けに折りたたみ表示
+  - デフォルトで閉じた状態（初心者が混乱しないよう配慮）
+  - "Advanced Settings（上級者向け）"というタイトル
+
+- **情報アラート追加**:
+  ```vue
+  <el-alert type="info" :closable="false" show-icon>
+    デフォルト値で適切に設定されています。変更が不要な場合はそのまま学習を開始してください。
+  </el-alert>
+  ```
+
+- **3つのパラメータ追加**:
+  1. **学習率** (learningRate):
+     - `el-input-number`: min=0.00001, max=1, step=0.0001, precision=5
+     - デフォルト値: 0.0003
+  2. **バッチサイズ** (batchSize):
+     - `el-input-number`: min=1, max=1024, step=1
+     - デフォルト値: 64
+  3. **ワーカー数** (numWorkers):
+     - `el-input-number`: min=1, max=16, step=1
+     - デフォルト値: 1
+
+### 2. パラメータツールチップ追加
+
+**parameterTooltips拡張**:
+```typescript
+const parameterTooltips = {
+  // ... 既存のツールチップ
+  learningRate: 'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
+  batchSize: '1回の更新で使用するサンプル数。大きいほど安定しますが、メモリを多く使用します。推奨値: 64',
+  numWorkers: '並列実行するワーカー数（A3C使用時のみ有効）。CPUコア数に応じて調整してください。推奨値: 1-4',
+}
+```
+
+### 3. trainingConfig初期値更新
+
+**Advanced Settings対応**:
+```typescript
+const trainingConfig = ref<TrainingConfig>({
+  name: '',
+  algorithm: 'ppo',
+  environmentType: 'standard',
+  totalTimesteps: 10000,
+  envWidth: 8,
+  envHeight: 8,
+  coverageWeight: 1.5,
+  explorationWeight: 3.0,
+  diversityWeight: 2.0,
+  // Advanced Settings (optional)
+  learningRate: 0.0003,
+  batchSize: 64,
+  numWorkers: 1,
+})
+```
+
+### 4. スタイリング追加
+
+**BEM命名規則に準拠**:
+```scss
+&__advanced-settings {
+  margin-bottom: 20px;
+}
+
+&__collapse-title {
+  color: #606266;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+&__advanced-note {
+  margin-bottom: 20px;
+}
+```
+
+### 5. テスト更新
+
+**TrainingControl.spec.ts enhancement**:
+- **新規スタブ追加**:
+  - `el-collapse`: アコーディオンコンポーネント
+  - `el-collapse-item`: アコーディオンアイテム
+  - `el-alert`: 情報アラート
+
+- **デフォルト値テスト更新**:
+  ```typescript
+  expect(vm.trainingConfig).toEqual({
+    // ... 既存フィールド
+    learningRate: 0.0003,
+    batchSize: 64,
+    numWorkers: 1,
+  })
+  ```
+
+- **新規テスト追加** (3テスト):
+  1. `renders Advanced Settings collapse component`: アコーディオン表示確認
+  2. `has parameter tooltips for Advanced Settings`: ツールチップ確認
+  3. `updates Advanced Settings values through v-model`: v-modelバインディング確認
+
+**成果物**:
+- ✅ `components/training/TrainingControl.vue` - Advanced Settings UI追加
+- ✅ `tests/unit/components/training/TrainingControl.spec.ts` - 3テスト追加
+- ✅ Total: **445 tests passing** (442 → 445, +3追加)
+- ⚠️ Functions Coverage: 82.22% (85.05% → 82.22%, -2.83pt)
+  - 原因: TrainingControl.vueの新規コード追加により相対的に低下
+  - 影響: `getErrorMessage`関数が未テスト（既存コードで今回の機能とは無関係）
+
+**テスト結果**:
+| Metric     | Before  | After   | Change   | Target | Status      |
+|------------|---------|---------|----------|--------|-------------|
+| Tests      | 442     | 445     | +3       | -      | ✅ 100%     |
+| Statements | 91.36%  | 91.81%  | +0.45pt  | 85%    | ✅ +6.81pt  |
+| Branches   | 92.54%  | 92.73%  | +0.19pt  | 85%    | ✅ +7.73pt  |
+| Functions  | 85.05%  | 82.22%  | -2.83pt  | 85%    | ⚠️ -2.78pt  |
+| Lines      | 91.36%  | 91.81%  | +0.45pt  | 85%    | ✅ +6.81pt  |
+
+**UI/UX改善**:
+- 📂 **折りたたみ式Advanced Settings**: 初心者が混乱しない配慮
+- ℹ️ **情報アラート**: デフォルト値で十分であることを明示
+- 💡 **詳細なツールチップ**: 各パラメータの役割と推奨値を表示
+- 🎯 **適切な入力制限**: min/max/step設定で不正な値を防止
+- 🎨 **統一されたデザイン**: Element Plusコンポーネントで一貫性維持
+
+**変更ファイル統計**:
+```
+components/training/TrainingControl.vue                          | 90 ++++++++++++++
+tests/unit/components/training/TrainingControl.spec.ts           | 47 ++++++++
+```
+
+**時間**: 約1時間
+**ステータス**: ✅ 完了
+**Phase**: UI Layer Enhancement
+
+**次のステップ候補**:
+- [ ] getErrorMessage関数のテスト追加（Functions Coverage 85%達成のため）
+- [ ] Settings/Trainingページにも同様のAdvanced Settings追加
+- [ ] Backend統合テスト（実際の学習実行確認）
+
+---
+
+<a id="session-037---critical-bug-fixes-pre-merge-2025-10-26"></a>
+### Session 037 - Critical Bug Fixes (Pre-Merge) (2025-10-26)
+
+**目的**: マージ前に対応すべき重要なバグ修正（型の不一致、メモリリーク対策）
+
+**問題点と修正内容**:
+
+### 🔴 問題1: 型の不一致リスク
+
+**問題箇所**: `types/api.ts` の `TrainingSessionCreateRequest`
+- `learning_rate`, `batch_size`, `num_workers` が必須の `number` 型で定義されていた
+- 一方、`TrainingConfig` では `optional` として定義されている
+- Repository層で `??` でデフォルト値を保証しているが、型レベルでの保証がない
+
+**修正内容**:
+```typescript
+// types/api.ts
+export interface TrainingSessionCreateRequest {
+  // ... 他のフィールド
+  learning_rate?: number  // ✅ optional に変更
+  batch_size?: number     // ✅ optional に変更
+  num_workers?: number    // ✅ optional に変更
+}
+```
+
+**理由**: `TrainingConfig` との型整合性を確保し、型安全性を向上。
+
+---
+
+### 🔴 問題2: メモリリークリスク
+
+**問題箇所**: `composables/useTraining.ts`
+- `metricsSimulationInterval`: グローバル変数で管理されているが、composableが破棄される際にクリーンアップされていない
+- `pollingIntervals`: `stopAllPolling()` は定義されているが、ライフサイクルフックと連携していない
+
+**修正内容**:
+```typescript
+import { computed, onBeforeUnmount, ref } from 'vue'
+
+export const useTraining = () => {
+  // ... 既存のロジック
+
+  // ✅ クリーンアップ追加
+  onBeforeUnmount(() => {
+    stopAllPolling()
+    // シミュレーションモードのメトリクスインターバルもクリア
+    if (metricsSimulationInterval) {
+      clearInterval(metricsSimulationInterval)
+      metricsSimulationInterval = null
+    }
+  })
+
+  return { /* ... */ }
+}
+```
+
+**理由**:
+- コンポーネントがアンマウントされた際に、すべてのポーリングとインターバルを確実に停止
+- メモリリーク防止とリソースの適切な解放
+
+---
+
+**成果物**:
+- ✅ `types/api.ts` - TrainingSessionCreateRequest の3フィールドを optional に変更
+- ✅ `composables/useTraining.ts` - onBeforeUnmount でクリーンアップ処理追加
+- ✅ Total: **442 tests passing** (100%)
+- ✅ ESLint: 0 errors, 131 warnings (既存の警告のみ)
+- ✅ TypeScript: 既存エラーのみ（今回の修正と無関係）
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 442/442 | ✅ 100% |
+| Statements | 91.36%  | ✅ +6.36pt |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Lines      | 91.36%  | ✅ +6.36pt |
+
+**変更ファイル統計**:
+```
+types/api.ts                  | 7 +++++--
+composables/useTraining.ts    | 9 ++++++++-
+```
+
+**時間**: 約20分
+**ステータス**: ✅ 完了
+**Phase**: Critical Bug Fixes (Pre-Merge)
+
+**マージ準備状況**: ✅ Ready for Review
+- 型安全性の問題解決
+- メモリリークリスク解消
+- すべてのテストがパス
+- カバレッジ維持
+
+---
+
+<a id="session-036---code-quality-improvements-2025-10-26"></a>
+### Session 036 - Code Quality Improvements (2025-10-26)
+
+**目的**: 既存コードの品質改善（型安全性、バリデーション、型定義の一元管理）
+
+**改善提案の実装内容**:
+
+### 1. 型安全性の強化（重要度: 中）
+
+**問題箇所**: `TrainingRepositoryImpl.ts:22`
+- `fetchWithRetry`関数の`options`パラメータが`any`型
+
+**対応内容**:
+- Nuxt/Nitroの`$fetch`型システムとの互換性を考慮
+- `RequestInit & { params?: Record<string, any> }`への変更を試みたが、`$fetch`の型制約により実装困難
+- **採用した解決策**: JSDocでパラメータを詳細に文書化
+  ```typescript
+  /**
+   * @param url - リクエストURL
+   * @param options - $fetchのオプション (method, body, params等)
+   * @param maxRetries - 最大リトライ回数
+   * @param delayMs - 初期リトライ遅延(ms)
+   * @param timeoutMs - タイムアウト時間(ms)
+   */
+  async function fetchWithRetry<T>(
+    url: string,
+    options?: any, // $fetch options with params support
+    maxRetries: number = 3,
+    delayMs: number = 1000,
+    timeoutMs: number = 10000
+  ): Promise<T>
+  ```
+
+**理由**: Nuxtの`$fetch`は独自の型システムを持ち、標準の`RequestInit`と直接互換性がない。実用性を重視し、コメントで型の意図を明示する方針を採用。
+
+---
+
+### 2. バリデーション強化（重要度: 中） ✅
+
+**問題箇所**: `TrainingConfig.ts:39-67`
+- `learningRate`, `batchSize`, `numWorkers`パラメータのバリデーションが不足
+
+**実装内容**:
+```typescript
+export const validateTrainingConfig = (config: TrainingConfig): void => {
+  // ... 既存のバリデーション
+
+  // 追加パラメータのバリデーション
+  if (config.learningRate !== undefined) {
+    if (config.learningRate <= 0 || config.learningRate > 1) {
+      throw new Error('Learning rate must be between 0 and 1')
+    }
+  }
+
+  if (config.batchSize !== undefined) {
+    if (config.batchSize < 1 || config.batchSize > 1024) {
+      throw new Error('Batch size must be between 1 and 1024')
+    }
+  }
+
+  if (config.numWorkers !== undefined) {
+    if (config.numWorkers < 1 || config.numWorkers > 16) {
+      throw new Error('Number of workers must be between 1 and 16')
+    }
+  }
+}
+```
+
+**テスト追加**:
+- `tests/unit/libs/domains/training/TrainingConfig.spec.ts`に3個のテストケース追加:
+  1. `validates learning rate bounds` - 0以下と1超のケース
+  2. `validates batch size bounds` - 0以下と1024超のケース
+  3. `validates num workers bounds` - 0以下と16超のケース
+
+**理由**: フロントエンド側で不正な値を早期に検出し、ユーザーエクスペリエンスを向上。
+
+---
+
+### 3. 型定義の一元管理（重要度: 低） ✅
+
+**問題箇所**: `TrainingRepositoryImpl.ts:113-126`
+- API Request型が暗黙的に定義されている
+
+**実装内容**:
+
+1. **`types/api.ts`に型定義追加**:
+   ```typescript
+   /**
+    * Training Session作成リクエスト型
+    * Backend API schema (TrainingSessionCreate) との契約を明示
+    */
+   export interface TrainingSessionCreateRequest {
+     name: string
+     algorithm: 'ppo' | 'a3c'
+     environment_type: 'standard' | 'enhanced'
+     total_timesteps: number
+     env_width: number
+     env_height: number
+     coverage_weight: number
+     exploration_weight: number
+     diversity_weight: number
+     learning_rate: number
+     batch_size: number
+     num_workers: number
+   }
+   ```
+
+2. **`TrainingRepositoryImpl.ts`で型使用**:
+   ```typescript
+   import type { TrainingSessionCreateRequest } from '~/types/api'
+
+   async create(config: TrainingConfig): Promise<TrainingSession> {
+     const apiRequest: TrainingSessionCreateRequest = {
+       name: config.name,
+       algorithm: config.algorithm,
+       environment_type: config.environmentType,
+       // ... (snake_case変換)
+     }
+   }
+   ```
+
+**理由**: API契約を明示的な型として管理し、変更時の影響範囲を明確化。
+
+---
+
+**成果物**:
+- ✅ `libs/repositories/training/TrainingRepositoryImpl.ts` - JSDoc追加で型意図を明示
+- ✅ `libs/domains/training/TrainingConfig.ts` - バリデーション3個追加
+- ✅ `types/api.ts` - `TrainingSessionCreateRequest`型定義追加
+- ✅ `tests/unit/libs/domains/training/TrainingConfig.spec.ts` - 3テスト追加
+- ✅ Total: **442 tests passing** (439 → 442, +3追加)
+- ✅ ESLint: 0 errors, 131 warnings (test any types - acceptable)
+- ✅ TypeScript: 既存エラーのみ（今回の修正と無関係）
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 442/442 | ✅ 100% |
+| Statements | 91.65%  | ✅ +6.65pt |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Lines      | 91.65%  | ✅ +6.65pt |
+
+**変更ファイル統計**:
+```
+libs/repositories/training/TrainingRepositoryImpl.ts                 | 12 ++++++++----
+libs/domains/training/TrainingConfig.ts                              | 20 ++++++++++++++++++++
+types/api.ts                                                         | 18 ++++++++++++++++++
+tests/unit/libs/domains/training/TrainingConfig.spec.ts              | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+report/DIARY03.md                                                    | xxx +++++++++++++++
+```
+
+**時間**: 約45分
+**ステータス**: ✅ 完了
+**Phase**: Code Quality Improvement
+
+**次のステップ候補**:
+- [ ] TrainingControl.vueに新パラメータのフォーム入力を追加（UI改善）
+- [ ] Settings/Trainingページにも同様の入力フィールド追加
+- [ ] Advanced Settingsセクションとして実装（初心者向けにデフォルト値で隠す）
+
+---
+
+<a id="session-035---fix-training-api-422-error-2025-10-25"></a>
+### Session 035 - Fix Training API 422 Error (2025-10-25)
+
+**目的**: Training実行時のAPI 422エラー修正（Backend API仕様との不一致解消）
+
+**問題分析**:
+
+Backend API (`security-robot-be/app/schemas/training.py`) の `TrainingSessionCreate` スキーマと、Frontend (`TrainingConfig`) のリクエストパラメータに以下の不一致がありました：
+
+1. **命名規則の不一致**: Frontend が camelCase で送信、Backend は snake_case を期待
+2. **不足パラメータ**: `learning_rate`, `batch_size`, `num_workers` が Frontend になかった
+
+**Backend API が期待するパラメータ** (`TrainingSessionCreate`):
+```python
+name: str
+algorithm: TrainingAlgorithm  # 'ppo' or 'a3c'
+environment_type: str  # 'standard' or 'enhanced'
+total_timesteps: int
+env_width: int (default=8)
+env_height: int (default=8)
+coverage_weight: float (default=1.5)
+exploration_weight: float (default=3.0)
+diversity_weight: float (default=2.0)
+learning_rate: float (default=0.0003)
+batch_size: int (default=64)
+num_workers: int (default=1)
+```
+
+**実施内容**:
+
+1. **TrainingConfig インターフェース拡張** (`libs/domains/training/TrainingConfig.ts`):
+   ```typescript
+   export interface TrainingConfig {
+     // ... existing fields ...
+     // Additional training parameters (Backend required)
+     learningRate?: number
+     batchSize?: number
+     numWorkers?: number
+   }
+   ```
+
+2. **DEFAULT_TRAINING_CONFIG 更新**:
+   ```typescript
+   export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
+     // ... existing defaults ...
+     learningRate: 0.0003,
+     batchSize: 64,
+     numWorkers: 1,
+   }
+   ```
+
+3. **TrainingRepositoryImpl.create() 修正** (`libs/repositories/training/TrainingRepositoryImpl.ts`):
+   - camelCase → snake_case 変換ロジック追加:
+   ```typescript
+   const apiRequest = {
+     name: config.name,
+     algorithm: config.algorithm,
+     environment_type: config.environmentType,
+     total_timesteps: config.totalTimesteps,
+     env_width: config.envWidth,
+     env_height: config.envHeight,
+     coverage_weight: config.coverageWeight,
+     exploration_weight: config.explorationWeight,
+     diversity_weight: config.diversityWeight,
+     learning_rate: config.learningRate ?? 0.0003,
+     batch_size: config.batchSize ?? 64,
+     num_workers: config.numWorkers ?? 1,
+   }
+   ```
+
+4. **テスト更新** (`tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts`):
+   - モック期待値を snake_case + 新規パラメータに更新:
+   ```typescript
+   body: {
+     name: 'New Session',
+     algorithm: 'ppo',
+     environment_type: 'standard',  // snake_case
+     total_timesteps: 10_000,        // snake_case
+     env_width: 10,                  // snake_case
+     env_height: 10,                 // snake_case
+     coverage_weight: 1,             // snake_case
+     exploration_weight: 2,          // snake_case
+     diversity_weight: 3,            // snake_case
+     learning_rate: 0.0003,          // 追加
+     batch_size: 64,                 // 追加
+     num_workers: 1,                 // 追加
+   }
+   ```
+
+**技術的実装詳細**:
+
+1. **命名規則変換パターン**:
+   - Frontend 内部: camelCase (TypeScript 慣例)
+   - API リクエスト: snake_case (Python 慣例)
+   - Repository 層で変換を実施（Clean Architecture の境界）
+
+2. **デフォルト値の設計**:
+   - Optional パラメータとして定義 (`learningRate?: number`)
+   - Nullish coalescing (`??`) でデフォルト値を保証
+   - Backend のデフォルト値と一致させる
+
+**成果物**:
+- ✅ `libs/domains/training/TrainingConfig.ts` - 3パラメータ追加
+- ✅ `libs/repositories/training/TrainingRepositoryImpl.ts` - snake_case変換実装
+- ✅ `tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts` - テスト更新
+- ✅ Total: 439 tests passing (100%)
+- ✅ ESLint: 0 errors, 131 warnings (test any types - acceptable)
+- ✅ TypeScript: 5 errors (既存の問題、今回の修正とは無関係)
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 439/439 | ✅ 100% |
+| Coverage   | 91.65%  | ✅ +6.65pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| ESLint     | 0 errors | ✅ |
+
+**影響範囲**:
+- ✅ Training session 作成時の API 422 エラー解消
+- ✅ Backend API 仕様との完全互換性確立
+- ✅ 後方互換性維持（既存コードは動作）
+- ⚠️ TrainingControl.vue UI は未更新（新パラメータ入力なし、デフォルト値使用）
+
+**残タスク**:
+- [ ] TrainingControl.vue: `learning_rate`, `batch_size`, `num_workers` の入力フィールド追加（オプショナル）
+- [ ] Settings/Training ページ: 同様のフィールド追加（オプショナル）
+
+**変更ファイル統計**:
+```
+libs/domains/training/TrainingConfig.ts                                | 6 ++++++
+libs/repositories/training/TrainingRepositoryImpl.ts                   | 18 ++++++++++++++++--
+tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts   | 9 +++++++++
+report/DIARY03.md                                                      | 150 ++++++++++++++++
+```
+
+**時間**: 約45分
+**ステータス**: ✅ 完了（422エラー解決）
+**Phase**: Backend Integration Fix
+
+**次のステップ候補**:
+- [ ] TrainingControl.vue に新パラメータのフォーム入力を追加（UI改善）
+- [ ] Settings/Training ページにも同様の入力フィールド追加
+- [ ] Advanced Settings セクションとして実装（初心者向けにデフォルト値で隠す）
+
+---
 
 <a id="session-034---functions-coverage-85-achievement-2025-10-25"></a>
 ### Session 034 - Functions Coverage 85% Achievement (2025-10-25)

@@ -155,8 +155,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws grid cells', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 2,
           gridHeight: 2,
         },
@@ -169,8 +169,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws robot position when provided', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           robotPosition: { x: 1, y: 1 },
         },
       })
@@ -182,8 +182,8 @@ describe('EnvironmentVisualization', () => {
 
     it('does not draw robot when position is null', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           robotPosition: null,
         },
       })
@@ -195,8 +195,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws coverage overlay for visited cells', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 2,
           gridHeight: 2,
           coverageMap: [
@@ -211,8 +211,8 @@ describe('EnvironmentVisualization', () => {
 
     it('draws threat level heatmap', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 2,
           gridHeight: 2,
           threatGrid: [
@@ -239,8 +239,8 @@ describe('EnvironmentVisualization', () => {
       ]
 
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           trajectory,
         },
       })
@@ -256,8 +256,8 @@ describe('EnvironmentVisualization', () => {
       canvasMock.arc.mockClear()
 
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           trajectory: [],
         },
       })
@@ -272,8 +272,8 @@ describe('EnvironmentVisualization', () => {
   describe('Reactivity', () => {
     it('redraws when robot position changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           robotPosition: { x: 0, y: 0 },
         },
       })
@@ -288,8 +288,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when coverage map changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 2,
           gridHeight: 2,
           coverageMap: [
@@ -314,8 +314,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when threat grid changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 2,
           gridHeight: 2,
           threatGrid: [
@@ -340,8 +340,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when grid dimensions change', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 4,
           gridHeight: 4,
         },
@@ -360,8 +360,8 @@ describe('EnvironmentVisualization', () => {
 
     it('redraws when trajectory changes', async () => {
       const wrapper = mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           trajectory: [
             { x: 0, y: 0 },
             { x: 1, y: 1 },
@@ -421,8 +421,8 @@ describe('EnvironmentVisualization', () => {
   describe('Edge Cases', () => {
     it('handles undefined threat grid cells', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 3,
           gridHeight: 3,
           threatGrid: [[0.5]], // Sparse array
@@ -434,8 +434,8 @@ describe('EnvironmentVisualization', () => {
 
     it('handles undefined coverage map cells', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           gridWidth: 3,
           gridHeight: 3,
           coverageMap: [[true]], // Sparse array
@@ -447,8 +447,8 @@ describe('EnvironmentVisualization', () => {
 
     it('handles fractional robot positions', () => {
       mount(EnvironmentVisualization, {
-      ...mountOptions,
-      props: {
+        ...mountOptions,
+        props: {
           robotPosition: { x: 1.7, y: 2.3 },
         },
       })

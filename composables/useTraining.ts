@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 import { type TrainingMetrics, TrainingMetrics as TrainingMetricsClass } from '~/libs/domains/training/TrainingMetrics'
@@ -47,55 +47,56 @@ const createDummySession = (config: TrainingConfig): TrainingSession => {
   )
 }
 
-/**
- * ダミーメトリクスを生成
- */
-let metricsSimulationInterval: NodeJS.Timeout | null = null
-
-const startSimulatedMetrics = (session: TrainingSession) => {
-  // 既存のシミュレーションをクリア
-  if (metricsSimulationInterval) {
-    clearInterval(metricsSimulationInterval)
-  }
-
-  let currentStep = 0
-  const stepIncrement = Math.floor(session.totalTimesteps / 100) // 100回で完了
-
-  metricsSimulationInterval = setInterval(() => {
-    currentStep += stepIncrement
-
-    if (currentStep >= session.totalTimesteps) {
-      currentStep = session.totalTimesteps
-      if (metricsSimulationInterval) {
-        clearInterval(metricsSimulationInterval)
-      }
-    }
-
-    // ランダムなメトリクスを生成
-    const reward = Math.random() * 10 - 2 // -2 to 8
-    const loss = Math.random() * 0.5 // 0 to 0.5
-    const coverageRatio = Math.min(currentStep / session.totalTimesteps, 1)
-    const explorationScore = Math.random() * 0.5 + 0.5 // 0.5 to 1.0
-
-    const dummyMetrics = new TrainingMetricsClass(
-      Date.now(),
-      session.id,
-      currentStep,
-      Math.floor(currentStep / 1000),
-      reward,
-      loss,
-      coverageRatio,
-      explorationScore,
-      new Date()
-    )
-
-    // WebSocketの代わりにログを出力（実際はWebSocketで送信する想定）
-    console.log('Simulated metrics:', dummyMetrics)
-  }, 2000) // 2秒ごとにメトリクスを生成
-}
-
 export const useTraining = () => {
   const repository = new TrainingRepositoryImpl()
+
+  // シミュレーションメトリクスのインターバル（インスタンスごとに独立）
+  const metricsSimulationInterval = ref<NodeJS.Timeout | null>(null)
+
+  /**
+   * ダミーメトリクスを生成してシミュレート
+   */
+  const startSimulatedMetrics = (session: TrainingSession) => {
+    // 既存のシミュレーションをクリア
+    if (metricsSimulationInterval.value) {
+      clearInterval(metricsSimulationInterval.value)
+    }
+
+    let currentStep = 0
+    const stepIncrement = Math.floor(session.totalTimesteps / 100) // 100回で完了
+
+    metricsSimulationInterval.value = setInterval(() => {
+      currentStep += stepIncrement
+
+      if (currentStep >= session.totalTimesteps) {
+        currentStep = session.totalTimesteps
+        if (metricsSimulationInterval.value) {
+          clearInterval(metricsSimulationInterval.value)
+        }
+      }
+
+      // ランダムなメトリクスを生成
+      const reward = Math.random() * 10 - 2 // -2 to 8
+      const loss = Math.random() * 0.5 // 0 to 0.5
+      const coverageRatio = Math.min(currentStep / session.totalTimesteps, 1)
+      const explorationScore = Math.random() * 0.5 + 0.5 // 0.5 to 1.0
+
+      const dummyMetrics = new TrainingMetricsClass(
+        Date.now(),
+        session.id,
+        currentStep,
+        Math.floor(currentStep / 1000),
+        reward,
+        loss,
+        coverageRatio,
+        explorationScore,
+        new Date()
+      )
+
+      // WebSocketの代わりにログを出力（実際はWebSocketで送信する想定）
+      console.log('Simulated metrics:', dummyMetrics)
+    }, 2000) // 2秒ごとにメトリクスを生成
+  }
 
   const sessions = ref<TrainingSession[]>([])
   const currentSession = ref<TrainingSession | null>(null)
@@ -245,6 +246,16 @@ export const useTraining = () => {
       console.error(err)
     }
   }
+
+  // クリーンアップ: composableが破棄される際にすべてのポーリングを停止
+  onBeforeUnmount(() => {
+    stopAllPolling()
+    // シミュレーションモードのメトリクスインターバルもクリア
+    if (metricsSimulationInterval.value) {
+      clearInterval(metricsSimulationInterval.value)
+      metricsSimulationInterval.value = null
+    }
+  })
 
   return {
     sessions,
