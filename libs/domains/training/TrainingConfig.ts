@@ -1,4 +1,26 @@
 import type { TrainingAlgorithm, TrainingEnvironmentType } from './TrainingSession'
+/**
+ * Training parameter constraints
+ * Used for both domain validation and UI component configuration
+ */
+export const TRAINING_CONSTRAINTS = {
+  learningRate: {
+    min: 0.00001,
+    max: 1,
+    step: 0.0001,
+    precision: 5,
+  },
+  batchSize: {
+    min: 1,
+    max: 1024,
+    step: 1,
+  },
+  numWorkers: {
+    min: 1,
+    max: 16,
+    step: 1,
+  },
+} as const
 
 export interface TrainingConfig {
   name: string
@@ -67,20 +89,35 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
 
   // 追加パラメータのバリデーション
   if (config.learningRate !== undefined) {
-    if (config.learningRate <= 0 || config.learningRate > 1) {
-      throw new Error('Learning rate must be between 0 and 1')
+    if (
+      config.learningRate < TRAINING_CONSTRAINTS.learningRate.min ||
+      config.learningRate > TRAINING_CONSTRAINTS.learningRate.max
+    ) {
+      throw new Error(
+        `Learning rate must be between ${TRAINING_CONSTRAINTS.learningRate.min} and ${TRAINING_CONSTRAINTS.learningRate.max}`
+      )
     }
   }
 
   if (config.batchSize !== undefined) {
-    if (config.batchSize < 1 || config.batchSize > 1024) {
-      throw new Error('Batch size must be between 1 and 1024')
+    if (
+      config.batchSize < TRAINING_CONSTRAINTS.batchSize.min ||
+      config.batchSize > TRAINING_CONSTRAINTS.batchSize.max
+    ) {
+      throw new Error(
+        `Batch size must be between ${TRAINING_CONSTRAINTS.batchSize.min} and ${TRAINING_CONSTRAINTS.batchSize.max}`
+      )
     }
   }
 
   if (config.numWorkers !== undefined) {
-    if (config.numWorkers < 1 || config.numWorkers > 16) {
-      throw new Error('Number of workers must be between 1 and 16')
+    if (
+      config.numWorkers < TRAINING_CONSTRAINTS.numWorkers.min ||
+      config.numWorkers > TRAINING_CONSTRAINTS.numWorkers.max
+    ) {
+      throw new Error(
+        `Number of workers must be between ${TRAINING_CONSTRAINTS.numWorkers.min} and ${TRAINING_CONSTRAINTS.numWorkers.max}`
+      )
     }
   }
 }

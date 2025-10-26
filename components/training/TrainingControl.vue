@@ -2,7 +2,7 @@
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 
-import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
+import { TRAINING_CONSTRAINTS, type TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 
 const { createSession, isLoading, error } = useTraining()
 const router = useRouter()
@@ -343,10 +343,10 @@ const cancelForm = () => {
                   </template>
                   <el-input-number
                     v-model="trainingConfig.learningRate"
-                    :min="0.00001"
-                    :max="1"
-                    :step="0.0001"
-                    :precision="5"
+                    :min="TRAINING_CONSTRAINTS.learningRate.min"
+                    :max="TRAINING_CONSTRAINTS.learningRate.max"
+                    :step="TRAINING_CONSTRAINTS.learningRate.step"
+                    :precision="TRAINING_CONSTRAINTS.learningRate.precision"
                     style="width: 100%"
                   />
                 </el-form-item>
@@ -365,9 +365,9 @@ const cancelForm = () => {
                   </template>
                   <el-input-number
                     v-model="trainingConfig.batchSize"
-                    :min="1"
-                    :max="1024"
-                    :step="1"
+                    :min="TRAINING_CONSTRAINTS.batchSize.min"
+                    :max="TRAINING_CONSTRAINTS.batchSize.max"
+                    :step="TRAINING_CONSTRAINTS.batchSize.step"
                     style="width: 100%"
                   />
                 </el-form-item>
@@ -389,9 +389,9 @@ const cancelForm = () => {
                   </template>
                   <el-input-number
                     v-model="trainingConfig.numWorkers"
-                    :min="1"
-                    :max="16"
-                    :step="1"
+                    :min="TRAINING_CONSTRAINTS.numWorkers.min"
+                    :max="TRAINING_CONSTRAINTS.numWorkers.max"
+                    :step="TRAINING_CONSTRAINTS.numWorkers.step"
                     style="width: 100%"
                   />
                 </el-form-item>
