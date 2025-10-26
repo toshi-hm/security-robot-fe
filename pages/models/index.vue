@@ -2,6 +2,7 @@
 import { UploadFilled } from '@element-plus/icons-vue'
 import { onMounted, ref } from 'vue'
 
+import type { ModelEntity } from '~/libs/entities/model/ModelEntity'
 import { useModelsStore } from '~/stores/models'
 
 // Element Plus types (auto-imported by @element-plus/nuxt)
@@ -39,7 +40,7 @@ const handleUpload = async () => {
   }
 }
 
-const handleDownload = async (model: any) => {
+const handleDownload = async (model: ModelEntity) => {
   try {
     await modelsStore.downloadModel(model.id, model.filename || `model_${model.id}.zip`)
     ElMessage.success('モデルのダウンロードを開始しました')
@@ -48,7 +49,7 @@ const handleDownload = async (model: any) => {
   }
 }
 
-const handleDelete = async (model: any) => {
+const handleDelete = async (model: ModelEntity) => {
   try {
     await ElMessageBox.confirm(
       `モデル「${model.filename || model.id}」を削除しますか？この操作は取り消せません。`,

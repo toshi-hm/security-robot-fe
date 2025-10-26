@@ -8,7 +8,7 @@ export interface ModelEntity {
   content_type: string
   training_job_id: number | null
   description: string | null
-  metadata: Record<string, any> | null
+  metadata: Record<string, unknown> | null
   created_at: string
   updated_at: string
 }

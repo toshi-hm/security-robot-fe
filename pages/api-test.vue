@@ -11,8 +11,9 @@ const testHealth = async () => {
     errorMessage.value = ''
     const response = await $fetch('http://127.0.0.1:8000/api/v1/health/')
     healthStatus.value = JSON.stringify(response, null, 2)
-  } catch (error: any) {
-    errorMessage.value = `Health check failed: ${error.message}`
+  } catch (error) {
+    const err = error as Error
+    errorMessage.value = `Health check failed: ${err.message}`
   }
 }
 
@@ -23,8 +24,9 @@ const testTrainingList = async () => {
       params: { page: 1, page_size: 10 },
     })
     trainingListData.value = JSON.stringify(response, null, 2)
-  } catch (error: any) {
-    errorMessage.value = `Training list failed: ${error.message}`
+  } catch (error) {
+    const err = error as Error
+    errorMessage.value = `Training list failed: ${err.message}`
   }
 }
 
@@ -33,8 +35,9 @@ const testEnvironmentDefinitions = async () => {
     errorMessage.value = ''
     const response = await $fetch('http://127.0.0.1:8000/api/v1/environment/definitions')
     environmentData.value = JSON.stringify(response, null, 2)
-  } catch (error: any) {
-    errorMessage.value = `Environment definitions failed: ${error.message}`
+  } catch (error) {
+    const err = error as Error
+    errorMessage.value = `Environment definitions failed: ${err.message}`
   }
 }
 </script>

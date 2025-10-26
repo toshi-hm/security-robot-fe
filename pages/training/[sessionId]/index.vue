@@ -4,6 +4,13 @@ import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
+import type {
+  TrainingProgressMessage,
+  TrainingStatusMessage,
+  ConnectionAckMessage,
+  TrainingErrorMessage,
+  EnvironmentUpdateMessage,
+} from '~/types/api'
 
 const route = useRoute()
 const sessionId = computed(() => Number(route.params.sessionId))
@@ -47,32 +54,35 @@ const robotPositionForDisplay = computed(() => {
 })
 
 // WebSocket message handlers
-const handleTrainingProgress = (message: any) => {
-  if (message.session_id === sessionId.value) {
+
+const handleTrainingProgress = (message: Record<string, unknown>) => {
+  const msg = message as TrainingProgressMessage
+  if (msg.session_id === sessionId.value) {
     currentMetrics.value = {
-      timestep: message.data?.timestep || message.timestep || 0,
-      episode: message.data?.episode || message.episode || 0,
-      reward: message.data?.reward || message.reward || 0,
-      loss: message.data?.loss ?? message.loss ?? null,
-      coverageRatio: message.data?.coverage_ratio ?? message.coverage_ratio ?? null,
-      explorationScore: message.data?.exploration_score ?? message.exploration_score ?? null,
+      timestep: msg.data?.timestep || msg.timestep || 0,
+      episode: msg.data?.episode || msg.episode || 0,
+      reward: msg.data?.reward || msg.reward || 0,
+      loss: msg.data?.loss ?? msg.loss ?? null,
+      coverageRatio: msg.data?.coverage_ratio ?? msg.coverage_ratio ?? null,
+      explorationScore: msg.data?.exploration_score ?? msg.exploration_score ?? null,
     }
   }
 }
 
-const handleTrainingStatus = (message: any) => {
-  if (message.session_id === sessionId.value) {
-    trainingStatus.value = message.status || ''
-    statusMessage.value = message.message || ''
+const handleTrainingStatus = (message: Record<string, unknown>) => {
+  const msg = message as TrainingStatusMessage
+  if (msg.session_id === sessionId.value) {
+    trainingStatus.value = msg.status || ''
+    statusMessage.value = msg.message || ''
 
     // Determine alert type based on status
-    if (message.status === 'running' || message.status === 'started') {
+    if (msg.status === 'running' || msg.status === 'started') {
       statusType.value = 'success'
-    } else if (message.status === 'completed') {
+    } else if (msg.status === 'completed') {
       statusType.value = 'success'
-    } else if (message.status === 'paused') {
+    } else if (msg.status === 'paused') {
       statusType.value = 'warning'
-    } else if (message.status === 'failed' || message.status === 'error') {
+    } else if (msg.status === 'failed' || msg.status === 'error') {
       statusType.value = 'error'
     } else {
       statusType.value = 'info'
@@ -89,18 +99,20 @@ const handleTrainingStatus = (message: any) => {
   }
 }
 
-const handleConnectionAck = (message: any) => {
-  console.log('WebSocket connected, client_id:', message.client_id)
+const handleConnectionAck = (message: Record<string, unknown>) => {
+  const msg = message as ConnectionAckMessage
+  console.log('WebSocket connected, client_id:', msg.client_id)
 }
 
 const handlePong = () => {
   console.log('Pong received')
 }
 
-const handleTrainingError = (message: any) => {
-  if (message.session_id === sessionId.value) {
-    const errorMsg = message.error_message || message.message || 'Unknown error occurred'
-    const errorType = message.error_type || 'unknown'
+const handleTrainingError = (message: Record<string, unknown>) => {
+  const msg = message as TrainingErrorMessage
+  if (msg.session_id === sessionId.value) {
+    const errorMsg = msg.error_message || msg.message || 'Unknown error occurred'
+    const errorType = msg.error_type || 'unknown'
 
     trainingStatus.value = 'error'
     statusMessage.value = `Error (${errorType}): ${errorMsg}`
@@ -109,13 +121,17 @@ const handleTrainingError = (message: any) => {
   }
 }
 
-const handleEnvironmentUpdate = (message: any) => {
-  if (message.session_id === sessionId.value) {
+const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
+  const msg = message as EnvironmentUpdateMessage
+  if (msg.session_id === sessionId.value) {
     // Update robot position
-    if (message.robot_position) {
+    if (msg.robot_position) {
+      const robotPos = Array.isArray(msg.robot_position)
+        ? { x: msg.robot_position[0] ?? 0, y: msg.robot_position[1] ?? 0 }
+        : msg.robot_position
       const newPosition = {
-        x: message.robot_position.x ?? message.robot_position[0] ?? 0,
-        y: message.robot_position.y ?? message.robot_position[1] ?? 0,
+        x: robotPos.x ?? 0,
+        y: robotPos.y ?? 0,
       }
 
       // Add to trajectory if position changed
