@@ -55,7 +55,8 @@ const parameterTooltips = {
   explorationWeight: '新しいエリアの探索に対する報酬の重み。大きいほど探索を促進します。',
   diversityWeight: '行動の多様性に対する報酬の重み。大きいほど多様な行動を促進します。',
   // Advanced Settings
-  learningRate: 'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
+  learningRate:
+    'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
   batchSize: '1回の更新で使用するサンプル数。大きいほど安定しますが、メモリを多く使用します。推奨値: 64',
   numWorkers: '並列実行するワーカー数（A3C使用時のみ有効）。CPUコア数に応じて調整してください。推奨値: 1-4',
 }
@@ -318,17 +319,10 @@ const cancelForm = () => {
         <el-collapse class="training-control__advanced-settings">
           <el-collapse-item title="Advanced Settings" name="advanced">
             <template #title>
-              <span class="training-control__collapse-title">
-                Advanced Settings（上級者向け）
-              </span>
+              <span class="training-control__collapse-title"> Advanced Settings（上級者向け） </span>
             </template>
 
-            <el-alert
-              type="info"
-              :closable="false"
-              show-icon
-              class="training-control__advanced-note"
-            >
+            <el-alert type="info" :closable="false" show-icon class="training-control__advanced-note">
               <template #default>
                 デフォルト値で適切に設定されています。変更が不要な場合はそのまま学習を開始してください。
               </template>
