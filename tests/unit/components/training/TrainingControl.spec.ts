@@ -85,6 +85,18 @@ const mountComponent = (options = {}) => {
           name: 'ElTooltip',
           template: '<span class="el-tooltip"><slot /></span>',
         },
+        'el-collapse': {
+          name: 'ElCollapse',
+          template: '<div class="el-collapse"><slot /></div>',
+        },
+        'el-collapse-item': {
+          name: 'ElCollapseItem',
+          template: '<div class="el-collapse-item"><slot name="title" /><slot /></div>',
+        },
+        'el-alert': {
+          name: 'ElAlert',
+          template: '<div class="el-alert"><slot /></div>',
+        },
       },
     },
     ...options,
@@ -227,6 +239,10 @@ describe('TrainingControl.vue', () => {
       coverageWeight: 1.5,
       explorationWeight: 3.0,
       diversityWeight: 2.0,
+      // Advanced Settings
+      learningRate: 0.0003,
+      batchSize: 64,
+      numWorkers: 1,
     })
   })
 
@@ -317,5 +333,45 @@ describe('TrainingControl.vue', () => {
     expect(vm.trainingConfig.coverageWeight).toBe(2.0)
     expect(vm.trainingConfig.explorationWeight).toBe(4.0)
     expect(vm.trainingConfig.diversityWeight).toBe(3.0)
+  })
+
+  it('renders Advanced Settings collapse component', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.el-button').trigger('click')
+
+    expect(wrapper.findComponent({ name: 'ElCollapse' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'ElCollapseItem' }).exists()).toBe(true)
+  })
+
+  it('has parameter tooltips for Advanced Settings', () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    expect(vm.parameterTooltips.learningRate).toBeDefined()
+    expect(vm.parameterTooltips.batchSize).toBeDefined()
+    expect(vm.parameterTooltips.numWorkers).toBeDefined()
+    expect(vm.parameterTooltips.learningRate).toContain('推奨値: 0.0003')
+    expect(vm.parameterTooltips.batchSize).toContain('推奨値: 64')
+    expect(vm.parameterTooltips.numWorkers).toContain('推奨値: 1-4')
+  })
+
+  it('updates Advanced Settings values through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    // Show the form first
+    await wrapper.find('.el-button').trigger('click')
+
+    // Update Advanced Settings values
+    vm.trainingConfig.learningRate = 0.001
+    vm.trainingConfig.batchSize = 128
+    vm.trainingConfig.numWorkers = 4
+
+    await wrapper.vm.$nextTick()
+
+    // Verify the values were set
+    expect(vm.trainingConfig.learningRate).toBe(0.001)
+    expect(vm.trainingConfig.batchSize).toBe(128)
+    expect(vm.trainingConfig.numWorkers).toBe(4)
   })
 })

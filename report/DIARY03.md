@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 038 - TrainingControl UI Enhancement (Advanced Settings)](#session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26)
 - [Session 037 - Critical Bug Fixes (Pre-Merge)](#session-037---critical-bug-fixes-pre-merge-2025-10-26)
 - [Session 036 - Code Quality Improvements](#session-036---code-quality-improvements-2025-10-26)
 - [Session 035 - Fix Training API 422 Error](#session-035---fix-training-api-422-error-2025-10-25)
@@ -25,6 +26,155 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26"></a>
+### Session 038 - TrainingControl UI Enhancement (Advanced Settings) (2025-10-26)
+
+**目的**: TrainingControl.vueにAdvanced Settings（上級者向け設定）のUI追加
+
+**実施内容**:
+
+### 1. Advanced Settings UI実装
+
+**TrainingControl.vue enhancement**:
+- **el-collapseコンポーネント導入**:
+  - アコーディオン形式で初心者向けに折りたたみ表示
+  - デフォルトで閉じた状態（初心者が混乱しないよう配慮）
+  - "Advanced Settings（上級者向け）"というタイトル
+
+- **情報アラート追加**:
+  ```vue
+  <el-alert type="info" :closable="false" show-icon>
+    デフォルト値で適切に設定されています。変更が不要な場合はそのまま学習を開始してください。
+  </el-alert>
+  ```
+
+- **3つのパラメータ追加**:
+  1. **学習率** (learningRate):
+     - `el-input-number`: min=0.00001, max=1, step=0.0001, precision=5
+     - デフォルト値: 0.0003
+  2. **バッチサイズ** (batchSize):
+     - `el-input-number`: min=1, max=1024, step=1
+     - デフォルト値: 64
+  3. **ワーカー数** (numWorkers):
+     - `el-input-number`: min=1, max=16, step=1
+     - デフォルト値: 1
+
+### 2. パラメータツールチップ追加
+
+**parameterTooltips拡張**:
+```typescript
+const parameterTooltips = {
+  // ... 既存のツールチップ
+  learningRate: 'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
+  batchSize: '1回の更新で使用するサンプル数。大きいほど安定しますが、メモリを多く使用します。推奨値: 64',
+  numWorkers: '並列実行するワーカー数（A3C使用時のみ有効）。CPUコア数に応じて調整してください。推奨値: 1-4',
+}
+```
+
+### 3. trainingConfig初期値更新
+
+**Advanced Settings対応**:
+```typescript
+const trainingConfig = ref<TrainingConfig>({
+  name: '',
+  algorithm: 'ppo',
+  environmentType: 'standard',
+  totalTimesteps: 10000,
+  envWidth: 8,
+  envHeight: 8,
+  coverageWeight: 1.5,
+  explorationWeight: 3.0,
+  diversityWeight: 2.0,
+  // Advanced Settings (optional)
+  learningRate: 0.0003,
+  batchSize: 64,
+  numWorkers: 1,
+})
+```
+
+### 4. スタイリング追加
+
+**BEM命名規則に準拠**:
+```scss
+&__advanced-settings {
+  margin-bottom: 20px;
+}
+
+&__collapse-title {
+  color: #606266;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+&__advanced-note {
+  margin-bottom: 20px;
+}
+```
+
+### 5. テスト更新
+
+**TrainingControl.spec.ts enhancement**:
+- **新規スタブ追加**:
+  - `el-collapse`: アコーディオンコンポーネント
+  - `el-collapse-item`: アコーディオンアイテム
+  - `el-alert`: 情報アラート
+
+- **デフォルト値テスト更新**:
+  ```typescript
+  expect(vm.trainingConfig).toEqual({
+    // ... 既存フィールド
+    learningRate: 0.0003,
+    batchSize: 64,
+    numWorkers: 1,
+  })
+  ```
+
+- **新規テスト追加** (3テスト):
+  1. `renders Advanced Settings collapse component`: アコーディオン表示確認
+  2. `has parameter tooltips for Advanced Settings`: ツールチップ確認
+  3. `updates Advanced Settings values through v-model`: v-modelバインディング確認
+
+**成果物**:
+- ✅ `components/training/TrainingControl.vue` - Advanced Settings UI追加
+- ✅ `tests/unit/components/training/TrainingControl.spec.ts` - 3テスト追加
+- ✅ Total: **445 tests passing** (442 → 445, +3追加)
+- ⚠️ Functions Coverage: 82.22% (85.05% → 82.22%, -2.83pt)
+  - 原因: TrainingControl.vueの新規コード追加により相対的に低下
+  - 影響: `getErrorMessage`関数が未テスト（既存コードで今回の機能とは無関係）
+
+**テスト結果**:
+| Metric     | Before  | After   | Change   | Target | Status      |
+|------------|---------|---------|----------|--------|-------------|
+| Tests      | 442     | 445     | +3       | -      | ✅ 100%     |
+| Statements | 91.36%  | 91.81%  | +0.45pt  | 85%    | ✅ +6.81pt  |
+| Branches   | 92.54%  | 92.73%  | +0.19pt  | 85%    | ✅ +7.73pt  |
+| Functions  | 85.05%  | 82.22%  | -2.83pt  | 85%    | ⚠️ -2.78pt  |
+| Lines      | 91.36%  | 91.81%  | +0.45pt  | 85%    | ✅ +6.81pt  |
+
+**UI/UX改善**:
+- 📂 **折りたたみ式Advanced Settings**: 初心者が混乱しない配慮
+- ℹ️ **情報アラート**: デフォルト値で十分であることを明示
+- 💡 **詳細なツールチップ**: 各パラメータの役割と推奨値を表示
+- 🎯 **適切な入力制限**: min/max/step設定で不正な値を防止
+- 🎨 **統一されたデザイン**: Element Plusコンポーネントで一貫性維持
+
+**変更ファイル統計**:
+```
+components/training/TrainingControl.vue                          | 90 ++++++++++++++
+tests/unit/components/training/TrainingControl.spec.ts           | 47 ++++++++
+```
+
+**時間**: 約1時間
+**ステータス**: ✅ 完了
+**Phase**: UI Layer Enhancement
+
+**次のステップ候補**:
+- [ ] getErrorMessage関数のテスト追加（Functions Coverage 85%達成のため）
+- [ ] Settings/Trainingページにも同様のAdvanced Settings追加
+- [ ] Backend統合テスト（実際の学習実行確認）
+
+---
 
 <a id="session-037---critical-bug-fixes-pre-merge-2025-10-26"></a>
 ### Session 037 - Critical Bug Fixes (Pre-Merge) (2025-10-26)

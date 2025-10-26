@@ -38,7 +38,7 @@ describe('TrainingConfig utilities', () => {
         name: 'Valid Name',
         learningRate: 1.5,
       })
-    ).toThrow('Learning rate must be between 0 and 1')
+    ).toThrow('Learning rate must be between 0.00001 and 1')
 
     expect(() =>
       validateTrainingConfig({
@@ -46,7 +46,7 @@ describe('TrainingConfig utilities', () => {
         name: 'Valid Name',
         learningRate: 0,
       })
-    ).toThrow('Learning rate must be between 0 and 1')
+    ).toThrow('Learning rate must be between 0.00001 and 1')
   })
 
   it('validates batch size bounds', () => {
