@@ -23,17 +23,15 @@ describe('EnvironmentRepositoryImpl', () => {
           id: 'env-1',
           name: 'Standard Environment',
           description: 'Standard security patrol environment',
-          gridWidth: 10,
-          gridHeight: 10,
-          threatLevel: 0.5,
+          width: 10,
+          height: 10,
         },
         {
           id: 'env-2',
           name: 'Complex Environment',
           description: 'Complex environment with obstacles',
-          gridWidth: 15,
-          gridHeight: 15,
-          threatLevel: 0.8,
+          width: 15,
+          height: 15,
         },
       ]
 
@@ -45,7 +43,7 @@ describe('EnvironmentRepositoryImpl', () => {
       expect(result).toEqual(mockDefinitions)
       expect(result).toHaveLength(2)
       expect(result[0]!.name).toBe('Standard Environment')
-      expect(result[1]!.gridWidth).toBe(15)
+      expect(result[1]!.width).toBe(15)
     })
 
     it('throws error when API call fails', async () => {
@@ -78,14 +76,13 @@ describe('EnvironmentRepositoryImpl', () => {
           id: 'env-1',
           name: 'Test Environment',
           description: 'Test environment',
-          gridWidth: 10,
-          gridHeight: 10,
-          threatLevel: 0.6,
+          width: 10,
+          height: 10,
         },
         robot: {
-          position: { x: 5, y: 5 },
-          health: 100,
-          energy: 80,
+          position: { row: 5, col: 5 },
+          batteryLevel: 100,
+          sensorReadings: [],
         },
         activeThreatLevel: 0.6,
       }
@@ -97,7 +94,7 @@ describe('EnvironmentRepositoryImpl', () => {
       expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.environment.state('env-1'))
       expect(result).toEqual(mockState)
       expect(result.definition.id).toBe('env-1')
-      expect(result.robot.position.x).toBe(5)
+      expect(result.robot.position.col).toBe(5)
       expect(result.activeThreatLevel).toBe(0.6)
     })
 
@@ -120,14 +117,13 @@ describe('EnvironmentRepositoryImpl', () => {
           id: 'env-complex',
           name: 'Complex Environment',
           description: 'Complex test',
-          gridWidth: 20,
-          gridHeight: 20,
-          threatLevel: 0.9,
+          width: 20,
+          height: 20,
         },
         robot: {
-          position: { x: 10, y: 10 },
-          health: 50,
-          energy: 30,
+          position: { row: 10, col: 10 },
+          batteryLevel: 50,
+          sensorReadings: [],
         },
         activeThreatLevel: 0.9,
       }
@@ -136,9 +132,8 @@ describe('EnvironmentRepositoryImpl', () => {
 
       const result = await repository.fetchState('env-complex')
 
-      expect(result.definition.gridWidth).toBe(20)
-      expect(result.definition.threatLevel).toBe(0.9)
-      expect(result.robot.health).toBe(50)
+      expect(result.definition.width).toBe(20)
+      expect(result.robot.batteryLevel).toBe(50)
     })
   })
 })
