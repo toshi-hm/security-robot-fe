@@ -6,6 +6,9 @@ export interface ApiResponse<T> {
 /**
  * Training Session作成リクエスト型
  * Backend API schema (TrainingSessionCreate) との契約を明示
+ *
+ * Note: learning_rate, batch_size, num_workers は optional
+ * （TrainingConfig との型整合性を確保）
  */
 export interface TrainingSessionCreateRequest {
   name: string
@@ -17,7 +20,7 @@ export interface TrainingSessionCreateRequest {
   coverage_weight: number
   exploration_weight: number
   diversity_weight: number
-  learning_rate: number
-  batch_size: number
-  num_workers: number
+  learning_rate?: number
+  batch_size?: number
+  num_workers?: number
 }

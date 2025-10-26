@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
 import { type TrainingMetrics, TrainingMetrics as TrainingMetricsClass } from '~/libs/domains/training/TrainingMetrics'
@@ -245,6 +245,16 @@ export const useTraining = () => {
       console.error(err)
     }
   }
+
+  // クリーンアップ: composableが破棄される際にすべてのポーリングを停止
+  onBeforeUnmount(() => {
+    stopAllPolling()
+    // シミュレーションモードのメトリクスインターバルもクリア
+    if (metricsSimulationInterval) {
+      clearInterval(metricsSimulationInterval)
+      metricsSimulationInterval = null
+    }
+  })
 
   return {
     sessions,

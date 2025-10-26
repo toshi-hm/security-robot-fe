@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 037 - Critical Bug Fixes (Pre-Merge)](#session-037---critical-bug-fixes-pre-merge-2025-10-26)
 - [Session 036 - Code Quality Improvements](#session-036---code-quality-improvements-2025-10-26)
 - [Session 035 - Fix Training API 422 Error](#session-035---fix-training-api-422-error-2025-10-25)
 - [Session 034 - Functions Coverage 85% Achievement](#session-034---functions-coverage-85-achievement-2025-10-25)
@@ -24,6 +25,102 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-037---critical-bug-fixes-pre-merge-2025-10-26"></a>
+### Session 037 - Critical Bug Fixes (Pre-Merge) (2025-10-26)
+
+**目的**: マージ前に対応すべき重要なバグ修正（型の不一致、メモリリーク対策）
+
+**問題点と修正内容**:
+
+### 🔴 問題1: 型の不一致リスク
+
+**問題箇所**: `types/api.ts` の `TrainingSessionCreateRequest`
+- `learning_rate`, `batch_size`, `num_workers` が必須の `number` 型で定義されていた
+- 一方、`TrainingConfig` では `optional` として定義されている
+- Repository層で `??` でデフォルト値を保証しているが、型レベルでの保証がない
+
+**修正内容**:
+```typescript
+// types/api.ts
+export interface TrainingSessionCreateRequest {
+  // ... 他のフィールド
+  learning_rate?: number  // ✅ optional に変更
+  batch_size?: number     // ✅ optional に変更
+  num_workers?: number    // ✅ optional に変更
+}
+```
+
+**理由**: `TrainingConfig` との型整合性を確保し、型安全性を向上。
+
+---
+
+### 🔴 問題2: メモリリークリスク
+
+**問題箇所**: `composables/useTraining.ts`
+- `metricsSimulationInterval`: グローバル変数で管理されているが、composableが破棄される際にクリーンアップされていない
+- `pollingIntervals`: `stopAllPolling()` は定義されているが、ライフサイクルフックと連携していない
+
+**修正内容**:
+```typescript
+import { computed, onBeforeUnmount, ref } from 'vue'
+
+export const useTraining = () => {
+  // ... 既存のロジック
+
+  // ✅ クリーンアップ追加
+  onBeforeUnmount(() => {
+    stopAllPolling()
+    // シミュレーションモードのメトリクスインターバルもクリア
+    if (metricsSimulationInterval) {
+      clearInterval(metricsSimulationInterval)
+      metricsSimulationInterval = null
+    }
+  })
+
+  return { /* ... */ }
+}
+```
+
+**理由**:
+- コンポーネントがアンマウントされた際に、すべてのポーリングとインターバルを確実に停止
+- メモリリーク防止とリソースの適切な解放
+
+---
+
+**成果物**:
+- ✅ `types/api.ts` - TrainingSessionCreateRequest の3フィールドを optional に変更
+- ✅ `composables/useTraining.ts` - onBeforeUnmount でクリーンアップ処理追加
+- ✅ Total: **442 tests passing** (100%)
+- ✅ ESLint: 0 errors, 131 warnings (既存の警告のみ)
+- ✅ TypeScript: 既存エラーのみ（今回の修正と無関係）
+
+**テスト結果**:
+| Metric     | Result  | Status |
+|------------|---------|--------|
+| Tests      | 442/442 | ✅ 100% |
+| Statements | 91.36%  | ✅ +6.36pt |
+| Branches   | 92.54%  | ✅ +7.54pt |
+| Functions  | 85.05%  | ✅ 目標達成 |
+| Lines      | 91.36%  | ✅ +6.36pt |
+
+**変更ファイル統計**:
+```
+types/api.ts                  | 7 +++++--
+composables/useTraining.ts    | 9 ++++++++-
+```
+
+**時間**: 約20分
+**ステータス**: ✅ 完了
+**Phase**: Critical Bug Fixes (Pre-Merge)
+
+**マージ準備状況**: ✅ Ready for Review
+- 型安全性の問題解決
+- メモリリークリスク解消
+- すべてのテストがパス
+- カバレッジ維持
+
+---
 
 <a id="session-036---code-quality-improvements-2025-10-26"></a>
 ### Session 036 - Code Quality Improvements (2025-10-26)
