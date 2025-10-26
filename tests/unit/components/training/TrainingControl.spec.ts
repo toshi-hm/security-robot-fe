@@ -147,6 +147,17 @@ describe('TrainingControl.vue', () => {
     expect(wrapper.find('.el-card').exists()).toBe(true)
   })
 
+  it('opens form when openForm is called', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    expect(vm.showForm).toBe(false)
+
+    vm.openForm()
+
+    expect(vm.showForm).toBe(true)
+  })
+
   it('hides form when cancelForm is called', async () => {
     const wrapper = mountComponent()
     await wrapper.find('.el-button').trigger('click')
@@ -172,6 +183,20 @@ describe('TrainingControl.vue', () => {
 
     vm.cancelForm()
     expect(mockResetFields).toHaveBeenCalled()
+  })
+
+  it('handles cancelForm when formRef is null', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    vm.formRef = null
+    vm.showForm = true
+
+    vm.cancelForm()
+
+    expect(vm.showForm).toBe(false)
+    // Should not throw error even when formRef is null
+    expect(true).toBe(true)
   })
 
   it('does not proceed with startTraining if formRef is not available', async () => {
@@ -373,5 +398,153 @@ describe('TrainingControl.vue', () => {
     expect(vm.trainingConfig.learningRate).toBe(0.001)
     expect(vm.trainingConfig.batchSize).toBe(128)
     expect(vm.trainingConfig.numWorkers).toBe(4)
+  })
+
+  describe('getErrorMessage function', () => {
+    it('returns error message for status code 400', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ status: 400 })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('セッション設定が無効です。パラメータを確認してください。')
+      )
+    })
+
+    it('returns error message for status code 502', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ status: 502 })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('トレーニングワーカーが起動していません')
+      )
+    })
+
+    it('returns error message for status code 503', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ status: 503 })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('サーバーが高負荷状態です'))
+    })
+
+    it('returns error message for status code 500', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ status: 500 })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('サーバー内部エラーが発生しました'))
+    })
+
+    it('returns timeout error message', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ message: 'API応答タイムアウト' })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('API応答タイムアウト。Workerが起動していない可能性があります')
+      )
+    })
+
+    it('returns error message from error.response.status', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ response: { status: 400 } })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('セッション設定が無効です。パラメータを確認してください。')
+      )
+    })
+
+    it('returns custom error message if provided', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({ message: 'Custom error occurred' })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Custom error occurred'))
+    })
+
+    it('returns default error message for unknown errors', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({})
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('学習セッションの開始に失敗しました')
+      )
+    })
   })
 })

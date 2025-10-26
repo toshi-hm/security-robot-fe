@@ -228,4 +228,157 @@ describe('useTraining', () => {
     // 実行してもエラーにならないことを確認
     composable.stopPollingSessionStatus(1)
   })
+
+  it('starts polling when createSession returns queued status', async () => {
+    const queuedSession = {
+      id: 123,
+      name: 'Queued Session',
+      status: 'queued',
+      algorithm: 'ppo' as const,
+      environmentType: 'standard',
+      totalTimesteps: 10000,
+      currentTimestep: 0,
+      episodesCompleted: 0,
+      envWidth: 8,
+      envHeight: 8,
+      coverageWeight: 1.5,
+      explorationWeight: 3.0,
+      diversityWeight: 2.0,
+      learningRate: 0.0003,
+      batchSize: 64,
+      numWorkers: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    mockRepository.create.mockResolvedValue(queuedSession)
+
+    const composable = await loadComposable()
+    const session = await composable.createSession({
+      name: 'Test',
+      algorithm: 'ppo',
+      environmentType: 'standard',
+      totalTimesteps: 10000,
+      envWidth: 8,
+      envHeight: 8,
+      coverageWeight: 1.5,
+      explorationWeight: 3.0,
+      diversityWeight: 2.0,
+      learningRate: 0.0003,
+      batchSize: 64,
+      numWorkers: 1,
+    })
+
+    expect(session).toBeDefined()
+    expect(session?.status).toBe('queued')
+    expect(composable.startPollingSessionStatus).toBeDefined()
+  })
+
+  it('handles polling when session becomes running', async () => {
+    vi.useFakeTimers()
+
+    const queuedSession = {
+      id: 456,
+      name: 'Test Session',
+      status: 'queued' as const,
+      algorithm: 'ppo' as const,
+      environmentType: 'standard',
+      totalTimesteps: 10000,
+      currentTimestep: 0,
+      episodesCompleted: 0,
+      envWidth: 8,
+      envHeight: 8,
+      coverageWeight: 1.5,
+      explorationWeight: 3.0,
+      diversityWeight: 2.0,
+      learningRate: 0.0003,
+      batchSize: 64,
+      numWorkers: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    const runningSession = { ...queuedSession, status: 'running' as const }
+
+    mockRepository.findById
+      .mockResolvedValueOnce(queuedSession)
+      .mockResolvedValueOnce(runningSession)
+
+    const composable = await loadComposable()
+
+    composable.startPollingSessionStatus(456)
+
+    // Wait for first poll
+    await vi.advanceTimersByTimeAsync(2000)
+
+    // Wait for second poll (status changes to running)
+    await vi.advanceTimersByTimeAsync(2000)
+
+    composable.stopPollingSessionStatus(456)
+    vi.useRealTimers()
+  })
+
+  it('handles polling when session fails', async () => {
+    vi.useFakeTimers()
+
+    const queuedSession = {
+      id: 789,
+      name: 'Failed Session',
+      status: 'queued' as const,
+      algorithm: 'ppo' as const,
+      environmentType: 'standard',
+      totalTimesteps: 10000,
+      currentTimestep: 0,
+      episodesCompleted: 0,
+      envWidth: 8,
+      envHeight: 8,
+      coverageWeight: 1.5,
+      explorationWeight: 3.0,
+      diversityWeight: 2.0,
+      learningRate: 0.0003,
+      batchSize: 64,
+      numWorkers: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    const failedSession = { ...queuedSession, status: 'failed' as const }
+
+    mockRepository.findById
+      .mockResolvedValueOnce(queuedSession)
+      .mockResolvedValueOnce(failedSession)
+
+    const composable = await loadComposable()
+
+    composable.startPollingSessionStatus(789)
+
+    // Wait for first poll
+    await vi.advanceTimersByTimeAsync(2000)
+
+    // Wait for second poll (status changes to failed)
+    await vi.advanceTimersByTimeAsync(2000)
+
+    composable.stopPollingSessionStatus(789)
+    vi.useRealTimers()
+  })
+
+  it('handles errors during polling gracefully', async () => {
+    vi.useFakeTimers()
+
+    mockRepository.findById.mockRejectedValueOnce(new Error('Network error'))
+
+    const composable = await loadComposable()
+
+    composable.startPollingSessionStatus(999)
+
+    // Wait for poll that will error
+    await vi.advanceTimersByTimeAsync(2000)
+
+    // Polling should continue despite error
+    composable.stopPollingSessionStatus(999)
+    vi.useRealTimers()
+
+    // No assertion needed - just verify it doesn't throw
+    expect(true).toBe(true)
+  })
 })

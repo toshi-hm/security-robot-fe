@@ -116,6 +116,10 @@ const startTraining = async () => {
   }
 }
 
+const openForm = () => {
+  showForm.value = true
+}
+
 const cancelForm = () => {
   showForm.value = false
   formRef.value?.resetFields()
@@ -125,7 +129,7 @@ const cancelForm = () => {
 <template>
   <div class="training-control">
     <div v-if="!showForm" class="training-control__start">
-      <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="showForm = true">
+      <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="openForm">
         新規学習セッションを開始
       </el-button>
     </div>
