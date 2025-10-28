@@ -300,9 +300,7 @@ describe('useTraining', () => {
 
     const runningSession = { ...queuedSession, status: 'running' as const }
 
-    mockRepository.findById
-      .mockResolvedValueOnce(queuedSession)
-      .mockResolvedValueOnce(runningSession)
+    mockRepository.findById.mockResolvedValueOnce(queuedSession).mockResolvedValueOnce(runningSession)
 
     const composable = await loadComposable()
 
@@ -344,9 +342,7 @@ describe('useTraining', () => {
 
     const failedSession = { ...queuedSession, status: 'failed' as const }
 
-    mockRepository.findById
-      .mockResolvedValueOnce(queuedSession)
-      .mockResolvedValueOnce(failedSession)
+    mockRepository.findById.mockResolvedValueOnce(queuedSession).mockResolvedValueOnce(failedSession)
 
     const composable = await loadComposable()
 

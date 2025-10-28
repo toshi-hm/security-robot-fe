@@ -434,9 +434,7 @@ describe('TrainingControl.vue', () => {
 
       await vm.startTraining()
 
-      expect(mockError).toHaveBeenCalledWith(
-        expect.stringContaining('トレーニングワーカーが起動していません')
-      )
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('トレーニングワーカーが起動していません'))
     })
 
     it('returns error message for status code 503', async () => {
@@ -542,9 +540,7 @@ describe('TrainingControl.vue', () => {
 
       await vm.startTraining()
 
-      expect(mockError).toHaveBeenCalledWith(
-        expect.stringContaining('学習セッションの開始に失敗しました')
-      )
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('学習セッションの開始に失敗しました'))
     })
   })
 })
