@@ -20,7 +20,21 @@ import type { TrainingRepository } from './TrainingRepository'
  * Nuxt/Nitroの$fetchに対応
  */
 interface FetchOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options'
+  method?:
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'PATCH'
+    | 'HEAD'
+    | 'OPTIONS'
+    | 'get'
+    | 'post'
+    | 'put'
+    | 'delete'
+    | 'patch'
+    | 'head'
+    | 'options'
   body?: BodyInit | Record<string, any> | null
   params?: Record<string, unknown>
   signal?: AbortSignal
