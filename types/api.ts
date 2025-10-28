@@ -24,3 +24,164 @@ export interface TrainingSessionCreateRequest {
   batch_size?: number
   num_workers?: number
 }
+
+/**
+ * Training Session Response型
+ * Backend: TrainingSessionResponse
+ */
+export interface TrainingSessionDTO {
+  id: number
+  name: string
+  algorithm: 'ppo' | 'a3c'
+  environment_type: string
+  status: string
+  total_timesteps: number
+  current_timestep: number
+  episodes_completed: number
+  env_width: number
+  env_height: number
+  coverage_weight: number
+  exploration_weight: number
+  diversity_weight: number
+  learning_rate: number
+  batch_size: number
+  num_workers: number
+  model_path: string | null
+  log_path: string | null
+  config: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
+  started_at: string | null
+  completed_at: string | null
+}
+
+/**
+ * Training Metric Response型
+ * Backend: TrainingMetricResponse
+ */
+export interface TrainingMetricDTO {
+  id: number
+  job_id: number
+  timestep: number
+  episode: number | null
+  reward: number
+  loss: number | null
+  coverage_ratio: number | null
+  exploration_score: number | null
+  threat_level_avg: number | null
+  additional_metrics: Record<string, unknown> | null
+  timestamp: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Paginated response for sessions
+ * Backend: TrainingSessionListResponse
+ */
+export interface PaginatedSessionsResponse {
+  total: number
+  page: number
+  page_size: number
+  sessions: TrainingSessionDTO[]
+}
+
+/**
+ * Paginated response for metrics
+ * Backend: TrainingMetricsListResponse
+ */
+export interface PaginatedMetricsResponse {
+  total: number
+  page: number
+  page_size: number
+  metrics: TrainingMetricDTO[]
+}
+
+/**
+ * WebSocket Message Types
+ * Backend: app/schemas/websocket.py
+ */
+
+export interface BaseWebSocketMessage {
+  type: string
+  timestamp?: string
+}
+
+export interface TrainingProgressMessage extends BaseWebSocketMessage {
+  type: 'training_progress'
+  session_id: number
+  timestep: number
+  episode?: number | null
+  reward: number
+  loss?: number | null
+  coverage_ratio?: number | null
+  exploration_score?: number | null
+  threat_level_avg?: number | null
+  additional_metrics?: Record<string, unknown> | null
+  data?: {
+    timestep?: number
+    episode?: number
+    reward?: number
+    loss?: number | null
+    coverage_ratio?: number | null
+    exploration_score?: number | null
+  }
+}
+
+export interface TrainingStatusMessage extends BaseWebSocketMessage {
+  type: 'training_status'
+  session_id: number
+  status: string
+  message?: string | null
+}
+
+export interface TrainingErrorMessage extends BaseWebSocketMessage {
+  type: 'training_error'
+  session_id: number
+  error_message: string
+  message?: string
+  error_type?: string | null
+}
+
+export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
+  type: 'environment_update'
+  session_id: number
+  episode: number
+  step: number
+  robot_position: { x: number; y: number; orientation?: number } | [number, number]
+  action_taken?: number | null
+  reward_received?: number | null
+  grid_width?: number
+  grid_height?: number
+  coverage_map?: number[][]
+  threat_grid?: number[][]
+}
+
+export interface ConnectionAckMessage extends BaseWebSocketMessage {
+  type: 'connection_ack'
+  client_id: string
+  message?: string
+}
+
+export interface PongMessage extends BaseWebSocketMessage {
+  type: 'pong'
+}
+
+export type WebSocketMessage =
+  | TrainingProgressMessage
+  | TrainingStatusMessage
+  | TrainingErrorMessage
+  | EnvironmentUpdateMessage
+  | ConnectionAckMessage
+  | PongMessage
+
+/**
+ * Error type for API errors
+ */
+export interface ApiError {
+  status?: number
+  message?: string
+  response?: {
+    status?: number
+  }
+}

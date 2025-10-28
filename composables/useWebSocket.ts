@@ -95,7 +95,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
   /**
    * メッセージ送信
    */
-  const send = (message: Record<string, any>) => {
+  const send = (message: Record<string, unknown>) => {
     if (socket.value && socket.value.readyState === WebSocket.OPEN) {
       socket.value.send(JSON.stringify(message))
     } else {
@@ -113,10 +113,12 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
   /**
    * メッセージハンドラ（拡張可能）
    */
-  const messageHandlers = ref<Map<string, (data: any) => void>>(new Map())
+  type MessageHandler = (data: Record<string, unknown>) => void
+  const messageHandlers = ref<Map<string, MessageHandler>>(new Map())
 
-  const handleMessage = (message: any) => {
-    const handler = messageHandlers.value.get(message.type)
+  const handleMessage = (message: Record<string, unknown>) => {
+    const messageType = typeof message.type === 'string' ? message.type : ''
+    const handler = messageHandlers.value.get(messageType)
     if (handler) {
       handler(message)
     }
@@ -125,7 +127,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
   /**
    * メッセージタイプハンドラの登録
    */
-  const on = (messageType: string, handler: (data: any) => void) => {
+  const on = (messageType: string, handler: MessageHandler) => {
     messageHandlers.value.set(messageType, handler)
   }
 

@@ -64,7 +64,7 @@ const parameterTooltips = {
 /**
  * エラーステータスコードに応じたメッセージマッピング
  */
-const getErrorMessage = (error: any): string => {
+const getErrorMessage = (error: unknown): string => {
   const errorMessages: Record<number, string> = {
     400: 'セッション設定が無効です。パラメータを確認してください。',
     502: 'トレーニングワーカーが起動していません。稍お待ちください。',
@@ -73,19 +73,20 @@ const getErrorMessage = (error: any): string => {
   }
 
   // エラーオブジェクトからステータスコードを取得
-  const status = error?.status || error?.response?.status
+  const apiError = error as { status?: number; response?: { status?: number }; message?: string }
+  const status = apiError?.status || apiError?.response?.status
 
   if (status && errorMessages[status]) {
     return errorMessages[status]
   }
 
   // タイムアウトエラー
-  if (error?.message?.includes('タイムアウト')) {
+  if (apiError?.message?.includes('タイムアウト')) {
     return 'API応答タイムアウト。Workerが起動していない可能性があります。'
   }
 
   // デフォルトメッセージ
-  return error?.message || '学習セッションの開始に失敗しました'
+  return apiError?.message || '学習セッションの開始に失敗しました'
 }
 
 const startTraining = async () => {
@@ -107,12 +108,16 @@ const startTraining = async () => {
       const errorMsg = error.value || '学習セッションの開始に失敗しました'
       ElMessage.error(`開始に失敗しました: ${errorMsg}`)
     }
-  } catch (err: any) {
+  } catch (err) {
     // 予期しないエラーをキャッチ
     const errorMsg = getErrorMessage(err)
     ElMessage.error(`開始に失敗しました: ${errorMsg}`)
     console.error('Training session creation error:', err)
   }
+}
+
+const openForm = () => {
+  showForm.value = true
 }
 
 const cancelForm = () => {
@@ -124,7 +129,7 @@ const cancelForm = () => {
 <template>
   <div class="training-control">
     <div v-if="!showForm" class="training-control__start">
-      <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="showForm = true">
+      <el-button type="primary" size="large" :icon="'el-icon-video-play'" @click="openForm">
         新規学習セッションを開始
       </el-button>
     </div>

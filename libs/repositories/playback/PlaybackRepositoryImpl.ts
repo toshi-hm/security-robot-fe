@@ -1,3 +1,5 @@
+import type { PaginatedSessionsResponse, PaginatedMetricsResponse } from '~/types/api'
+
 import { API_ENDPOINTS } from '../../../configs/api'
 
 import type { PlaybackRepository } from './PlaybackRepository'
@@ -14,12 +16,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
   async listSessions(): Promise<PlaybackSession[]> {
     try {
       // Backend: GET /api/v1/training/list (completed sessions)
-      const response = await $fetch<{
-        total: number
-        page: number
-        page_size: number
-        sessions: any[]
-      }>(API_ENDPOINTS.training.list, {
+      const response = await $fetch<PaginatedSessionsResponse>(API_ENDPOINTS.training.list, {
         params: {
           page: 1,
           page_size: 100,
@@ -28,8 +25,8 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
 
       // Filter for completed sessions and convert to PlaybackSession
       return response.sessions
-        .filter((s: any) => s.status === 'completed')
-        .map((s: any) => ({
+        .filter((s) => s.status === 'completed')
+        .map((s) => ({
           id: s.id.toString(),
           sessionId: s.id.toString(),
           recordedAt: s.completed_at || s.created_at || new Date().toISOString(),
@@ -44,12 +41,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
   async fetchFrames(sessionId: string): Promise<PlaybackFrame[]> {
     try {
       // Backend: GET /api/v1/training/sessions/{id}/metrics
-      const response = await $fetch<{
-        total: number
-        page: number
-        page_size: number
-        metrics: any[]
-      }>(API_ENDPOINTS.training.metrics(Number(sessionId)), {
+      const response = await $fetch<PaginatedMetricsResponse>(API_ENDPOINTS.training.metrics(Number(sessionId)), {
         params: {
           page: 1,
           page_size: 1000, // Get all metrics for playback
@@ -57,7 +49,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
       })
 
       // Convert metrics to PlaybackFrame format
-      return response.metrics.map((m: any) => ({
+      return response.metrics.map((m) => ({
         timestamp: m.timestamp || new Date().toISOString(),
         environmentState: {
           robot: { x: 0, y: 0, orientation: 0 }, // TODO: Get from environment data

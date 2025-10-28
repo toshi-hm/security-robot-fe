@@ -4,7 +4,7 @@ import type { TrainingMetrics } from '~/libs/domains/training/TrainingMetrics'
 import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingMetricsEntity, type TrainingMetricsDTO } from '~/libs/entities/training/TrainingMetricsEntity'
 import { TrainingSessionEntity, type TrainingSessionDTO } from '~/libs/entities/training/TrainingSessionEntity'
-import type { TrainingSessionCreateRequest } from '~/types/api'
+import type { TrainingSessionCreateRequest, ApiError } from '~/types/api'
 
 import type { TrainingRepository } from './TrainingRepository'
 
@@ -14,6 +14,19 @@ import type { TrainingRepository } from './TrainingRepository'
  * Backend API実装に基づいて実装
  * API responses follow pagination pattern: { total, page, page_size, data: [...] }
  */
+
+/**
+ * $fetchのオプション型
+ * Nuxt/Nitroの$fetchに対応
+ */
+interface FetchOptions {
+  method?: string
+  body?: unknown
+  params?: Record<string, unknown>
+  signal?: AbortSignal
+  [key: string]: unknown
+}
+
 /**
  * リトライ付きfetch関数
  * ネットワーク不安定時に自動的にリトライする
@@ -26,7 +39,7 @@ import type { TrainingRepository } from './TrainingRepository'
  */
 async function fetchWithRetry<T>(
   url: string,
-  options?: any, // $fetch options with params support
+  options?: FetchOptions,
   maxRetries: number = 3,
   delayMs: number = 1000,
   timeoutMs: number = 10000
@@ -44,29 +57,31 @@ async function fetchWithRetry<T>(
         })
         clearTimeout(timeoutId)
         return response
-      } catch (fetchError: any) {
+      } catch (fetchError) {
         clearTimeout(timeoutId)
 
         // AbortError（タイムアウト）の場合
-        if (fetchError.name === 'AbortError') {
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
           throw new Error('API応答タイムアウト。Worker が起動していない可能性があります。')
         }
 
         throw fetchError
       }
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
+
       // 最後のリトライの場合はエラーをスロー
       if (i === maxRetries - 1) {
         throw error
       }
 
       // クライアントエラー(4xx)の場合はリトライしない
-      if (error?.status && error.status >= 400 && error.status < 500) {
+      if (apiError?.status && apiError.status >= 400 && apiError.status < 500) {
         throw error
       }
 
       // タイムアウトエラーはリトライしない
-      if (error.message && error.message.includes('タイムアウト')) {
+      if (apiError.message && apiError.message.includes('タイムアウト')) {
         throw error
       }
 
