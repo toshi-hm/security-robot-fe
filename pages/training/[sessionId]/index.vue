@@ -56,7 +56,7 @@ const robotPositionForDisplay = computed(() => {
 // WebSocket message handlers
 
 const handleTrainingProgress = (message: Record<string, unknown>) => {
-  const msg = message as TrainingProgressMessage
+  const msg = message as unknown as TrainingProgressMessage
   if (msg.session_id === sessionId.value) {
     currentMetrics.value = {
       timestep: msg.data?.timestep || msg.timestep || 0,
@@ -70,7 +70,7 @@ const handleTrainingProgress = (message: Record<string, unknown>) => {
 }
 
 const handleTrainingStatus = (message: Record<string, unknown>) => {
-  const msg = message as TrainingStatusMessage
+  const msg = message as unknown as TrainingStatusMessage
   if (msg.session_id === sessionId.value) {
     trainingStatus.value = msg.status || ''
     statusMessage.value = msg.message || ''
@@ -100,7 +100,7 @@ const handleTrainingStatus = (message: Record<string, unknown>) => {
 }
 
 const handleConnectionAck = (message: Record<string, unknown>) => {
-  const msg = message as ConnectionAckMessage
+  const msg = message as unknown as ConnectionAckMessage
   console.log('WebSocket connected, client_id:', msg.client_id)
 }
 
@@ -109,7 +109,7 @@ const handlePong = () => {
 }
 
 const handleTrainingError = (message: Record<string, unknown>) => {
-  const msg = message as TrainingErrorMessage
+  const msg = message as unknown as TrainingErrorMessage
   if (msg.session_id === sessionId.value) {
     const errorMsg = msg.error_message || msg.message || 'Unknown error occurred'
     const errorType = msg.error_type || 'unknown'
@@ -122,7 +122,7 @@ const handleTrainingError = (message: Record<string, unknown>) => {
 }
 
 const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
-  const msg = message as EnvironmentUpdateMessage
+  const msg = message as unknown as EnvironmentUpdateMessage
   if (msg.session_id === sessionId.value) {
     // Update robot position
     if (msg.robot_position) {
@@ -148,21 +148,21 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     }
 
     // Update action and reward
-    lastAction.value = message.action_taken || message.action || ''
-    lastReward.value = message.reward_received ?? message.reward ?? 0
+    lastAction.value = (msg.action_taken || (msg as any).action || '') as string
+    lastReward.value = (msg.reward_received ?? (msg as any).reward ?? 0) as number
 
     // Update grid dimensions if provided
-    if (message.grid_width) gridWidth.value = message.grid_width
-    if (message.grid_height) gridHeight.value = message.grid_height
+    if (msg.grid_width) gridWidth.value = msg.grid_width as number
+    if (msg.grid_height) gridHeight.value = msg.grid_height as number
 
     // Update coverage map if provided
-    if (message.coverage_map) {
-      coverageMap.value = message.coverage_map
+    if (msg.coverage_map) {
+      coverageMap.value = msg.coverage_map as unknown as boolean[][]
     }
 
     // Update threat grid if provided
-    if (message.threat_grid) {
-      threatGrid.value = message.threat_grid
+    if (msg.threat_grid) {
+      threatGrid.value = msg.threat_grid as number[][]
     }
   }
 }
