@@ -11,6 +11,7 @@
 
 ## 📑 目次
 
+- [Session 039 - Functions Coverage 86.66% Achievement](#session-039---functions-coverage-8666-achievement-2025-10-28)
 - [Session 038 - TrainingControl UI Enhancement (Advanced Settings)](#session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26)
 - [Session 037 - Critical Bug Fixes (Pre-Merge)](#session-037---critical-bug-fixes-pre-merge-2025-10-26)
 - [Session 036 - Code Quality Improvements](#session-036---code-quality-improvements-2025-10-26)
@@ -26,6 +27,204 @@
 ---
 
 ## 📝 セッション記録
+
+<a id="session-039---functions-coverage-8666-achievement-2025-10-28"></a>
+### Session 039 - Functions Coverage 86.66% Achievement (2025-10-28)
+
+**目的**: Functions カバレッジ85%達成を目指したテスト追加
+
+**実施内容**:
+
+### 1. カバレッジ状況分析
+
+**開始時のカバレッジ**:
+- Functions: 84.44% (目標85%まで-0.56pt)
+- Statements: 94.72%
+- Branches: 93.35%
+- Lines: 94.72%
+- Tests: 459 passing
+
+**未カバー箇所の特定**:
+- `composables/useTraining.ts`: Functions 81.81%, Statements 63.58%
+  - シミュレーションモード関連の関数が未テスト
+  - `isSimulationMode()`, `createDummySession()`, `startSimulatedMetrics()`
+  - `createSession()` のシミュレーション分岐
+  - `onBeforeUnmount()` のシミュレーション関連クリーンアップ
+
+### 2. useTraining.ts のシミュレーションモードテスト追加 (TDD方式)
+
+**追加されたテストケース** (5個):
+
+1. **`creates dummy session in simulation mode`**:
+   - シミュレーションモードでダミーセッション作成を検証
+   - useRuntimeConfig をモック (`simulationMode: true`)
+   - ElMessage.success の呼び出しを確認
+   - セッションのステータスが 'running' であることを確認
+   - repository.create が呼ばれないことを確認
+
+2. **`starts simulated metrics generation`**:
+   - シミュレーションメトリクスの生成を検証
+   - console.log をスパイしてメトリクス出力を確認
+   - vi.useFakeTimers() で時間を進める (2秒)
+   - メトリクスオブジェクトの形式を確認 (timestep, reward)
+
+3. **`cleans up simulation interval on unmount`**:
+   - アンマウント時のクリーンアップを検証
+   - インターバルが開始されることを確認
+   - stopAllPolling() を直接呼び出してクリーンアップを模擬
+   - エラーが発生しないことを確認
+
+4. **`simulated metrics progress to completion`**:
+   - メトリクスが完了まで進捗することを検証
+   - 小さいタイムステップ数 (1000) でテスト
+   - 複数のインターバル (10回 × 2秒) を実行
+   - console.log が複数回呼ばれることを確認
+
+5. **`does not call repository in simulation mode`**:
+   - シミュレーションモード時にAPI呼び出しがないことを確認
+   - createSession 実行後に mockRepository.create が呼ばれていないことを検証
+
+### 3. TypeScript型エラー修正
+
+**問題**: `environmentType` が `string` 型で推論され、`TrainingEnvironmentType` 型と互換性がない
+
+**修正内容**:
+```typescript
+// Before
+environmentType: 'standard',
+
+// After
+environmentType: 'standard' as const,
+```
+
+全5箇所のテストケースで `as const` を追加して型を明示。
+
+### 4. テストモッキングパターン
+
+**useRuntimeConfig のモック**:
+```typescript
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: { simulationMode: true },
+}))
+```
+
+**ElMessage のモック**:
+```typescript
+const ElMessageSuccess = vi.fn()
+vi.stubGlobal('ElMessage', { success: ElMessageSuccess })
+```
+
+**Fake Timers の使用**:
+```typescript
+vi.useFakeTimers()
+await vi.advanceTimersByTimeAsync(2000)
+vi.useRealTimers()
+```
+
+**Global stubs のクリーンアップ**:
+```typescript
+vi.unstubAllGlobals()
+```
+
+### 5. 成果物
+
+**ファイル変更**:
+- ✅ `tests/unit/composables/useTraining.spec.ts` - 5テスト追加 (17 → 22テスト)
+
+**テスト結果**:
+- ✅ Total: **464 tests passing** (459 → 464, +5追加)
+- ✅ TypeScript: 0 errors (型エラー修正完了)
+- ✅ ESLint: 0 errors, 118 warnings (test any types - acceptable)
+
+**カバレッジ結果**:
+| Metric     | Before  | After   | Change   | Target | Status       |
+|------------|---------|---------|----------|--------|--------------|
+| Tests      | 459     | 464     | +5       | -      | ✅ 100%      |
+| Statements | 94.72%  | 98.11%  | +3.39pt  | 85%    | ✅ +13.11pt  |
+| Branches   | 93.35%  | 93.12%  | -0.23pt  | 85%    | ✅ +8.12pt   |
+| **Functions** | **84.44%** | **86.66%** | **+2.22pt** | **85%** | **✅ +1.66pt 達成！** |
+| Lines      | 94.72%  | 98.11%  | +3.39pt  | 85%    | ✅ +13.11pt  |
+
+**useTraining.ts の改善**:
+| Metric     | Before  | After   | Change    |
+|------------|---------|---------|-----------|
+| Functions  | 81.81%  | 100%    | +18.19pt  |
+| Statements | 63.58%  | 91.28%  | +27.70pt  |
+| Branches   | 84.21%  | 84.21%  | ±0        |
+| Lines      | 63.58%  | 91.28%  | +27.70pt  |
+
+### 6. 技術的実装のポイント
+
+**シミュレーションモード判定**:
+```typescript
+const isSimulationMode = () => {
+  const config = useRuntimeConfig()
+  return config.public.simulationMode === true
+}
+```
+
+**ダミーセッション作成**:
+```typescript
+const createDummySession = (config: TrainingConfig): TrainingSession => {
+  const now = new Date()
+  const sessionId = Date.now()
+  return new TrainingSessionClass(
+    sessionId,
+    config.name,
+    config.algorithm,
+    config.environmentType,
+    'running', // シミュレーションモードでは即座に running にする
+    // ... その他のフィールド
+  )
+}
+```
+
+**シミュレーションメトリクス生成**:
+```typescript
+const startSimulatedMetrics = (session: TrainingSession) => {
+  let currentStep = 0
+  const stepIncrement = Math.floor(session.totalTimesteps / 100)
+
+  metricsSimulationInterval.value = setInterval(() => {
+    currentStep += stepIncrement
+    // ランダムなメトリクスを生成
+    const reward = Math.random() * 10 - 2
+    const loss = Math.random() * 0.5
+    // ... メトリクスをログ出力
+  }, 2000)
+}
+```
+
+### 7. テストカバレッジの内訳
+
+**composables 層**:
+- useChart.ts: 94.2% (Functions 100%)
+- useEnvironment.ts: 100% (Functions 100%)
+- useModels.ts: 100% (Functions 100%)
+- usePlayback.ts: 100% (Functions 100%)
+- **useTraining.ts: 91.28% (Functions 100%)** 🎉
+- useWebSocket.ts: 93.47% (Functions 100%)
+
+**全体**: composables層 93.65% → 98.11%
+
+**変更ファイル統計**:
+```
+tests/unit/composables/useTraining.spec.ts  | +219 lines (5 tests added)
+```
+
+**時間**: 約45分
+**ステータス**: ✅ **完全達成！Functions 86.66% (目標85%+1.66pt)**
+**Phase**: Coverage Improvement - Functions 85% Target Achieved
+
+**次のステップ候補**:
+- ✅ **目標達成**: Functions カバレッジ85%達成済み
+- [ ] TrainingControl.vue の Functions カバレッジ改善（現在25%、必要に応じて）
+- [ ] カバレッジ90%を目指した追加改善（オプション）
+
+**まとめ**:
+シミュレーションモード関連の5つのテストケースを追加することで、useTraining.tsのFunctionsカバレッジを81.81% → 100%に改善し、全体のFunctionsカバレッジが86.66%に到達しました。これにより、目標の85%を1.66pt上回る結果を達成しました！🎉
+
+---
 
 <a id="session-038---trainingcontrol-ui-enhancement-advanced-settings-2025-10-26"></a>
 ### Session 038 - TrainingControl UI Enhancement (Advanced Settings) (2025-10-26)
