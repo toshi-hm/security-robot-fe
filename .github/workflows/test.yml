@@ -106,11 +106,6 @@ jobs:
         continue-on-error: true
         run: pnpm lint:style
 
-      - name: Run TypeScript compiler check
-        id: tsc
-        continue-on-error: true
-        run: pnpm lint:tsc
-
       - name: Run TypeScript type check
         id: typecheck
         continue-on-error: true
@@ -121,13 +116,11 @@ jobs:
         if: |
           steps.eslint.outcome == 'failure' ||
           steps.stylelint.outcome == 'failure' ||
-          steps.tsc.outcome == 'failure' ||
           steps.typecheck.outcome == 'failure'
         run: |
           echo "❌ Lint checks failed:"
           echo "  - ESLint: ${{ steps.eslint.outcome }}"
           echo "  - Stylelint: ${{ steps.stylelint.outcome }}"
-          echo "  - TypeScript Compiler: ${{ steps.tsc.outcome }}"
           echo "  - TypeScript Type Check: ${{ steps.typecheck.outcome }}"
           exit 1
 
@@ -135,6 +128,5 @@ jobs:
         if: |
           steps.eslint.outcome == 'success' &&
           steps.stylelint.outcome == 'success' &&
-          steps.tsc.outcome == 'success' &&
           steps.typecheck.outcome == 'success'
         run: echo "✅ All lint checks passed!"
