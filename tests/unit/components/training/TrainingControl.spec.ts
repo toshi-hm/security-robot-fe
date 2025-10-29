@@ -542,5 +542,178 @@ describe('TrainingControl.vue', () => {
 
       expect(mockError).toHaveBeenCalledWith(expect.stringContaining('学習セッションの開始に失敗しました'))
     })
+
+    it('handles 400 error status correctly', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        status: 400,
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('セッション設定が無効です'))
+    })
+
+    it('handles 502 error status correctly', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        status: 502,
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('トレーニングワーカーが起動していません'))
+    })
+
+    it('handles 503 error status correctly', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        status: 503,
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('サーバーが高負荷状態です'))
+    })
+
+    it('handles 500 error status correctly', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        status: 500,
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('サーバー内部エラーが発生しました'))
+    })
+
+    it('handles timeout error correctly', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        message: 'API応答タイムアウト',
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('API応答タイムアウト'))
+    })
+
+    it('handles error with response.status property', async () => {
+      vi.clearAllMocks()
+      mockCreateSession.mockRejectedValueOnce({
+        response: { status: 400 },
+      })
+
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = {
+        validate: vi.fn().mockResolvedValue(true),
+        resetFields: vi.fn(),
+      }
+
+      await vm.startTraining()
+
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('セッション設定が無効です'))
+    })
+  })
+
+  describe('Form Controls', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('openForm sets showForm to true', () => {
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      expect(vm.showForm).toBe(false)
+
+      vm.openForm()
+
+      expect(vm.showForm).toBe(true)
+    })
+
+    it('cancelForm sets showForm to false and resets form fields', () => {
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      const mockResetFields = vi.fn()
+      vm.formRef = {
+        validate: vi.fn(),
+        resetFields: mockResetFields,
+      }
+
+      vm.showForm = true
+      vm.cancelForm()
+
+      expect(vm.showForm).toBe(false)
+      expect(mockResetFields).toHaveBeenCalled()
+    })
+
+    it('cancelForm handles missing formRef gracefully', () => {
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      vm.formRef = null
+      vm.showForm = true
+
+      // Should not throw error
+      expect(() => vm.cancelForm()).not.toThrow()
+      expect(vm.showForm).toBe(false)
+    })
+
+    it('clicking "新規学習セッションを開始" button triggers openForm', async () => {
+      const wrapper = mountComponent()
+      const vm = wrapper.vm as any
+
+      expect(vm.showForm).toBe(false)
+
+      // Find and click the start button
+      const startButton = wrapper.find('.el-button')
+      await startButton.trigger('click')
+
+      expect(vm.showForm).toBe(true)
+    })
   })
 })

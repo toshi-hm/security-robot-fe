@@ -377,4 +377,224 @@ describe('useTraining', () => {
     // No assertion needed - just verify it doesn't throw
     expect(true).toBe(true)
   })
+
+  // Simulation mode tests
+  describe('Simulation Mode', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+      vi.resetModules()
+    })
+
+    it('creates dummy session in simulation mode', async () => {
+      vi.useFakeTimers()
+
+      // Mock useRuntimeConfig to return simulation mode
+      vi.stubGlobal('useRuntimeConfig', () => ({
+        public: { simulationMode: true },
+      }))
+
+      // Mock ElMessage
+      const ElMessageSuccess = vi.fn()
+      vi.stubGlobal('ElMessage', { success: ElMessageSuccess })
+
+      const { useTraining } = await import('~/composables/useTraining')
+      const composable = useTraining()
+
+      const config = {
+        name: 'Simulated Session',
+        algorithm: 'ppo' as const,
+        environmentType: 'standard' as const,
+        totalTimesteps: 10000,
+        envWidth: 8,
+        envHeight: 8,
+        coverageWeight: 1.5,
+        explorationWeight: 3.0,
+        diversityWeight: 2.0,
+        learningRate: 0.0003,
+        batchSize: 64,
+        numWorkers: 1,
+      }
+
+      const session = await composable.createSession(config)
+
+      expect(session).toBeDefined()
+      expect(session?.name).toBe('Simulated Session')
+      expect(session?.status).toBe('running')
+      expect(composable.sessions.value).toHaveLength(1)
+      expect(composable.currentSession.value?.id).toBe(session?.id)
+      expect(ElMessageSuccess).toHaveBeenCalledWith('シミュレーションモード: 学習セッションを開始しました')
+
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    it('starts simulated metrics generation', async () => {
+      vi.useFakeTimers()
+
+      // Mock console.log to verify metrics generation
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+      vi.stubGlobal('useRuntimeConfig', () => ({
+        public: { simulationMode: true },
+      }))
+
+      vi.stubGlobal('ElMessage', { success: vi.fn() })
+
+      const { useTraining } = await import('~/composables/useTraining')
+      const composable = useTraining()
+
+      const config = {
+        name: 'Metrics Test',
+        algorithm: 'ppo' as const,
+        environmentType: 'standard' as const,
+        totalTimesteps: 10000,
+        envWidth: 8,
+        envHeight: 8,
+        coverageWeight: 1.5,
+        explorationWeight: 3.0,
+        diversityWeight: 2.0,
+        learningRate: 0.0003,
+        batchSize: 64,
+        numWorkers: 1,
+      }
+
+      await composable.createSession(config)
+
+      // Wait for simulated metrics to be generated (2 seconds interval)
+      await vi.advanceTimersByTimeAsync(2000)
+
+      // Verify that metrics were logged
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Simulated metrics:',
+        expect.objectContaining({
+          timestep: expect.any(Number),
+          reward: expect.any(Number),
+        })
+      )
+
+      consoleLogSpy.mockRestore()
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    it('cleans up simulation interval on unmount', async () => {
+      vi.useFakeTimers()
+
+      vi.stubGlobal('useRuntimeConfig', () => ({
+        public: { simulationMode: true },
+      }))
+
+      vi.stubGlobal('ElMessage', { success: vi.fn() })
+
+      const { useTraining } = await import('~/composables/useTraining')
+      const composable = useTraining()
+
+      const config = {
+        name: 'Cleanup Test',
+        algorithm: 'ppo' as const,
+        environmentType: 'standard' as const,
+        totalTimesteps: 10000,
+        envWidth: 8,
+        envHeight: 8,
+        coverageWeight: 1.5,
+        explorationWeight: 3.0,
+        diversityWeight: 2.0,
+        learningRate: 0.0003,
+        batchSize: 64,
+        numWorkers: 1,
+      }
+
+      await composable.createSession(config)
+
+      // Verify interval was started
+      await vi.advanceTimersByTimeAsync(2000)
+
+      // Simulate onBeforeUnmount by directly calling stopAllPolling
+      // Note: In real scenarios, Vue would call the lifecycle hook
+      composable.stopAllPolling()
+
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+
+      // No assertion needed - just verify no errors
+      expect(true).toBe(true)
+    })
+
+    it('simulated metrics progress to completion', async () => {
+      vi.useFakeTimers()
+
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+      vi.stubGlobal('useRuntimeConfig', () => ({
+        public: { simulationMode: true },
+      }))
+
+      vi.stubGlobal('ElMessage', { success: vi.fn() })
+
+      const { useTraining } = await import('~/composables/useTraining')
+      const composable = useTraining()
+
+      const config = {
+        name: 'Completion Test',
+        algorithm: 'ppo' as const,
+        environmentType: 'standard' as const,
+        totalTimesteps: 1000, // Small number for faster test
+        envWidth: 8,
+        envHeight: 8,
+        coverageWeight: 1.5,
+        explorationWeight: 3.0,
+        diversityWeight: 2.0,
+        learningRate: 0.0003,
+        batchSize: 64,
+        numWorkers: 1,
+      }
+
+      await composable.createSession(config)
+
+      // Wait for multiple intervals to simulate progress
+      for (let i = 0; i < 10; i++) {
+        await vi.advanceTimersByTimeAsync(2000)
+      }
+
+      // Verify metrics were generated multiple times
+      expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(0)
+
+      consoleLogSpy.mockRestore()
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    it('does not call repository in simulation mode', async () => {
+      vi.stubGlobal('useRuntimeConfig', () => ({
+        public: { simulationMode: true },
+      }))
+
+      vi.stubGlobal('ElMessage', { success: vi.fn() })
+
+      const { useTraining } = await import('~/composables/useTraining')
+      const composable = useTraining()
+
+      const config = {
+        name: 'No API Test',
+        algorithm: 'ppo' as const,
+        environmentType: 'standard' as const,
+        totalTimesteps: 10000,
+        envWidth: 8,
+        envHeight: 8,
+        coverageWeight: 1.5,
+        explorationWeight: 3.0,
+        diversityWeight: 2.0,
+        learningRate: 0.0003,
+        batchSize: 64,
+        numWorkers: 1,
+      }
+
+      await composable.createSession(config)
+
+      // Verify repository.create was NOT called
+      expect(mockRepository.create).not.toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+  })
 })

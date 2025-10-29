@@ -53,36 +53,137 @@ const robotPositionForDisplay = computed(() => {
   }
 })
 
+// Type guards for 2D arrays
+const isNumberArray2D = (value: unknown): value is number[][] => {
+  if (!Array.isArray(value)) return false
+  return value.every(row => 
+    Array.isArray(row) && row.every(cell => typeof cell === 'number')
+  )
+}
+
+// Type guard functions for WebSocket messages
+const isTrainingProgressMessage = (msg: unknown): msg is TrainingProgressMessage => {
+  if (!msg || typeof msg !== 'object') return false
+  const m = msg as Record<string, unknown>
+  
+  return (
+    typeof m.type === 'string' &&
+    m.type === 'training_progress' &&
+    typeof m.session_id === 'number' &&
+    typeof m.timestep === 'number' &&
+    typeof m.reward === 'number' &&
+    // Optional properties
+    (m.episode === undefined || m.episode === null || typeof m.episode === 'number') &&
+    (m.loss === undefined || m.loss === null || typeof m.loss === 'number') &&
+    (m.coverage_ratio === undefined || m.coverage_ratio === null || typeof m.coverage_ratio === 'number') &&
+    (m.exploration_score === undefined || m.exploration_score === null || typeof m.exploration_score === 'number') &&
+    (m.data === undefined || (typeof m.data === 'object' && m.data !== null))
+  )
+}
+
+const isTrainingStatusMessage = (msg: unknown): msg is TrainingStatusMessage => {
+  if (!msg || typeof msg !== 'object') return false
+  const m = msg as Record<string, unknown>
+  
+  return (
+    typeof m.type === 'string' &&
+    m.type === 'training_status' &&
+    typeof m.session_id === 'number' &&
+    typeof m.status === 'string' &&
+    // Optional message property
+    (m.message === undefined || m.message === null || typeof m.message === 'string')
+  )
+}
+
+const isConnectionAckMessage = (msg: unknown): msg is ConnectionAckMessage => {
+  if (!msg || typeof msg !== 'object') return false
+  const m = msg as Record<string, unknown>
+  
+  return (
+    typeof m.type === 'string' &&
+    m.type === 'connection_ack' &&
+    typeof m.client_id === 'string' &&
+    // Optional message property
+    (m.message === undefined || typeof m.message === 'string')
+  )
+}
+
+const isTrainingErrorMessage = (msg: unknown): msg is TrainingErrorMessage => {
+  if (!msg || typeof msg !== 'object') return false
+  const m = msg as Record<string, unknown>
+  
+  return (
+    typeof m.type === 'string' &&
+    m.type === 'training_error' &&
+    typeof m.session_id === 'number' &&
+    typeof m.error_message === 'string' &&
+    // Optional properties
+    (m.message === undefined || typeof m.message === 'string') &&
+    (m.error_type === undefined || m.error_type === null || typeof m.error_type === 'string')
+  )
+}
+
+const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessage => {
+  if (!msg || typeof msg !== 'object') return false
+  const m = msg as Record<string, unknown>
+  
+  // Validate robot_position (can be object or array)
+  const hasValidRobotPosition = Boolean(
+    m.robot_position && typeof m.robot_position === 'object' && (
+      (Array.isArray(m.robot_position) && m.robot_position.length === 2) ||
+      (!Array.isArray(m.robot_position) && 'x' in m.robot_position && 'y' in m.robot_position)
+    )
+  )
+  
+  return (
+    typeof m.type === 'string' &&
+    m.type === 'environment_update' &&
+    typeof m.session_id === 'number' &&
+    typeof m.episode === 'number' &&
+    typeof m.step === 'number' &&
+    hasValidRobotPosition &&
+    // Optional properties
+    (m.action_taken === undefined || m.action_taken === null || typeof m.action_taken === 'number') &&
+    (m.reward_received === undefined || m.reward_received === null || typeof m.reward_received === 'number') &&
+    (m.grid_width === undefined || typeof m.grid_width === 'number') &&
+    (m.grid_height === undefined || typeof m.grid_height === 'number') &&
+    (m.coverage_map === undefined || isNumberArray2D(m.coverage_map)) &&
+    (m.threat_grid === undefined || isNumberArray2D(m.threat_grid))
+  )
+}
+
 // WebSocket message handlers
 
 const handleTrainingProgress = (message: Record<string, unknown>) => {
-  const msg = message as TrainingProgressMessage
-  if (msg.session_id === sessionId.value) {
+  if (!isTrainingProgressMessage(message)) return
+
+  if (message.session_id === sessionId.value) {
     currentMetrics.value = {
-      timestep: msg.data?.timestep || msg.timestep || 0,
-      episode: msg.data?.episode || msg.episode || 0,
-      reward: msg.data?.reward || msg.reward || 0,
-      loss: msg.data?.loss ?? msg.loss ?? null,
-      coverageRatio: msg.data?.coverage_ratio ?? msg.coverage_ratio ?? null,
-      explorationScore: msg.data?.exploration_score ?? msg.exploration_score ?? null,
+      timestep: message.data?.timestep || message.timestep || 0,
+      episode: message.data?.episode || message.episode || 0,
+      reward: message.data?.reward || message.reward || 0,
+      loss: message.data?.loss ?? message.loss ?? null,
+      coverageRatio: message.data?.coverage_ratio ?? message.coverage_ratio ?? null,
+      explorationScore: message.data?.exploration_score ?? message.exploration_score ?? null,
     }
   }
 }
 
 const handleTrainingStatus = (message: Record<string, unknown>) => {
-  const msg = message as TrainingStatusMessage
-  if (msg.session_id === sessionId.value) {
-    trainingStatus.value = msg.status || ''
-    statusMessage.value = msg.message || ''
+  if (!isTrainingStatusMessage(message)) return
+
+  if (message.session_id === sessionId.value) {
+    trainingStatus.value = message.status || ''
+    statusMessage.value = message.message || ''
 
     // Determine alert type based on status
-    if (msg.status === 'running' || msg.status === 'started') {
+    if (message.status === 'running' || message.status === 'started') {
       statusType.value = 'success'
-    } else if (msg.status === 'completed') {
+    } else if (message.status === 'completed') {
       statusType.value = 'success'
-    } else if (msg.status === 'paused') {
+    } else if (message.status === 'paused') {
       statusType.value = 'warning'
-    } else if (msg.status === 'failed' || msg.status === 'error') {
+    } else if (message.status === 'failed' || message.status === 'error') {
       statusType.value = 'error'
     } else {
       statusType.value = 'info'
@@ -100,8 +201,9 @@ const handleTrainingStatus = (message: Record<string, unknown>) => {
 }
 
 const handleConnectionAck = (message: Record<string, unknown>) => {
-  const msg = message as ConnectionAckMessage
-  console.log('WebSocket connected, client_id:', msg.client_id)
+  if (!isConnectionAckMessage(message)) return
+
+  console.log('WebSocket connected, client_id:', message.client_id)
 }
 
 const handlePong = () => {
@@ -109,10 +211,11 @@ const handlePong = () => {
 }
 
 const handleTrainingError = (message: Record<string, unknown>) => {
-  const msg = message as TrainingErrorMessage
-  if (msg.session_id === sessionId.value) {
-    const errorMsg = msg.error_message || msg.message || 'Unknown error occurred'
-    const errorType = msg.error_type || 'unknown'
+  if (!isTrainingErrorMessage(message)) return
+
+  if (message.session_id === sessionId.value) {
+    const errorMsg = message.error_message || message.message || 'Unknown error occurred'
+    const errorType = message.error_type || 'unknown'
 
     trainingStatus.value = 'error'
     statusMessage.value = `Error (${errorType}): ${errorMsg}`
@@ -122,13 +225,14 @@ const handleTrainingError = (message: Record<string, unknown>) => {
 }
 
 const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
-  const msg = message as EnvironmentUpdateMessage
-  if (msg.session_id === sessionId.value) {
+  if (!isEnvironmentUpdateMessage(message)) return
+
+  if (message.session_id === sessionId.value) {
     // Update robot position
-    if (msg.robot_position) {
-      const robotPos = Array.isArray(msg.robot_position)
-        ? { x: msg.robot_position[0] ?? 0, y: msg.robot_position[1] ?? 0 }
-        : msg.robot_position
+    if (message.robot_position) {
+      const robotPos = Array.isArray(message.robot_position)
+        ? { x: message.robot_position[0] ?? 0, y: message.robot_position[1] ?? 0 }
+        : message.robot_position
       const newPosition = {
         x: robotPos.x ?? 0,
         y: robotPos.y ?? 0,
@@ -148,20 +252,20 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     }
 
     // Update action and reward
-    lastAction.value = message.action_taken || message.action || ''
-    lastReward.value = message.reward_received ?? message.reward ?? 0
+    lastAction.value = String(message.action_taken || '')
+    lastReward.value = typeof message.reward_received === 'number' ? message.reward_received : 0
 
     // Update grid dimensions if provided
-    if (message.grid_width) gridWidth.value = message.grid_width
-    if (message.grid_height) gridHeight.value = message.grid_height
+    if (typeof message.grid_width === 'number') gridWidth.value = message.grid_width
+    if (typeof message.grid_height === 'number') gridHeight.value = message.grid_height
 
-    // Update coverage map if provided
-    if (message.coverage_map) {
-      coverageMap.value = message.coverage_map
+    // Update coverage map if provided (convert number[][] to boolean[][])
+    if (Array.isArray(message.coverage_map)) {
+      coverageMap.value = message.coverage_map.map(row => row.map(cell => cell !== 0))
     }
 
     // Update threat grid if provided
-    if (message.threat_grid) {
+    if (Array.isArray(message.threat_grid)) {
       threatGrid.value = message.threat_grid
     }
   }

@@ -178,7 +178,10 @@ describe('Training Session Page', () => {
 
     // Simulate environment update with robot position
     const message = {
+      type: 'environment_update',
       session_id: 789,
+      episode: 1,
+      step: 10,
       robot_position: { x: 2, y: 3 },
     }
 
@@ -199,14 +202,20 @@ describe('Training Session Page', () => {
 
     // First position
     const message1 = {
+      type: 'environment_update',
       session_id: 789,
+      episode: 1,
+      step: 10,
       robot_position: { x: 2, y: 3 },
     }
     vm.handleEnvironmentUpdate(message1)
 
     // Same position again
     const message2 = {
+      type: 'environment_update',
       session_id: 789,
+      episode: 1,
+      step: 11,
       robot_position: { x: 2, y: 3 },
     }
     vm.handleEnvironmentUpdate(message2)
@@ -227,7 +236,10 @@ describe('Training Session Page', () => {
     // Add 110 positions
     for (let i = 0; i < 110; i++) {
       const message = {
+        type: 'environment_update',
         session_id: 789,
+        episode: 1,
+        step: i,
         robot_position: { x: i, y: i },
       }
       vm.handleEnvironmentUpdate(message)
