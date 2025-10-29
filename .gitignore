@@ -40,3 +40,8 @@ tests/e2e/**/*.zip
 *.tsbuildinfo
 .eslintcache
 
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
