@@ -56,16 +56,14 @@ const robotPositionForDisplay = computed(() => {
 // Type guards for 2D arrays
 const isNumberArray2D = (value: unknown): value is number[][] => {
   if (!Array.isArray(value)) return false
-  return value.every(row => 
-    Array.isArray(row) && row.every(cell => typeof cell === 'number')
-  )
+  return value.every((row) => Array.isArray(row) && row.every((cell) => typeof cell === 'number'))
 }
 
 // Type guard functions for WebSocket messages
 const isTrainingProgressMessage = (msg: unknown): msg is TrainingProgressMessage => {
   if (!msg || typeof msg !== 'object') return false
   const m = msg as Record<string, unknown>
-  
+
   return (
     typeof m.type === 'string' &&
     m.type === 'training_progress' &&
@@ -84,7 +82,7 @@ const isTrainingProgressMessage = (msg: unknown): msg is TrainingProgressMessage
 const isTrainingStatusMessage = (msg: unknown): msg is TrainingStatusMessage => {
   if (!msg || typeof msg !== 'object') return false
   const m = msg as Record<string, unknown>
-  
+
   return (
     typeof m.type === 'string' &&
     m.type === 'training_status' &&
@@ -98,7 +96,7 @@ const isTrainingStatusMessage = (msg: unknown): msg is TrainingStatusMessage => 
 const isConnectionAckMessage = (msg: unknown): msg is ConnectionAckMessage => {
   if (!msg || typeof msg !== 'object') return false
   const m = msg as Record<string, unknown>
-  
+
   return (
     typeof m.type === 'string' &&
     m.type === 'connection_ack' &&
@@ -111,7 +109,7 @@ const isConnectionAckMessage = (msg: unknown): msg is ConnectionAckMessage => {
 const isTrainingErrorMessage = (msg: unknown): msg is TrainingErrorMessage => {
   if (!msg || typeof msg !== 'object') return false
   const m = msg as Record<string, unknown>
-  
+
   return (
     typeof m.type === 'string' &&
     m.type === 'training_error' &&
@@ -126,15 +124,15 @@ const isTrainingErrorMessage = (msg: unknown): msg is TrainingErrorMessage => {
 const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessage => {
   if (!msg || typeof msg !== 'object') return false
   const m = msg as Record<string, unknown>
-  
+
   // Validate robot_position (can be object or array)
   const hasValidRobotPosition = Boolean(
-    m.robot_position && typeof m.robot_position === 'object' && (
-      (Array.isArray(m.robot_position) && m.robot_position.length === 2) ||
-      (!Array.isArray(m.robot_position) && 'x' in m.robot_position && 'y' in m.robot_position)
-    )
+    m.robot_position &&
+      typeof m.robot_position === 'object' &&
+      ((Array.isArray(m.robot_position) && m.robot_position.length === 2) ||
+        (!Array.isArray(m.robot_position) && 'x' in m.robot_position && 'y' in m.robot_position))
   )
-  
+
   return (
     typeof m.type === 'string' &&
     m.type === 'environment_update' &&
@@ -261,7 +259,7 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
 
     // Update coverage map if provided (convert number[][] to boolean[][])
     if (Array.isArray(message.coverage_map)) {
-      coverageMap.value = message.coverage_map.map(row => row.map(cell => cell !== 0))
+      coverageMap.value = message.coverage_map.map((row) => row.map((cell) => cell !== 0))
     }
 
     // Update threat grid if provided
