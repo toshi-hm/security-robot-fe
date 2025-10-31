@@ -31,7 +31,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
     }
 
     try {
-      const url = `${config.public.wsUrl}/ws/v1/training/${sessionId}`
+      const url = `${config.public.wsUrl}/api/v1/ws/training/${sessionId}`
       socket.value = new WebSocket(url)
 
       socket.value.onopen = () => {

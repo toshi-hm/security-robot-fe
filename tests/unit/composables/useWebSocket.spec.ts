@@ -64,7 +64,7 @@ describe('useWebSocket', () => {
 
       connect(1)
 
-      expect(global.WebSocket).toHaveBeenCalledWith(expect.stringContaining('/ws/v1/training/1'))
+      expect(global.WebSocket).toHaveBeenCalledWith(expect.stringContaining('/api/v1/ws/training/1'))
     })
 
     it('does not create multiple connections if already open', () => {

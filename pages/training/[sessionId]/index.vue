@@ -270,16 +270,21 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
 }
 
 onMounted(() => {
-  // Register message handlers
-  on('training_progress', handleTrainingProgress)
-  on('training_status', handleTrainingStatus)
-  on('training_error', handleTrainingError)
-  on('environment_update', handleEnvironmentUpdate)
-  on('connection_ack', handleConnectionAck)
-  on('pong', handlePong)
+  const id = sessionId.value
+  if (id && !isNaN(id)) {
+    // Register message handlers
+    on('training_progress', handleTrainingProgress)
+    on('training_status', handleTrainingStatus)
+    on('training_error', handleTrainingError)
+    on('environment_update', handleEnvironmentUpdate)
+    on('connection_ack', handleConnectionAck)
+    on('pong', handlePong)
 
-  // Connect to WebSocket
-  connect(sessionId.value)
+    // Connect to WebSocket
+    connect(id)
+  } else {
+    console.error('Invalid session ID, WebSocket connection aborted.', id)
+  }
 })
 
 onBeforeUnmount(() => {

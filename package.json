@@ -33,7 +33,6 @@
     "dayjs": "^1.11.18",
     "nuxt": "^4.1.2",
     "pinia": "^3.0.3",
-    "socket.io-client": "^4.8.1",
     "vue": "^3.5.13",
     "vue-chartjs": "^5.3.2"
   },
