@@ -8,6 +8,11 @@ allowed-tools: Bash(pnpm, git:*, gh:*), View, Read, Write
 このスラッシュコマンドは、設計書・進捗レポートを読み込み、**テストが全て成功するまで開発を継続**する自律的な実装ループを開始します。
 Git 連携はカスタムコマンド **`/git-commit-push`** を用い、セッション終了時には **`/create-pr`** で Pull Request を作成します（PRが未作成の場合）。
 
+use MCP Servers:
+
+- context7
+- serena
+
 ---
 
 ## Main Instruction (Initial Prompt for Claude)
@@ -176,20 +181,24 @@ Refs: <related issue or document reference (optional)>
 ### Feature Branch Workflow
 
 1. **Always start by checking current branch**:
+
    ```bash
    git branch --show-current
    ```
 
 2. **If on `main`, create a new feature branch**:
+
    ```bash
    git checkout -b feature/session-NNN-description
    ```
+
    - Examples:
      - `feature/session-034-coverage-improvement`
      - `feature/add-authentication`
      - `fix/test-warnings`
 
 3. **Push feature branch to remote**:
+
    ```bash
    git push -u origin feature/session-NNN-description
    ```
