@@ -1,4 +1,8 @@
-import type { PaginatedSessionsResponse, PaginatedMetricsResponse } from '~/types/api'
+import type {
+  PaginatedPlaybackSessionsResponse,
+  PaginatedPlaybackFramesResponse,
+  PlaybackSessionSummaryDTO,
+} from '~/types/api'
 
 import { API_ENDPOINTS } from '../../../configs/api'
 
@@ -9,29 +13,60 @@ import type { PlaybackSession } from '../../domains/playback/PlaybackSession'
 /**
  * Playback Repository Implementation
  *
- * Uses Training API for playback data
- * Backend: Training sessions can be replayed using metrics data
+ * Uses Backend Playback API (not Training API)
+ * Backend: GET /api/v1/playback/sessions, GET /api/v1/playback/{session_id}/frames
  */
 export class PlaybackRepositoryImpl implements PlaybackRepository {
+  /**
+   * Convert Backend DTO to Domain Model
+   */
+  private toDomain(dto: PlaybackSessionSummaryDTO): PlaybackSession {
+    // Calculate duration from timestamps
+    let durationSeconds = 0
+    if (dto.started_at && dto.completed_at) {
+      const start = new Date(dto.started_at).getTime()
+      const end = new Date(dto.completed_at).getTime()
+      durationSeconds = (end - start) / 1000
+    } else if (dto.first_recorded_at && dto.last_recorded_at) {
+      const start = new Date(dto.first_recorded_at).getTime()
+      const end = new Date(dto.last_recorded_at).getTime()
+      durationSeconds = (end - start) / 1000
+    }
+
+    return {
+      id: dto.session_id.toString(),
+      sessionId: dto.session_id,
+      name: dto.name,
+      algorithm: dto.algorithm,
+      environmentType: dto.environment_type,
+      status: dto.status,
+      totalTimesteps: dto.total_timesteps,
+      currentTimestep: dto.current_timestep,
+      episodesCompleted: dto.episodes_completed,
+      frameCount: dto.frame_count,
+      firstEpisode: dto.first_episode,
+      lastEpisode: dto.last_episode,
+      lastStep: dto.last_step,
+      recordedAt: dto.first_recorded_at || dto.created_at || new Date().toISOString(),
+      lastRecordedAt: dto.last_recorded_at,
+      createdAt: dto.created_at,
+      startedAt: dto.started_at,
+      completedAt: dto.completed_at,
+      durationSeconds,
+    }
+  }
+
   async listSessions(): Promise<PlaybackSession[]> {
     try {
-      // Backend: GET /api/v1/training/list (completed sessions)
-      const response = await $fetch<PaginatedSessionsResponse>(API_ENDPOINTS.training.list, {
+      // Backend: GET /api/v1/playback/sessions
+      const response = await $fetch<PaginatedPlaybackSessionsResponse>(API_ENDPOINTS.playback.sessions, {
         params: {
           page: 1,
           page_size: 100,
         },
       })
 
-      // Filter for completed sessions and convert to PlaybackSession
-      return response.sessions
-        .filter((s) => s.status === 'completed')
-        .map((s) => ({
-          id: s.id.toString(),
-          sessionId: s.id.toString(),
-          recordedAt: s.completed_at || s.created_at || new Date().toISOString(),
-          durationSeconds: s.total_timesteps / 10, // Estimate based on timesteps
-        }))
+      return response.sessions.map((dto) => this.toDomain(dto))
     } catch (error) {
       console.error('Failed to fetch playback sessions:', error)
       throw error
@@ -40,25 +75,32 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
 
   async fetchFrames(sessionId: string): Promise<PlaybackFrame[]> {
     try {
-      // Backend: GET /api/v1/training/sessions/{id}/metrics
-      const response = await $fetch<PaginatedMetricsResponse>(API_ENDPOINTS.training.metrics(Number(sessionId)), {
-        params: {
-          page: 1,
-          page_size: 1000, // Get all metrics for playback
-        },
-      })
+      // Backend: GET /api/v1/playback/{session_id}/frames
+      const response = await $fetch<PaginatedPlaybackFramesResponse>(
+        API_ENDPOINTS.playback.frames(Number(sessionId)),
+        {
+          params: {
+            page: 1,
+            page_size: 1000, // Get all frames for playback
+          },
+        }
+      )
 
-      // Convert metrics to PlaybackFrame format
-      return response.metrics.map((m) => ({
-        timestamp: m.timestamp || new Date().toISOString(),
+      // Convert environment state response to PlaybackFrame format
+      return response.frames.map((frame) => ({
+        timestamp: frame.created_at || new Date().toISOString(),
         environmentState: {
-          robot: { x: 0, y: 0, orientation: 0 }, // TODO: Get from environment data
+          robot: {
+            x: frame.robot_x,
+            y: frame.robot_y,
+            orientation: frame.robot_orientation,
+          },
           environment: {
-            threatGrid: [],
-            coverageMap: [],
+            threatGrid: (frame.threat_grid as unknown as number[][]) || [],
+            coverageMap: (frame.coverage_map as unknown as number[][]) || [],
           },
         },
-        reward: m.reward,
+        reward: frame.reward_received || 0,
       }))
     } catch (error) {
       console.error(`Failed to fetch playback frames for session ${sessionId}:`, error)
