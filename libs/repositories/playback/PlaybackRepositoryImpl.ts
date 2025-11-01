@@ -76,15 +76,12 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
   async fetchFrames(sessionId: string): Promise<PlaybackFrame[]> {
     try {
       // Backend: GET /api/v1/playback/{session_id}/frames
-      const response = await $fetch<PaginatedPlaybackFramesResponse>(
-        API_ENDPOINTS.playback.frames(Number(sessionId)),
-        {
-          params: {
-            page: 1,
-            page_size: 1000, // Get all frames for playback
-          },
-        }
-      )
+      const response = await $fetch<PaginatedPlaybackFramesResponse>(API_ENDPOINTS.playback.frames(Number(sessionId)), {
+        params: {
+          page: 1,
+          page_size: 1000, // Get all frames for playback
+        },
+      })
 
       // Convert environment state response to PlaybackFrame format
       return response.frames.map((frame) => ({
