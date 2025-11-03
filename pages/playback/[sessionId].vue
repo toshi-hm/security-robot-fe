@@ -202,16 +202,20 @@ const handleBack = () => {
   padding: 20px;
 
   &__header {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
 
   &__title {
-    font-size: 1.5rem;
+    color: var(--md-on-background);
+    font-size: 1.75rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
     margin-top: 1rem;
   }
 
   &__card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     margin-top: 20px;
   }
 
@@ -222,20 +226,24 @@ const handleBack = () => {
   &__content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
   }
 
   &__controls {
     align-items: center;
-    background-color: #f5f7fa;
-    border-radius: 4px;
+    background: linear-gradient(135deg, var(--md-surface-2) 0%, var(--md-surface-1) 100%);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
     display: flex;
     gap: 20px;
-    padding: 20px;
+    padding: 24px;
   }
 
   &__timeline {
-    padding: 0 20px;
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
+    padding: 20px;
   }
 
   &__frame-info {
@@ -244,21 +252,38 @@ const handleBack = () => {
 
   &__visualization {
     display: grid;
-    gap: 20px;
-    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    grid-template-columns: 2fr 1fr;
     margin-top: 20px;
 
     h3 {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
+      color: var(--md-on-surface);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 16px;
     }
   }
 
-  &__environment,
+  &__environment {
+    background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
+    border: 2px solid var(--md-primary);
+    border-radius: 12px;
+    padding: 20px;
+
+    h3 {
+      color: var(--md-on-primary-container);
+    }
+  }
+
   &__robot {
-    background-color: #f9fafb;
-    border-radius: 4px;
-    padding: 15px;
+    background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
+    border: 2px solid var(--md-tertiary);
+    border-radius: 12px;
+    padding: 20px;
+
+    h3 {
+      color: var(--md-on-tertiary-container);
+    }
   }
 }
 </style>
