@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { VideoPlay } from '@element-plus/icons-vue'
+import { VideoPlay, Refresh, Film, Timer, Search } from '@element-plus/icons-vue'
 import { onMounted, computed, ref } from 'vue'
 
 import { usePlaybackStore } from '~/stores/playback'
