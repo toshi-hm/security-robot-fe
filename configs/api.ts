@@ -39,6 +39,12 @@ export const API_ENDPOINTS = {
     download: (fileId: number) => `${API_BASE_URL}/api/v1/files/${fileId}/download`, // GET
     delete: (fileId: number) => `${API_BASE_URL}/api/v1/files/${fileId}`, // DELETE
   },
+
+  // Playback API
+  playback: {
+    sessions: `${API_BASE_URL}/api/v1/playback/sessions`, // GET with pagination (page, page_size)
+    frames: (sessionId: number) => `${API_BASE_URL}/api/v1/playback/${sessionId}/frames`, // GET with pagination
+  },
 } as const
 
 // WebSocket endpoints

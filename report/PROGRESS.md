@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-10-30 (Session 040 - Dashboard Color Improvement)
+最終更新日: 2025-11-04 (Session 040 - API契約検証と型安全性の向上)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -912,3 +912,26 @@ export const useEnvironment = (
 - Performance tests (ロード時間測定)
 - Settings API integration (Backend連携)
 - Other pages localization (Dashboard, Playback, Models, Environment visualization)
+
+### Phase 40: API契約検証と型安全性の向上 ✅
+- [x] Backend API スキーマ調査
+  - environment.py: EnvironmentStateResponse 確認
+  - playback.py: PlaybackSessionSummary, PlaybackFramesListResponse 確認
+  - threat_grid/coverage_map は実際には number[][] (JSON array)
+- [x] Frontend 型定義修正 (types/api.ts)
+  - EnvironmentStateResponseDTO 型修正
+  - threat_grid: Record<string, unknown> → number[][]
+  - coverage_map: Record<string, unknown> | null → number[][] | null
+  - suspicious_objects: 詳細な型定義追加
+- [x] PlaybackRepositoryImpl 型安全性向上
+  - as unknown as number[][] 削除
+  - 型安全な変換に修正
+- [x] エラーハンドリング強化
+  - listSessions(): 日本語エラーメッセージ追加
+  - fetchFrames(): 日本語エラーメッセージ追加
+- [x] Quality verification
+  - Tests: 478/478 passing (100%)
+  - ESLint: 0 errors, 133 warnings (acceptable)
+  - TypeCheck: 0 errors
+  - Coverage: 98.12% statements, 93.1% branches, 86.66% functions
+

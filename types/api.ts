@@ -176,6 +176,78 @@ export type WebSocketMessage =
   | PongMessage
 
 /**
+ * Playback Session Summary型
+ * Backend: PlaybackSessionSummary
+ */
+export interface PlaybackSessionSummaryDTO {
+  session_id: number
+  name: string
+  algorithm: 'ppo' | 'a3c'
+  environment_type: string
+  status: string
+  total_timesteps: number
+  current_timestep: number
+  episodes_completed: number
+  frame_count: number
+  first_episode: number | null
+  last_episode: number | null
+  first_recorded_at: string | null
+  last_recorded_at: string | null
+  last_step: number | null
+  created_at: string | null
+  started_at: string | null
+  completed_at: string | null
+}
+
+/**
+ * Paginated response for playback sessions
+ * Backend: PlaybackSessionListResponse
+ */
+export interface PaginatedPlaybackSessionsResponse {
+  total: number
+  page: number
+  page_size: number
+  sessions: PlaybackSessionSummaryDTO[]
+}
+
+/**
+ * Environment State Response型 (for playback frames)
+ * Backend: EnvironmentStateResponse
+ */
+export interface EnvironmentStateResponseDTO {
+  id: number
+  session_id: number
+  episode: number
+  step: number
+  robot_x: number
+  robot_y: number
+  robot_orientation: number
+  threat_grid: number[][]
+  coverage_map: number[][] | null
+  suspicious_objects: Array<{
+    id: number
+    x: number
+    y: number
+    threat_level: number
+  }> | null
+  action_taken: number | null
+  reward_received: number | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Paginated response for playback frames
+ * Backend: PlaybackFramesListResponse
+ */
+export interface PaginatedPlaybackFramesResponse {
+  total: number
+  page: number
+  page_size: number
+  frames: EnvironmentStateResponseDTO[]
+}
+
+/**
  * Error type for API errors
  */
 export interface ApiError {
