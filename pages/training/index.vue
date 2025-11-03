@@ -134,15 +134,23 @@ const getStatusText = (status: string) => {
     margin-bottom: 20px;
 
     h2 {
+      color: var(--md-on-background);
+      font-size: 1.75rem;
+      font-weight: 600;
       margin: 0;
     }
   }
 
   &__control {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
   &__sessions {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+
     &-header {
       align-items: center;
       display: flex;
@@ -151,11 +159,12 @@ const getStatusText = (status: string) => {
   }
 
   :deep(.active-row) {
-    background-color: #f0f9ff;
+    background-color: var(--md-primary-container);
     cursor: pointer;
 
     &:hover {
-      background-color: #e0f2fe;
+      background-color: var(--md-primary-container);
+      filter: brightness(0.95);
     }
   }
 
@@ -163,7 +172,7 @@ const getStatusText = (status: string) => {
     cursor: pointer;
 
     &:hover {
-      background-color: #f5f7fa;
+      background-color: var(--md-surface-2);
     }
   }
 }

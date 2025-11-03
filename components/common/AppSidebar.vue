@@ -10,6 +10,7 @@
 .app-sidebar {
   background-color: #1f2937;
   color: #f9fafb;
+  font-weight: 600;
   min-height: 100vh;
   width: 240px;
 }

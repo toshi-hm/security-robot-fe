@@ -82,63 +82,72 @@ const testEnvironmentDefinitions = async () => {
 
 <style scoped lang="scss">
 .api-test {
+  background-color: var(--md-background);
   margin: 0 auto;
   max-width: 1200px;
   padding: 2rem;
 
   &__title {
+    color: var(--md-on-background);
     font-size: 2rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
   }
 
   &__description {
-    color: #666;
+    color: var(--md-on-surface-variant);
     margin-bottom: 2rem;
   }
 
   &__error {
-    background: #fee;
-    border: 1px solid #fcc;
-    border-radius: 4px;
+    background: var(--md-error-container);
+    border: 1px solid var(--md-error);
+    border-radius: 8px;
     margin-bottom: 1rem;
     padding: 1rem;
 
     pre {
-      color: #c00;
+      color: var(--md-error);
       margin: 0.5rem 0 0;
     }
   }
 
   &__section {
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
     margin-bottom: 2rem;
     padding: 1rem;
 
     h2 {
+      color: var(--md-on-surface);
       font-size: 1.5rem;
+      font-weight: 600;
       margin-bottom: 1rem;
     }
   }
 
   &__button {
-    background: #42b883;
+    background: var(--md-primary);
     border: none;
-    border-radius: 4px;
-    color: white;
+    border-radius: 8px;
+    color: var(--md-on-primary);
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 500;
     padding: 0.5rem 1rem;
+    transition: background-color 0.2s;
 
     &:hover {
-      background: #35a372;
+      filter: brightness(0.9);
     }
   }
 
   &__result {
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background: var(--md-surface-2);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
+    color: var(--md-on-surface);
     font-size: 0.9rem;
     margin-top: 1rem;
     overflow-x: auto;
@@ -146,19 +155,25 @@ const testEnvironmentDefinitions = async () => {
   }
 
   &__info {
-    background: #e7f3ff;
-    border: 1px solid #b3d9ff;
-    border-radius: 4px;
+    background: var(--md-primary-container);
+    border: 1px solid var(--md-primary);
+    border-radius: 8px;
     margin-top: 2rem;
     padding: 1rem;
 
     h3 {
+      color: var(--md-on-primary-container);
       margin-bottom: 0.5rem;
     }
 
+    p {
+      color: var(--md-on-primary-container);
+    }
+
     code {
-      background: #fff;
-      border-radius: 3px;
+      background: var(--md-surface);
+      border-radius: 4px;
+      color: var(--md-primary);
       font-family: monospace;
       padding: 0.2rem 0.4rem;
     }

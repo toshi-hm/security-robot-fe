@@ -206,45 +206,6 @@ const formatDate = (date: string | Date): string => {
     &:hover {
       transform: translateY(-4px);
     }
-
-    &--primary {
-      background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
-      border-color: var(--md-primary);
-
-      .playback__stat-icon {
-        color: var(--md-primary);
-      }
-
-      .playback__stat-value {
-        color: var(--md-on-primary-container);
-      }
-    }
-
-    &--secondary {
-      background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
-      border-color: var(--md-secondary);
-
-      .playback__stat-icon {
-        color: var(--md-secondary);
-      }
-
-      .playback__stat-value {
-        color: var(--md-on-secondary-container);
-      }
-    }
-
-    &--tertiary {
-      background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
-      border-color: var(--md-tertiary);
-
-      .playback__stat-icon {
-        color: var(--md-tertiary);
-      }
-
-      .playback__stat-value {
-        color: var(--md-on-tertiary-container);
-      }
-    }
   }
 
   &__stat-content {
@@ -268,6 +229,45 @@ const formatDate = (date: string | Date): string => {
     color: var(--md-on-surface-variant);
     font-size: 0.875rem;
     font-weight: 500;
+  }
+
+  &__stat-card--primary {
+    background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-primary);
+
+    .playback__stat-icon {
+      color: var(--md-primary);
+    }
+
+    .playback__stat-value {
+      color: var(--md-on-primary-container);
+    }
+  }
+
+  &__stat-card--secondary {
+    background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-secondary);
+
+    .playback__stat-icon {
+      color: var(--md-secondary);
+    }
+
+    .playback__stat-value {
+      color: var(--md-on-secondary-container);
+    }
+  }
+
+  &__stat-card--tertiary {
+    background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-tertiary);
+
+    .playback__stat-icon {
+      color: var(--md-tertiary);
+    }
+
+    .playback__stat-value {
+      color: var(--md-on-tertiary-container);
+    }
   }
 
   &__filter-card {

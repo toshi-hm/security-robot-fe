@@ -165,26 +165,31 @@ onMounted(() => {
   padding: 20px;
 
   &__header {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
   &__title {
+    color: var(--md-on-surface);
     font-size: 24px;
     font-weight: 600;
     margin: 0;
   }
 
   &__description {
-    color: #606266;
+    color: var(--md-on-surface-variant);
     margin: 0;
   }
 
   &__form-card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     max-width: 800px;
   }
 
   &__hint {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     display: block;
     font-size: 12px;
     line-height: 1.4;

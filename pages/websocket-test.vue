@@ -187,6 +187,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .websocket-test {
+  background-color: var(--md-background);
   margin: 0 auto;
   max-width: 1200px;
   padding: 20px;
@@ -198,11 +199,16 @@ onBeforeUnmount(() => {
     margin-bottom: 20px;
 
     h2 {
+      color: var(--md-on-background);
+      font-size: 1.75rem;
+      font-weight: 600;
       margin: 0;
     }
   }
 
   &__card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
@@ -220,8 +226,9 @@ onBeforeUnmount(() => {
   }
 
   &__messages {
-    background-color: #f5f7fa;
-    border-radius: 4px;
+    background-color: var(--md-surface-2);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
     font-family: 'Courier New', monospace;
     font-size: 12px;
     max-height: 400px;
@@ -230,20 +237,20 @@ onBeforeUnmount(() => {
   }
 
   &__empty {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     padding: 20px;
     text-align: center;
   }
 
   &__message {
-    background-color: white;
-    border-left: 3px solid #409eff;
-    border-radius: 2px;
+    background-color: var(--md-surface);
+    border-left: 3px solid var(--md-primary);
+    border-radius: 4px;
     margin-bottom: 8px;
     padding: 8px;
 
     code {
-      color: #303133;
+      color: var(--md-on-surface);
       white-space: pre-wrap;
       word-break: break-all;
     }

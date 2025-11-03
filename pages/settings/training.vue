@@ -422,32 +422,39 @@ onMounted(() => {
   padding: 20px;
 
   &__header {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
   &__title {
+    color: var(--md-on-surface);
     font-size: 24px;
     font-weight: 600;
     margin: 0;
   }
 
   &__description {
-    color: #606266;
+    color: var(--md-on-surface-variant);
     margin: 0;
   }
 
   &__presets {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
     max-width: 800px;
   }
 
   &__preset-hint {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     font-size: 12px;
     margin-top: 10px;
   }
 
   &__form-card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     max-width: 800px;
   }
 
@@ -458,18 +465,18 @@ onMounted(() => {
   }
 
   &__help-icon {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     cursor: help;
     font-size: 16px;
     transition: color 0.2s;
 
     &:hover {
-      color: #409eff;
+      color: var(--md-primary);
     }
   }
 
   &__hint {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     display: block;
     font-size: 12px;
     line-height: 1.4;
