@@ -69,7 +69,14 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
       return response.sessions.map((dto) => this.toDomain(dto))
     } catch (error) {
       console.error('Failed to fetch playback sessions:', error)
-      throw error
+
+      // ユーザーフレンドリーなエラーメッセージ
+      const message =
+        error instanceof Error
+          ? `プレイバックセッションの取得に失敗しました: ${error.message}`
+          : 'プレイバックセッションの取得中に予期しないエラーが発生しました'
+
+      throw new Error(message)
     }
   }
 
@@ -93,15 +100,22 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
             orientation: frame.robot_orientation,
           },
           environment: {
-            threatGrid: (frame.threat_grid as unknown as number[][]) || [],
-            coverageMap: (frame.coverage_map as unknown as number[][]) || [],
+            threatGrid: frame.threat_grid || [],
+            coverageMap: frame.coverage_map || [],
           },
         },
         reward: frame.reward_received || 0,
       }))
     } catch (error) {
       console.error(`Failed to fetch playback frames for session ${sessionId}:`, error)
-      throw error
+
+      // ユーザーフレンドリーなエラーメッセージ
+      const message =
+        error instanceof Error
+          ? `セッション${sessionId}のプレイバックフレーム取得に失敗しました: ${error.message}`
+          : `セッション${sessionId}のプレイバックフレーム取得中に予期しないエラーが発生しました`
+
+      throw new Error(message)
     }
   }
 }

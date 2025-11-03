@@ -1929,3 +1929,44 @@ pages/training/index.vue                   |  24 +--
 
 **開始日**: 2025-10-14
 **対象セッション**: Session 027以降
+
+---
+
+### Session 040 - API契約検証と型安全性の向上 (2025-11-04)
+
+**開始時刻**: 2025-11-04
+**終了時刻**: 2025-11-04
+
+**目的**: Backend API契約との整合性を確保し、型安全性を向上させる
+
+**背景**:
+- PlaybackRepositoryImpl.ts で `as unknown as number[][]` による危険な型変換が使用されていた
+- エラーハンドリングが不十分（ユーザーフレンドリーなメッセージがない）
+
+**実施内容**:
+
+1. **Backend API スキーマの調査**:
+   - Backend EnvironmentStateResponse 確認: threat_grid/coverage_map は実際には number[][]
+
+2. **Frontend 型定義の修正** (types/api.ts):
+   - threat_grid: Record<string, unknown> → number[][]
+   - coverage_map: Record<string, unknown> | null → number[][] | null
+   - suspicious_objects: 詳細な型定義追加
+
+3. **PlaybackRepositoryImpl の型安全性向上**:
+   - as unknown as number[][] 削除
+   - 型安全な変換に修正
+
+4. **エラーハンドリングの強化**:
+   - listSessions(): 日本語エラーメッセージ追加
+   - fetchFrames(): 日本語エラーメッセージ追加
+
+**成果物**:
+- ✅ Tests: 478 tests passing (100%)
+- ✅ ESLint: 0 errors
+- ✅ TypeCheck: 0 errors
+- ✅ Coverage: 98.12% statements, 86.66% functions
+
+**時間**: 約45分
+**ステータス**: ✅ 完了
+

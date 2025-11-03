@@ -222,9 +222,14 @@ export interface EnvironmentStateResponseDTO {
   robot_x: number
   robot_y: number
   robot_orientation: number
-  threat_grid: Record<string, unknown>
-  coverage_map: Record<string, unknown> | null
-  suspicious_objects: Record<string, unknown> | null
+  threat_grid: number[][]
+  coverage_map: number[][] | null
+  suspicious_objects: Array<{
+    id: number
+    x: number
+    y: number
+    threat_level: number
+  }> | null
   action_taken: number | null
   reward_received: number | null
   created_at: string

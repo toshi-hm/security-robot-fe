@@ -24,7 +24,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@element-plus/nuxt": "^1.0.10",
     "@nuxt/ui": "^4.0.1",
-    "@pinia/nuxt": "^0.10.0",
+    "@pinia/nuxt": "^0.10.1",
     "@vee-validate/nuxt": "^4.15.0",
     "@vueuse/nuxt": "^13.9.0",
     "axios": "^1.7.9",
