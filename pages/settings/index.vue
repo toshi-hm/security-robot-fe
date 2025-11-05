@@ -173,17 +173,20 @@ onMounted(() => {
   padding: 20px;
 
   &__header {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
   &__title {
+    color: var(--md-on-surface);
     font-size: 24px;
     font-weight: 600;
     margin: 0;
   }
 
   &__description {
-    color: #606266;
+    color: var(--md-on-surface-variant);
     margin: 0;
   }
 
@@ -192,6 +195,8 @@ onMounted(() => {
   }
 
   &__card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     cursor: pointer;
     min-height: 400px;
     transition: transform 0.2s;
@@ -202,12 +207,13 @@ onMounted(() => {
   }
 
   &__card-header {
+    color: var(--md-on-surface);
     font-size: 18px;
     font-weight: 600;
   }
 
   &__card-description {
-    color: #606266;
+    color: var(--md-on-surface-variant);
     line-height: 1.6;
     margin: 10px 0 20px;
   }
@@ -221,7 +227,7 @@ onMounted(() => {
     }
 
     :deep(.el-descriptions__content) {
-      color: #303133;
+      color: var(--md-on-surface);
     }
   }
 

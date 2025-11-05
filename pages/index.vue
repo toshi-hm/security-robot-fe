@@ -130,7 +130,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .dashboard {
-  background-color: #f5f7fa;
+  background-color: var(--md-background);
   min-height: calc(100vh - 60px);
   padding: 20px;
 
@@ -140,14 +140,14 @@ onMounted(async () => {
   }
 
   &__title {
-    color: #303133;
+    color: var(--md-on-background);
     font-size: 32px;
     font-weight: 600;
     margin: 0 0 10px;
   }
 
   &__subtitle {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     font-size: 16px;
     margin: 0;
   }
@@ -157,6 +157,7 @@ onMounted(async () => {
   }
 
   &__card {
+    border: 1px solid var(--md-outline-variant);
     border-radius: 8px;
     margin-bottom: 20px;
     transition: transform 0.3s ease;
@@ -179,31 +180,7 @@ onMounted(async () => {
   }
 
   &__card-title {
-    color: #303133;
-  }
-
-  &__card--training {
-    border-top: 4px solid #409eff;
-
-    .dashboard__card-icon {
-      color: #409eff;
-    }
-  }
-
-  &__card--models {
-    border-top: 4px solid #67c23a;
-
-    .dashboard__card-icon {
-      color: #67c23a;
-    }
-  }
-
-  &__card--playback {
-    border-top: 4px solid #e6a23c;
-
-    .dashboard__card-icon {
-      color: #e6a23c;
-    }
+    color: var(--md-on-surface);
   }
 
   &__card-content {
@@ -212,7 +189,7 @@ onMounted(async () => {
   }
 
   &__stat-number {
-    color: #303133;
+    color: var(--md-on-surface);
     font-size: 48px;
     font-weight: 700;
     line-height: 1;
@@ -220,7 +197,7 @@ onMounted(async () => {
   }
 
   &__stat-label {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     font-size: 14px;
     margin-bottom: 15px;
   }
@@ -232,9 +209,63 @@ onMounted(async () => {
   }
 
   &__card-actions {
-    border-top: 1px solid #ebeef5;
+    border-top: 1px solid var(--md-outline-variant);
     padding-top: 15px;
     text-align: center;
+  }
+
+  &__card--training {
+    background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-primary);
+    border-top: 4px solid var(--md-primary);
+
+    .dashboard__card-icon {
+      color: var(--md-primary);
+    }
+
+    .dashboard__card-title {
+      color: var(--md-on-primary-container);
+    }
+
+    .dashboard__stat-number {
+      color: var(--md-on-primary-container);
+    }
+  }
+
+  &__card--models {
+    background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-secondary);
+    border-top: 4px solid var(--md-secondary);
+
+    .dashboard__card-icon {
+      color: var(--md-secondary);
+    }
+
+    .dashboard__card-title {
+      color: var(--md-on-secondary-container);
+    }
+
+    .dashboard__stat-number {
+      color: var(--md-on-secondary-container);
+    }
+  }
+
+  &__card--playback {
+    background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
+    border-color: var(--md-tertiary);
+    border-top: 4px solid var(--md-tertiary);
+
+    .dashboard__card-icon {
+      color: var(--md-tertiary);
+    }
+
+    .dashboard__card-title {
+      color: var(--md-on-tertiary-container);
+    }
+
+    .dashboard__stat-number {
+      color: var(--md-on-tertiary-container);
+    }
   }
 
   &__quick-actions {
@@ -242,11 +273,13 @@ onMounted(async () => {
   }
 
   &__quick-actions-card {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     border-radius: 8px;
   }
 
   &__section-title {
-    color: #303133;
+    color: var(--md-on-surface);
     font-size: 20px;
     font-weight: 600;
     margin: 0;

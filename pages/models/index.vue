@@ -166,16 +166,20 @@ const formatDate = (date: string | Date): string => {
   }
 
   &__title {
-    font-size: 1.5rem;
+    color: var(--md-on-background);
+    font-size: 1.75rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
   }
 
   &__description {
-    color: #909399;
+    color: var(--md-on-surface-variant);
     font-size: 0.875rem;
   }
 
   &__card {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
     margin-top: 20px;
   }
 

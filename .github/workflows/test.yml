@@ -106,6 +106,9 @@ jobs:
         continue-on-error: true
         run: pnpm lint:style
 
+      - name: Generate Nuxt types
+        run: pnpm nuxt prepare
+
       - name: Run TypeScript type check
         id: typecheck
         continue-on-error: true

@@ -399,15 +399,22 @@ onBeforeUnmount(() => {
     margin-bottom: 20px;
 
     h2 {
+      color: var(--md-on-background);
+      font-size: 1.75rem;
+      font-weight: 600;
       margin: 0;
     }
   }
 
   &__metrics {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
     margin-bottom: 20px;
   }
 
   &__environment {
+    background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
+    border: 2px solid var(--md-primary);
     height: 400px;
 
     canvas {
@@ -417,6 +424,8 @@ onBeforeUnmount(() => {
   }
 
   &__environment-info {
+    background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
+    border: 2px solid var(--md-tertiary);
     height: 400px;
   }
 }

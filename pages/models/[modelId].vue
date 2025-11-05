@@ -16,13 +16,17 @@ const modelId = computed(() => route.params.modelId as string)
 
 <style lang="scss" scoped>
 .model-detail {
+  padding: 20px;
+
   &__title {
-    font-size: 1.5rem;
+    color: var(--md-on-background);
+    font-size: 1.75rem;
+    font-weight: 600;
     margin-bottom: 0.75rem;
   }
 
   &__description {
-    color: #cbd5f5;
+    color: var(--md-on-surface-variant);
   }
 }
 </style>

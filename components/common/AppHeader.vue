@@ -18,9 +18,9 @@ const title = APP_TITLE
   padding: 1rem 1.5rem;
 
   &__title {
-    font-weight: 600;
+    color: var(--el-color-primary);
+    font-weight: 700;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 }
 </style>
