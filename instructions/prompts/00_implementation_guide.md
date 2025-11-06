@@ -19,14 +19,15 @@ cat report/PROGRESS.md
 # 過去セッション総括の確認
 cat report/summary/DIARY01.md  # Session 001-015 総括
 cat report/summary/DIARY02.md  # Session 016-026 総括
+cat report/summary/DIARY03_SUMMARY.md  # Session 027-043 総括
 
-# 最新セッション記録の確認 (Session 027以降)
-cat report/DIARY03.md
+# 最新セッション記録の確認 (Session 044以降)
+cat report/DIARY04.md
 ```
 - 前回のセッションで実施した作業
 - 遭遇した問題と解決方法
 - 次回への引き継ぎ事項
-- **重要**: DIARY03.mdは逆時系列順（最新が上）
+- **重要**: DIARY04.mdは逆時系列順（最新が上）
 
 ### 3. 設計書の参照
 以下の設計書を参照しながら作業:
@@ -50,13 +51,13 @@ cat report/DIARY03.md
 
 #### 4.2 セッション日記の追記
 ```bash
-# report/DIARY03.md の**最上部**に新しいセッションを追加
+# report/DIARY04.md の**最上部**に新しいセッションを追加
 # - 目次も更新すること
 # - 逆時系列順を維持 (最新が上)
 # - 過去のエントリは編集しない
 ```
 
-**DIARY03.md構造 (重要)**:
+**DIARY04.md構造 (重要)**:
 - 最新エントリを**上部**に配置 (逆時系列順)
 - 目次の直後、前回セッションの**前**に挿入
 - 過去のエントリは編集しない
@@ -90,12 +91,17 @@ cat report/DIARY03.md
    - WebSocket統合、リアルタイム可視化、Settings Pages実装
    - 主要な技術的発見と解決策
 
-4. **`../../report/DIARY03.md`** - 最新セッション履歴 (Session 027以降)
+4. **`../../report/summary/DIARY03_SUMMARY.md`** - 開発セッション総括 (Session 027-043)
+   - Functions Coverage 86.66%達成
+   - Backend API完全統合（Playback/Training）
+   - Material Design 3導入、UI/UX大幅改善
+
+5. **`../../report/DIARY04.md`** - 最新セッション履歴 (Session 044以降)
    - 過去のセッションで何を実施したかを確認
    - 学んだことや気づきを把握
    - 前回のセッションからの引き継ぎ事項を確認
 
-4. **`../../CLAUDE.md`** - プロジェクト概要と進捗管理ワークフロー
+6. **`../../CLAUDE.md`** - プロジェクト概要と進捗管理ワークフロー
    - プロジェクト全体の方針を理解
    - 進捗管理ファイルの運用方法を確認
 
@@ -1249,7 +1255,7 @@ Coverage:       48.17% (Lines)
 - **自由に編集可能**: 現在の状態を反映するよう随時更新
 - **マシン固有の情報**: 環境構築に関する情報は、マシン固有のものを含めないか、明確に区別する
 
-### DIARY03.md の構造 (Session 027以降)
+### DIARY04.md の構造 (Session 044以降)
 - **最新エントリを上部に配置** (逆時系列順)
 - **目次とアンカーリンク**: 上部に配置
 - **新しいセッション**: 目次の直後、前回セッションの前に挿入
@@ -1258,6 +1264,7 @@ Coverage:       48.17% (Lines)
 - **注意**:
   - Session 001-015は`DIARY01.md`に記録済み。総括は`summary/DIARY01.md`を参照。
   - Session 016-026は`DIARY02.md`に記録済み。総括は`summary/DIARY02.md`を参照。
+  - Session 027-043は`DIARY03.md`に記録済み。総括は`summary/DIARY03_SUMMARY.md`を参照。
 
 **DIARY02.md 構造例:**
 ```markdown

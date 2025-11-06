@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-11-06 (Session 042 - Fix Playback Environment State Update Issue)
+最終更新日: 2025-11-07 (DIARY Rotation - DIARY03 → DIARY04)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -974,3 +974,30 @@ export const useEnvironment = (
   - ESLint: 0 errors
   - Coverage: 98.12% statements, 93.1% branches, 86.66% functions
 
+
+### 2025-11-07: DIARY Rotation (DIARY03 → DIARY04) ✅
+- [x] DIARY03.md エントリ数カウント: 15件（閾値10以上）
+- [x] AI要約サマリー生成: `report/summary/DIARY03_SUMMARY.md` 作成
+  - 対象: Session 027-043（15セッション）
+  - 対象期間: 2025-10-14 ~ 2025-11-07
+  - 主なハイライト:
+    - Functions Coverage: 48.9% → 86.66%達成（目標85%+1.66pt）
+    - Backend API完全統合（Playback/Training）
+    - Material Design 3導入
+    - UI/UX大幅改善（日本語化、インタラクティブマップ）
+    - テスト網羅性向上: 384 → 478テスト（+94テスト）
+- [x] 次DIARY作成: `report/DIARY04.md`（Session 044以降用）
+- [x] ARCHIVE確認: 個別サマリー1件（閾値5未満のためスキップ）
+- [x] DIARY参照更新: `instructions/prompts/` 内の2ファイル
+  - `01_frontend_implementation_guide.md`: DIARY03 → DIARY04
+  - `00_implementation_guide.md`: DIARY03 → DIARY04
+  - DIARY03_SUMMARY.md への参照追加
+- [x] PROGRESS.md更新: 本ログ追加
+- [x] 実行日時: 2025-11-07
+- [x] 生成ファイル:
+  - `report/summary/DIARY03_SUMMARY.md`（新規作成）
+  - `report/DIARY04.md`（新規作成）
+- [x] 更新ファイル:
+  - `instructions/prompts/01_frontend_implementation_guide.md`（6箇所更新）
+  - `instructions/prompts/00_implementation_guide.md`（6箇所更新）
+  - `report/PROGRESS.md`（本ログ追加）
