@@ -93,17 +93,7 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
       // Convert environment state response to PlaybackFrame format
       return response.frames.map((frame) => ({
         timestamp: frame.created_at || new Date().toISOString(),
-        environmentState: {
-          robot: {
-            x: frame.robot_x,
-            y: frame.robot_y,
-            orientation: frame.robot_orientation,
-          },
-          environment: {
-            threatGrid: frame.threat_grid || [],
-            coverageMap: frame.coverage_map || [],
-          },
-        },
+        environmentState: frame, // Use EnvironmentStateResponseDTO directly
         reward: frame.reward_received || 0,
       }))
     } catch (error) {

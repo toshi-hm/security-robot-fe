@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 
+import type { Position } from '~/libs/domains/common/Position'
+
 interface Props {
   gridWidth?: number
   gridHeight?: number
-  robotPosition?: { x: number; y: number } | null
-  coverageMap?: boolean[][]
+  robotPosition?: Position | null
+  coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
-  trajectory?: Array<{ x: number; y: number }>
+  trajectory?: Position[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -125,7 +127,9 @@ const drawEnvironment = () => {
       ctx.fillRect(cellX, cellY, cellSize, cellSize)
 
       // Draw coverage overlay (visited cells)
-      if (props.coverageMap[y]?.[x]) {
+      const cellValue = props.coverageMap[y]?.[x]
+      const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
+      if (isVisited) {
         ctx.fillStyle = 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       }
@@ -282,8 +286,7 @@ watch(
   () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight, props.trajectory],
   () => {
     drawEnvironment()
-  },
-  { deep: true }
+  }
 )
 
 onMounted(() => {

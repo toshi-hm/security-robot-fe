@@ -2072,3 +2072,374 @@ pages/training/index.vue                   |  24 +--
 **時間**: 約45分
 **ステータス**: ✅ 完了
 
+
+---
+
+### Session 042 - Fix Playback Environment State Update Issue (2025-11-06)
+
+**開始時刻**: 2025-11-06 10:05
+**終了時刻**: 2025-11-06 10:12
+
+**目的**: `/playback/[id]` ページの「環境状態」がステップが進んでも更新されない問題を修正
+
+**問題分析**:
+
+1. **Props名の不一致**:
+   - `EnvironmentVisualization.vue` が期待するprops: `gridWidth`, `gridHeight`, `robotPosition`, `coverageMap`, `threatGrid`
+   - `pages/playback/[sessionId].vue` が渡していたprops: `environmentState` (間違い)
+
+2. **PlaybackFrame型の問題**:
+   - `PlaybackFrame.environmentState` が `unknown` 型になっていた
+   - 型安全性が失われていた
+
+3. **PlaybackRepositoryImplのデータ変換**:
+   - バックエンドからの `EnvironmentStateResponseDTO` を独自の構造に変換していた
+   - `grid_width` / `grid_height` が欠落していた
+
+4. **coverageMap型の不一致**:
+   - `EnvironmentVisualization.vue`: `boolean[][]` を期待
+   - Backend API: `number[][]` (0=未訪問、1=訪問済み) を返す
+
+**実施内容**:
+
+1. **PlaybackFrame型の修正** (`libs/domains/playback/PlaybackFrame.ts`):
+   ```typescript
+   import type { EnvironmentStateResponseDTO } from '~/types/api'
+
+   export interface PlaybackFrame {
+     timestamp: string
+     environmentState: EnvironmentStateResponseDTO | null  // unknown → EnvironmentStateResponseDTO
+     reward: number
+   }
+   ```
+
+2. **PlaybackRepositoryImplの修正** (`libs/repositories/playback/PlaybackRepositoryImpl.ts`):
+   - バックエンドのデータ構造をそのまま使用するように変更:
+   ```typescript
+   return response.frames.map((frame) => ({
+     timestamp: frame.created_at || new Date().toISOString(),
+     environmentState: frame,  // EnvironmentStateResponseDTOをそのまま使用
+     reward: frame.reward_received || 0,
+   }))
+   ```
+
+3. **Playback詳細ページの修正** (`pages/playback/[sessionId].vue`):
+   - 正しいprops名で `EnvironmentStateResponseDTO` のフィールドを渡すように修正:
+   ```vue
+   <EnvironmentVisualization
+     v-if="currentFrame?.environmentState"
+     :grid-width="8"
+     :grid-height="8"
+     :robot-position="{
+       x: currentFrame.environmentState.robot_x ?? 0,
+       y: currentFrame.environmentState.robot_y ?? 0,
+     }"
+     :coverage-map="currentFrame.environmentState.coverage_map ?? []"
+     :threat-grid="currentFrame.environmentState.threat_grid ?? []"
+   />
+
+   <RobotPositionDisplay
+     v-if="currentFrame?.environmentState"
+     :position="{
+       row: currentFrame.environmentState.robot_y ?? 0,
+       col: currentFrame.environmentState.robot_x ?? 0,
+     }"
+   />
+   ```
+
+4. **EnvironmentVisualizationコンポーネントの型拡張** (`components/environment/EnvironmentVisualization.vue`):
+   - `coverageMap` propsを `number[][]` と `boolean[][]` の両方を受け入れるように修正:
+   ```typescript
+   interface Props {
+     // ...
+     coverageMap?: number[][] | boolean[][]  // number[][] も許可
+     // ...
+   }
+   ```
+
+5. **テストの修正** (`tests/unit/composables/usePlayback.spec.ts`):
+   - Mock dataを `EnvironmentStateResponseDTO` 型に準拠するように修正:
+   ```typescript
+   const mockEnvironmentState1: EnvironmentStateResponseDTO = {
+     id: 1,
+     session_id: 1,
+     episode: 0,
+     step: 1,
+     robot_x: 1,
+     robot_y: 1,
+     robot_orientation: 0,
+     threat_grid: [[0]],
+     coverage_map: [[1]],  // number[][] (0/1)
+     suspicious_objects: null,
+     action_taken: null,
+     reward_received: 0.5,
+     created_at: '2024-01-01T00:00:00Z',
+     updated_at: '2024-01-01T00:00:00Z',
+   }
+   ```
+
+**成果物**:
+- ✅ `libs/domains/playback/PlaybackFrame.ts` - 型定義修正
+- ✅ `libs/repositories/playback/PlaybackRepositoryImpl.ts` - データ変換ロジック修正
+- ✅ `pages/playback/[sessionId].vue` - Props渡し修正
+- ✅ `components/environment/EnvironmentVisualization.vue` - 型定義拡張
+- ✅ `tests/unit/composables/usePlayback.spec.ts` - テスト修正
+- ✅ Total: **478 tests passing** (100%)
+- ✅ TypeScript: **0 errors**
+- ✅ ESLint: 0 errors
+- ✅ Coverage: 98.12% statements, 93.1% branches, 86.66% functions (維持)
+
+**テスト結果**:
+| Metric     | Result  | Status |\n|------------|---------|--------|\n| Tests      | 478/478 | ✅ 100% |\n| Statements | 98.12%  | ✅ 維持 |\n| Branches   | 93.1%   | ✅ 維持 |\n| Functions  | 86.66%  | ✅ 維持 |\n| TypeScript | 0 errors| ✅ |\n| ESLint     | 0 errors| ✅ |
+
+**技術的ポイント**:
+
+1. **型安全性の向上**:
+   - `unknown` 型から `EnvironmentStateResponseDTO` への明示的な型定義
+   - `as any` の使用を避け、型推論を活用
+
+2. **Backend API仕様との整合性**:
+   - `EnvironmentStateResponseDTO` をそのまま使用することで、バックエンドとの契約を明確化
+   - データ変換を最小化し、メンテナンス性向上
+
+3. **Props型の柔軟性**:
+   - `coverageMap?: number[][] | boolean[][]` でUnion型を使用
+   - バックエンドの実装（`number[][]`）とコンポーネントの従来の実装（`boolean[][]`）の両方をサポート
+
+**変更ファイル統計**:
+```
+libs/domains/playback/PlaybackFrame.ts                          |  4 +++-
+libs/repositories/playback/PlaybackRepositoryImpl.ts            | 14 +-------------
+pages/playback/[sessionId].vue                                  | 22 +++++++++++-----------
+components/environment/EnvironmentVisualization.vue             |  2 +-
+tests/unit/composables/usePlayback.spec.ts                      | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------
+```
+
+**時間**: 約7分
+**ステータス**: ✅ 完了
+**Phase**: Bug Fix - Playback Environment State Update
+
+**次のステップ候補**:
+- [ ] Playback機能の実機テスト（Backend連携）
+- [ ] grid_width / grid_heightをBackend APIから取得する機能追加
+- [ ] coverageMapの視覚化改善（0/1 → boolean変換ロジック追加）
+
+
+---
+
+## Session 043: 型安全性とパフォーマンスの改善
+
+**日時**: 2025-11-07
+**担当**: Claude Code (Session 043)
+**ブランチ**: `feature/session-042-fix-environment-state-update`
+
+### 🎯 セッション目標
+
+コードレビューで指摘された以下の問題を修正:
+
+1. **型安全性**: `coverageMap`のtruthy チェックを明示的な型チェックに改善
+2. **パフォーマンス**: `watch`の`deep`オプション削除による最適化
+3. **座標系の一貫性**: `Position`型と`GridPosition`型の定義と統一
+
+### 📝 実装内容
+
+#### 1. coverageMap型チェックの改善
+
+**問題点**:
+```typescript
+// Before: coverageMap が number[][] | boolean[][] のため、truthy チェックは不完全
+if (props.coverageMap[y]?.[x]) {
+  // 0 は falsy だが、number[][]では 0 = 未訪問を意味する
+}
+```
+
+**解決策**:
+```typescript
+// After: 明示的な型チェック
+const cellValue = props.coverageMap[y]?.[x]
+const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
+if (isVisited) {
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.2)'
+  ctx.fillRect(cellX, cellY, cellSize, cellSize)
+}
+```
+
+**メリット**:
+- `number[][]`（0/1）と`boolean[][]`（true/false）の両方を正しく処理
+- 型の意図を明確化
+- 誤動作を防止
+
+#### 2. watch deepオプション削除（パフォーマンス改善）
+
+**問題点**:
+```typescript
+// Before: deep: true は大きな2次元配列でパフォーマンス影響
+watch(
+  () => [props.robotPosition, props.coverageMap, props.threatGrid, ...],
+  () => { drawEnvironment() },
+  { deep: true }  // ← 不要
+)
+```
+
+**解決策**:
+```typescript
+// After: deep オプション削除（参照の変更のみ検知）
+watch(
+  () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight, props.trajectory],
+  () => { drawEnvironment() }
+  // deep: false（デフォルト）で十分
+)
+```
+
+**理由**:
+- Playback UIではフレーム切替時に新しい配列参照が渡される
+- 配列の「参照の変更」を検知するだけで再描画トリガー可能
+- `deep: true`は不要で、パフォーマンスコスト削減
+
+#### 3. Position型定義と座標系統一
+
+**新規ファイル**: `libs/domains/common/Position.ts`
+
+```typescript
+/**
+ * Cartesian coordinate position (x, y)
+ * Used for robot position and trajectory in EnvironmentVisualization
+ */
+export interface Position {
+  x: number
+  y: number
+}
+
+/**
+ * Grid position (row, col)
+ * Used for grid-based components like RobotPositionDisplay
+ * Note: row corresponds to Y-axis, col corresponds to X-axis
+ */
+export interface GridPosition {
+  row: number
+  col: number
+}
+
+// Conversion utilities
+export function positionToGridPosition(pos: Position): GridPosition
+export function gridPositionToPosition(gridPos: GridPosition): Position
+```
+
+**適用箇所**:
+
+1. **EnvironmentVisualization.vue**: Props型を`Position`に統一
+   ```typescript
+   interface Props {
+     robotPosition?: Position | null
+     trajectory?: Position[]
+   }
+   ```
+
+2. **pages/playback/[sessionId].vue**: 明示的な型アノテーション追加
+   ```typescript
+   :robot-position="{
+     x: currentFrame.environmentState.robot_x ?? 0,
+     y: currentFrame.environmentState.robot_y ?? 0,
+   } satisfies Position"
+   
+   :position="{
+     row: currentFrame.environmentState.robot_y ?? 0,
+     col: currentFrame.environmentState.robot_x ?? 0,
+   } satisfies GridPosition"
+   ```
+
+**メリット**:
+- 座標系の命名規則を統一（`{x, y}` vs `{row, col}`）
+- コンポーネント間の座標受け渡しが明確化
+- 型安全性向上（コンパイル時に座標ミスを検出）
+
+### 🧪 テスト結果
+
+```
+✅ Total: 478 tests passing (100%)
+✅ Coverage: 98.12% statements, 92.74% branches, 86.51% functions
+✅ TypeScript: 0 errors
+✅ ESLint: 0 errors, 133 warnings (test `any` types - acceptable)
+```
+
+**カバレッジ詳細**:
+- EnvironmentVisualization.vue: 100% (branches: 91.89%)
+- 全コンポーネント: 98.12% statements
+- 目標85%を大幅に上回る **+13.12pt**
+
+### 📊 変更ファイル統計
+
+```
+components/environment/EnvironmentVisualization.vue  | 12 +++++++++---
+libs/domains/common/Position.ts                      | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+pages/playback/[sessionId].vue                       | 11 ++++++++---
+3 files changed, 67 insertions(+), 6 deletions(-)
+```
+
+### 🎯 技術的ポイント
+
+1. **型安全性の向上**:
+   - Union型（`number[][] | boolean[][]`）の適切な型ガード処理
+   - `satisfies`キーワードによる型アサーション
+
+2. **パフォーマンス最適化**:
+   - 不要な`deep: true`の削除でwatch処理軽量化
+   - 大規模配列での再帰的比較を回避
+
+3. **設計の一貫性**:
+   - Domain層に共通型を定義
+   - コンポーネント間の座標系統一
+   - コード可読性とメンテナンス性向上
+
+### ✅ 完了チェックリスト
+
+- [x] EnvironmentVisualization.vue のcoverageMap型チェック改善
+- [x] watch deepオプション削除
+- [x] Position型とGridPosition型定義（`libs/domains/common/Position.ts`）
+- [x] EnvironmentVisualization.vueにPosition型適用
+- [x] Playback詳細ページにPosition型適用
+- [x] テスト実行: 478/478 passing
+- [x] カバレッジ維持: 98.12% statements
+- [x] TypeScript型チェック: 0 errors
+- [x] ESLint: 0 errors（自動修正完了）
+
+### 📝 次のステップ候補
+
+1. **RobotPositionDisplay.vueの型統一**:
+   - Props型を`GridPosition`に変更（現在は`{ row: number; col: number }`）
+
+2. **Training詳細ページの座標系修正**:
+   - `Position`型の適用
+   - EnvironmentVisualizationとの一貫性確保
+
+3. **Trajectory型の定義**:
+   - `type Trajectory = Position[]`のエイリアス定義
+
+4. **座標変換ユーティリティのテスト**:
+   - `positionToGridPosition()`と`gridPositionToPosition()`のユニットテスト追加
+
+### 💡 学習ポイント
+
+1. **Union型の型ガード**:
+   - `typeof cellValue === 'number'`による実行時型チェック
+   - TypeScriptの型推論を活用したtype narrowing
+
+2. **Vue watchの最適化**:
+   - `deep: true`のパフォーマンスコスト理解
+   - 参照の変更検知 vs 値の変更検知
+
+3. **型安全な座標系設計**:
+   - Domain層での共通型定義
+   - `satisfies`キーワードによる型アサーション
+   - コンポーネント間の型の一貫性
+
+### 🚀 パフォーマンス改善効果（推定）
+
+- **watch処理**: 10-20ms削減（フレーム更新ごと）
+- **メモリ使用量**: deep比較のスタック使用削減
+- **型安全性**: コンパイル時エラー検出による実行時エラー削減
+
+**時間**: 約25分
+**ステータス**: ✅ 完了
+**Phase**: Refactoring - Type Safety & Performance
+
