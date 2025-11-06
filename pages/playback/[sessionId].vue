@@ -172,7 +172,14 @@ const handleBack = () => {
             <h3>環境状態</h3>
             <EnvironmentVisualization
               v-if="currentFrame?.environmentState"
-              :environment-state="currentFrame.environmentState"
+              :grid-width="8"
+              :grid-height="8"
+              :robot-position="{
+                x: currentFrame.environmentState.robot_x ?? 0,
+                y: currentFrame.environmentState.robot_y ?? 0,
+              }"
+              :coverage-map="currentFrame.environmentState.coverage_map ?? []"
+              :threat-grid="currentFrame.environmentState.threat_grid ?? []"
             />
             <el-empty v-else description="環境データがありません" />
           </div>
@@ -180,12 +187,11 @@ const handleBack = () => {
           <div class="playback-detail__robot">
             <h3>ロボット位置</h3>
             <RobotPositionDisplay
-              v-if="
-                currentFrame?.environmentState &&
-                typeof currentFrame.environmentState === 'object' &&
-                'robot' in currentFrame.environmentState
-              "
-              :position="(currentFrame.environmentState as any).robot"
+              v-if="currentFrame?.environmentState"
+              :position="{
+                row: currentFrame.environmentState.robot_y ?? 0,
+                col: currentFrame.environmentState.robot_x ?? 0,
+              }"
             />
             <el-empty v-else description="ロボットデータがありません" />
           </div>

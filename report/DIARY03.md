@@ -2072,3 +2072,155 @@ pages/training/index.vue                   |  24 +--
 **時間**: 約45分
 **ステータス**: ✅ 完了
 
+
+---
+
+### Session 042 - Fix Playback Environment State Update Issue (2025-11-06)
+
+**開始時刻**: 2025-11-06 10:05
+**終了時刻**: 2025-11-06 10:12
+
+**目的**: `/playback/[id]` ページの「環境状態」がステップが進んでも更新されない問題を修正
+
+**問題分析**:
+
+1. **Props名の不一致**:
+   - `EnvironmentVisualization.vue` が期待するprops: `gridWidth`, `gridHeight`, `robotPosition`, `coverageMap`, `threatGrid`
+   - `pages/playback/[sessionId].vue` が渡していたprops: `environmentState` (間違い)
+
+2. **PlaybackFrame型の問題**:
+   - `PlaybackFrame.environmentState` が `unknown` 型になっていた
+   - 型安全性が失われていた
+
+3. **PlaybackRepositoryImplのデータ変換**:
+   - バックエンドからの `EnvironmentStateResponseDTO` を独自の構造に変換していた
+   - `grid_width` / `grid_height` が欠落していた
+
+4. **coverageMap型の不一致**:
+   - `EnvironmentVisualization.vue`: `boolean[][]` を期待
+   - Backend API: `number[][]` (0=未訪問、1=訪問済み) を返す
+
+**実施内容**:
+
+1. **PlaybackFrame型の修正** (`libs/domains/playback/PlaybackFrame.ts`):
+   ```typescript
+   import type { EnvironmentStateResponseDTO } from '~/types/api'
+
+   export interface PlaybackFrame {
+     timestamp: string
+     environmentState: EnvironmentStateResponseDTO | null  // unknown → EnvironmentStateResponseDTO
+     reward: number
+   }
+   ```
+
+2. **PlaybackRepositoryImplの修正** (`libs/repositories/playback/PlaybackRepositoryImpl.ts`):
+   - バックエンドのデータ構造をそのまま使用するように変更:
+   ```typescript
+   return response.frames.map((frame) => ({
+     timestamp: frame.created_at || new Date().toISOString(),
+     environmentState: frame,  // EnvironmentStateResponseDTOをそのまま使用
+     reward: frame.reward_received || 0,
+   }))
+   ```
+
+3. **Playback詳細ページの修正** (`pages/playback/[sessionId].vue`):
+   - 正しいprops名で `EnvironmentStateResponseDTO` のフィールドを渡すように修正:
+   ```vue
+   <EnvironmentVisualization
+     v-if="currentFrame?.environmentState"
+     :grid-width="8"
+     :grid-height="8"
+     :robot-position="{
+       x: currentFrame.environmentState.robot_x ?? 0,
+       y: currentFrame.environmentState.robot_y ?? 0,
+     }"
+     :coverage-map="currentFrame.environmentState.coverage_map ?? []"
+     :threat-grid="currentFrame.environmentState.threat_grid ?? []"
+   />
+
+   <RobotPositionDisplay
+     v-if="currentFrame?.environmentState"
+     :position="{
+       row: currentFrame.environmentState.robot_y ?? 0,
+       col: currentFrame.environmentState.robot_x ?? 0,
+     }"
+   />
+   ```
+
+4. **EnvironmentVisualizationコンポーネントの型拡張** (`components/environment/EnvironmentVisualization.vue`):
+   - `coverageMap` propsを `number[][]` と `boolean[][]` の両方を受け入れるように修正:
+   ```typescript
+   interface Props {
+     // ...
+     coverageMap?: number[][] | boolean[][]  // number[][] も許可
+     // ...
+   }
+   ```
+
+5. **テストの修正** (`tests/unit/composables/usePlayback.spec.ts`):
+   - Mock dataを `EnvironmentStateResponseDTO` 型に準拠するように修正:
+   ```typescript
+   const mockEnvironmentState1: EnvironmentStateResponseDTO = {
+     id: 1,
+     session_id: 1,
+     episode: 0,
+     step: 1,
+     robot_x: 1,
+     robot_y: 1,
+     robot_orientation: 0,
+     threat_grid: [[0]],
+     coverage_map: [[1]],  // number[][] (0/1)
+     suspicious_objects: null,
+     action_taken: null,
+     reward_received: 0.5,
+     created_at: '2024-01-01T00:00:00Z',
+     updated_at: '2024-01-01T00:00:00Z',
+   }
+   ```
+
+**成果物**:
+- ✅ `libs/domains/playback/PlaybackFrame.ts` - 型定義修正
+- ✅ `libs/repositories/playback/PlaybackRepositoryImpl.ts` - データ変換ロジック修正
+- ✅ `pages/playback/[sessionId].vue` - Props渡し修正
+- ✅ `components/environment/EnvironmentVisualization.vue` - 型定義拡張
+- ✅ `tests/unit/composables/usePlayback.spec.ts` - テスト修正
+- ✅ Total: **478 tests passing** (100%)
+- ✅ TypeScript: **0 errors**
+- ✅ ESLint: 0 errors
+- ✅ Coverage: 98.12% statements, 93.1% branches, 86.66% functions (維持)
+
+**テスト結果**:
+| Metric     | Result  | Status |\n|------------|---------|--------|\n| Tests      | 478/478 | ✅ 100% |\n| Statements | 98.12%  | ✅ 維持 |\n| Branches   | 93.1%   | ✅ 維持 |\n| Functions  | 86.66%  | ✅ 維持 |\n| TypeScript | 0 errors| ✅ |\n| ESLint     | 0 errors| ✅ |
+
+**技術的ポイント**:
+
+1. **型安全性の向上**:
+   - `unknown` 型から `EnvironmentStateResponseDTO` への明示的な型定義
+   - `as any` の使用を避け、型推論を活用
+
+2. **Backend API仕様との整合性**:
+   - `EnvironmentStateResponseDTO` をそのまま使用することで、バックエンドとの契約を明確化
+   - データ変換を最小化し、メンテナンス性向上
+
+3. **Props型の柔軟性**:
+   - `coverageMap?: number[][] | boolean[][]` でUnion型を使用
+   - バックエンドの実装（`number[][]`）とコンポーネントの従来の実装（`boolean[][]`）の両方をサポート
+
+**変更ファイル統計**:
+```
+libs/domains/playback/PlaybackFrame.ts                          |  4 +++-
+libs/repositories/playback/PlaybackRepositoryImpl.ts            | 14 +-------------
+pages/playback/[sessionId].vue                                  | 22 +++++++++++-----------
+components/environment/EnvironmentVisualization.vue             |  2 +-
+tests/unit/composables/usePlayback.spec.ts                      | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------
+```
+
+**時間**: 約7分
+**ステータス**: ✅ 完了
+**Phase**: Bug Fix - Playback Environment State Update
+
+**次のステップ候補**:
+- [ ] Playback機能の実機テスト（Backend連携）
+- [ ] grid_width / grid_heightをBackend APIから取得する機能追加
+- [ ] coverageMapの視覚化改善（0/1 → boolean変換ロジック追加）
+

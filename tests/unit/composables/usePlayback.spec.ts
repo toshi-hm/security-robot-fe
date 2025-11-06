@@ -4,6 +4,7 @@ import { usePlayback } from '~/composables/usePlayback'
 import type { PlaybackFrame } from '~/libs/domains/playback/PlaybackFrame'
 import type { PlaybackSession } from '~/libs/domains/playback/PlaybackSession'
 import type { PlaybackRepository } from '~/libs/repositories/playback/PlaybackRepository'
+import type { EnvironmentStateResponseDTO } from '~/types/api'
 
 describe('usePlayback', () => {
   let mockRepository: PlaybackRepository
@@ -87,15 +88,49 @@ describe('usePlayback', () => {
 
   describe('fetchFrames', () => {
     it('fetches and stores frames for a session', async () => {
+      const mockEnvironmentState1: EnvironmentStateResponseDTO = {
+        id: 1,
+        session_id: 1,
+        episode: 0,
+        step: 1,
+        robot_x: 1,
+        robot_y: 1,
+        robot_orientation: 0,
+        threat_grid: [[0]],
+        coverage_map: [[1]],
+        suspicious_objects: null,
+        action_taken: null,
+        reward_received: 0.5,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      }
+
+      const mockEnvironmentState2: EnvironmentStateResponseDTO = {
+        id: 2,
+        session_id: 1,
+        episode: 0,
+        step: 2,
+        robot_x: 2,
+        robot_y: 2,
+        robot_orientation: 0,
+        threat_grid: [[0]],
+        coverage_map: [[1]],
+        suspicious_objects: null,
+        action_taken: null,
+        reward_received: 0.7,
+        created_at: '2024-01-01T00:00:01Z',
+        updated_at: '2024-01-01T00:00:01Z',
+      }
+
       const mockFrames: PlaybackFrame[] = [
         {
           timestamp: '2024-01-01T00:00:00Z',
-          environmentState: { x: 1, y: 1 },
+          environmentState: mockEnvironmentState1,
           reward: 0.5,
         },
         {
           timestamp: '2024-01-01T00:00:01Z',
-          environmentState: { x: 2, y: 2 },
+          environmentState: mockEnvironmentState2,
           reward: 0.7,
         },
       ]
@@ -123,10 +158,44 @@ describe('usePlayback', () => {
     })
 
     it('updates frames when fetched for different sessions', async () => {
+      const mockEnvState1: EnvironmentStateResponseDTO = {
+        id: 1,
+        session_id: 1,
+        episode: 0,
+        step: 1,
+        robot_x: 1,
+        robot_y: 1,
+        robot_orientation: 0,
+        threat_grid: [[0]],
+        coverage_map: [[1]],
+        suspicious_objects: null,
+        action_taken: null,
+        reward_received: 0.5,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      }
+
+      const mockEnvState2: EnvironmentStateResponseDTO = {
+        id: 2,
+        session_id: 2,
+        episode: 0,
+        step: 1,
+        robot_x: 3,
+        robot_y: 3,
+        robot_orientation: 0,
+        threat_grid: [[0]],
+        coverage_map: [[1]],
+        suspicious_objects: null,
+        action_taken: null,
+        reward_received: 0.8,
+        created_at: '2024-01-02T00:00:00Z',
+        updated_at: '2024-01-02T00:00:00Z',
+      }
+
       const mockFrames1: PlaybackFrame[] = [
         {
           timestamp: '2024-01-01T00:00:00Z',
-          environmentState: { x: 1, y: 1 },
+          environmentState: mockEnvState1,
           reward: 0.5,
         },
       ]
@@ -134,7 +203,7 @@ describe('usePlayback', () => {
       const mockFrames2: PlaybackFrame[] = [
         {
           timestamp: '2024-01-02T00:00:00Z',
-          environmentState: { x: 3, y: 3 },
+          environmentState: mockEnvState2,
           reward: 0.8,
         },
       ]

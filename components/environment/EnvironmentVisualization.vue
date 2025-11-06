@@ -5,7 +5,7 @@ interface Props {
   gridWidth?: number
   gridHeight?: number
   robotPosition?: { x: number; y: number } | null
-  coverageMap?: boolean[][]
+  coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
   trajectory?: Array<{ x: number; y: number }>
 }
