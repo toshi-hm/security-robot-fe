@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { VideoPlay, Refresh, Film, Timer, Search } from '@element-plus/icons-vue'
+import { VideoPlay, Refresh, Film, Timer } from '@element-plus/icons-vue'
 import { onMounted, computed, ref } from 'vue'
 
+import SearchFilter from '~/components/common/SearchFilter.vue'
+import SessionStatusTag from '~/components/common/SessionStatusTag.vue'
+import StatisticsCard from '~/components/common/StatisticsCard.vue'
 import { usePlaybackStore } from '~/stores/playback'
 
 const router = useRouter()
@@ -49,6 +52,10 @@ const handleRefresh = async () => {
   await playbackStore.fetchSessions()
 }
 
+const handleSearch = (value: string) => {
+  searchQuery.value = value
+}
+
 const formatDuration = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = Math.floor(seconds % 60)
@@ -78,37 +85,31 @@ const formatDate = (date: string | Date): string => {
     <!-- Statistics Cards -->
     <el-row :gutter="20" class="playback__statistics">
       <el-col :span="8">
-        <el-card class="playback__stat-card playback__stat-card--primary" shadow="hover">
-          <div class="playback__stat-content">
-            <el-icon class="playback__stat-icon"><VideoPlay /></el-icon>
-            <div>
-              <div class="playback__stat-value">{{ totalSessions }}</div>
-              <div class="playback__stat-label">再生可能セッション</div>
-            </div>
-          </div>
-        </el-card>
+        <StatisticsCard
+          title="再生セッション"
+          :value="totalSessions"
+          label="再生可能セッション"
+          color-theme="primary"
+          :icon="VideoPlay"
+        />
       </el-col>
       <el-col :span="8">
-        <el-card class="playback__stat-card playback__stat-card--secondary" shadow="hover">
-          <div class="playback__stat-content">
-            <el-icon class="playback__stat-icon"><Film /></el-icon>
-            <div>
-              <div class="playback__stat-value">{{ totalFrames.toLocaleString() }}</div>
-              <div class="playback__stat-label">総フレーム数</div>
-            </div>
-          </div>
-        </el-card>
+        <StatisticsCard
+          title="総フレーム数"
+          :value="totalFrames.toLocaleString()"
+          label="録画済みフレーム"
+          color-theme="secondary"
+          :icon="Film"
+        />
       </el-col>
       <el-col :span="8">
-        <el-card class="playback__stat-card playback__stat-card--tertiary" shadow="hover">
-          <div class="playback__stat-content">
-            <el-icon class="playback__stat-icon"><Timer /></el-icon>
-            <div>
-              <div class="playback__stat-value">{{ formatDuration(averageDuration) }}</div>
-              <div class="playback__stat-label">平均継続時間</div>
-            </div>
-          </div>
-        </el-card>
+        <StatisticsCard
+          title="平均継続時間"
+          :value="formatDuration(averageDuration)"
+          label="セッション平均"
+          color-theme="tertiary"
+          :icon="Timer"
+        />
       </el-col>
     </el-row>
 
@@ -116,11 +117,11 @@ const formatDate = (date: string | Date): string => {
     <el-card class="playback__filter-card" shadow="never">
       <el-row :gutter="20">
         <el-col :span="12">
-          <el-input v-model="searchQuery" placeholder="セッションID、訓練ID、名前で検索..." clearable>
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
+          <SearchFilter
+            v-model="searchQuery"
+            placeholder="セッションID、訓練ID、名前で検索..."
+            @search="handleSearch"
+          />
         </el-col>
       </el-row>
     </el-card>
@@ -143,6 +144,11 @@ const formatDate = (date: string | Date): string => {
       <el-table v-else :data="filteredSessions" stripe style="width: 100%">
         <el-table-column prop="id" label="セッションID" width="120" />
         <el-table-column prop="sessionId" label="訓練ID" width="120" />
+        <el-table-column label="ステータス" width="120">
+          <template #default="{ row }">
+            <SessionStatusTag :status="row.status" />
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="名前" min-width="150" />
         <el-table-column label="フレーム数" width="120">
           <template #default="{ row }">
@@ -197,76 +203,9 @@ const formatDate = (date: string | Date): string => {
 
   &__statistics {
     margin-bottom: 24px;
-  }
 
-  &__stat-card {
-    border: 1px solid var(--md-outline-variant);
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-4px);
-    }
-  }
-
-  &__stat-content {
-    align-items: center;
-    display: flex;
-    gap: 16px;
-  }
-
-  &__stat-icon {
-    font-size: 2.5rem;
-  }
-
-  &__stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  &__stat-label {
-    color: var(--md-on-surface-variant);
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  &__stat-card--primary {
-    background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
-    border-color: var(--md-primary);
-
-    .playback__stat-icon {
-      color: var(--md-primary);
-    }
-
-    .playback__stat-value {
-      color: var(--md-on-primary-container);
-    }
-  }
-
-  &__stat-card--secondary {
-    background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
-    border-color: var(--md-secondary);
-
-    .playback__stat-icon {
-      color: var(--md-secondary);
-    }
-
-    .playback__stat-value {
-      color: var(--md-on-secondary-container);
-    }
-  }
-
-  &__stat-card--tertiary {
-    background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
-    border-color: var(--md-tertiary);
-
-    .playback__stat-icon {
-      color: var(--md-tertiary);
-    }
-
-    .playback__stat-value {
-      color: var(--md-on-tertiary-container);
+    .statistics-card {
+      height: 100%;
     }
   }
 

@@ -499,6 +499,13 @@
   - ESLint: 0 errors, 133 warnings (acceptable)
   - Build: 1.99 MB (496 kB gzip)
 
+### Phase 43: UI Component Refactoring ♻️ (進行中)
+- [x] 再利用コンポーネント整備（StatisticsCard, SearchFilter, SessionStatusTag）- commit 4513904
+- [x] Playback一覧（pages/playback/index.vue）を共通コンポーネント化
+- [x] Dashboard統計カード（pages/index.vue）をStatisticsCard＋アクションスロットへ移行
+- [ ] Listページ（pages/training/list.vue?）への適用
+- [ ] 共通コンポーネント活用方針のドキュメント化
+
 ### 次フェーズ候補
 - [ ] 全ページへのMD3カラー適用（Training, Models, Settings, Dashboard）
 - [ ] ダークモード対応

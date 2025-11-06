@@ -1,14 +1,19 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
+
 interface Props {
   title: string
   value: number | string
   label: string
   colorTheme: 'primary' | 'secondary' | 'tertiary'
-  icon?: string
+  icon?: Component | string
   tagText?: string
+  tagType?: 'success' | 'warning' | 'info' | 'danger'
 }
 
-const props = defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  tagType: 'success',
+})
 </script>
 
 <template>
@@ -25,10 +30,13 @@ const props = defineProps<Props>()
       <div class="statistics-card__value">{{ value }}</div>
       <div class="statistics-card__label">{{ label }}</div>
       <div v-if="tagText" class="statistics-card__tag">
-        <el-tag type="success" effect="plain">
+        <el-tag :type="tagType" effect="plain">
           {{ tagText }}
         </el-tag>
       </div>
+    </div>
+    <div v-if="$slots.actions" class="statistics-card__actions">
+      <slot name="actions" />
     </div>
   </el-card>
 </template>
@@ -83,6 +91,15 @@ const props = defineProps<Props>()
     display: flex;
     gap: 10px;
     justify-content: center;
+  }
+
+  &__actions {
+    border-top: 1px solid var(--md-outline-variant);
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+    padding-top: 15px;
   }
 
   &--primary {

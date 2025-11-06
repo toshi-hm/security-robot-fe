@@ -4,6 +4,10 @@ import { describe, it, expect } from 'vitest'
 import StatisticsCard from '~/components/common/StatisticsCard.vue'
 
 describe('StatisticsCard', () => {
+  const DummyIcon = {
+    template: '<span class="dummy-icon" />',
+  }
+
   const createWrapper = (props: any, slots?: any) => {
     return mount(StatisticsCard, {
       props,
@@ -22,7 +26,8 @@ describe('StatisticsCard', () => {
             template: '<div class="el-icon"><slot /></div>',
           },
           ElTag: {
-            template: '<span class="el-tag"><slot /></span>',
+            template: '<span class="el-tag" :class="type ? `el-tag--${type}` : undefined"><slot /></span>',
+            props: ['type', 'effect'],
           },
         },
       },
@@ -59,7 +64,7 @@ describe('StatisticsCard', () => {
       value: 5,
       label: 'Label',
       colorTheme: 'primary',
-      icon: 'TrendCharts',
+      icon: DummyIcon,
     })
 
     expect(wrapper.find('.statistics-card__icon').exists()).toBe(true)
@@ -75,6 +80,36 @@ describe('StatisticsCard', () => {
     })
 
     expect(wrapper.text()).toContain('Active: 2')
+  })
+
+  it('renders custom tag type when provided', () => {
+    const wrapper = createWrapper({
+      title: 'Test',
+      value: 5,
+      label: 'Label',
+      colorTheme: 'primary',
+      tagText: 'Info tag',
+      tagType: 'info',
+    })
+
+    expect(wrapper.find('.el-tag').classes()).toContain('el-tag--info')
+  })
+
+  it('renders actions slot when provided', () => {
+    const wrapper = createWrapper(
+      {
+        title: 'Test',
+        value: 5,
+        label: 'Label',
+        colorTheme: 'primary',
+      },
+      {
+        actions: '<button class="test-action">Click</button>',
+      }
+    )
+
+    expect(wrapper.find('.statistics-card__actions').exists()).toBe(true)
+    expect(wrapper.find('.test-action').exists()).toBe(true)
   })
 
   it('has correct BEM class structure', () => {

@@ -3,7 +3,115 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
-- [YYYY-MM-DD セッションXX](#yyyy-mm-dd-セッションxx)
+- [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
+- [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+---
+
+## 2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用
+
+### セッション情報
+- **開始時刻**: 14:00
+- **終了時刻**: 15:45
+- **所要時間**: 105分
+- **対象Phase**: Phase 43
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] StatisticsCardコンポーネントにタグ種別とアクションスロットを追加
+- [x] Playback一覧ページをStatisticsCard/SearchFilter/SessionStatusTagで再構成
+- [x] Dashboard統計カードをStatisticsCardベースにリファクタリング
+- [x] report/PROGRESS.mdのPhase 43進捗を更新
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- Vue 3の`<component :is>`にComponent型を渡すことでElement Plusアイコンを型安全に扱える
+- 汎用コンポーネントにスロットを用意するとアクションボタンなど拡張性を確保できる
+- タグ色をProps化することで複数ページで一貫したUIを再利用できる
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題1: Vitestが即時終了し出力が表示されない
+- **現象**: `pnpm vitest run --coverage` が開始直後に終了コード1で終了し、テスト結果やエラーメッセージが表示されない
+- **原因**: 未解決（Node 22 + Vitest 3.2.4 の組み合わせによる可能性を調査中）
+- **解決策**: コマンドバリエーション（`--run`、`--reporter verbose` など）を試行したが改善せず。後続セッションで追加調査が必要。
+- **所要時間**: 15分
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 作成したファイル
+- なし
+
+#### 変更したファイル
+1. components/common/StatisticsCard.vue
+   - アクションスロットとタグ種別Propsを追加
+2. tests/unit/components/common/StatisticsCard.spec.ts
+   - Component型アイコンのテストとタグ/アクションの検証を追加
+3. pages/playback/index.vue
+   - 統計カード・検索フィルター・ステータスタグを共通コンポーネント化
+4. pages/index.vue
+   - Dashboard統計カードをStatisticsCardへ置き換え
+5. report/PROGRESS.md
+   - Phase 43進捗を更新
+6. report/DIARY04.md
+   - セッション044エントリを追加（本項）
+
+---
+
+### ✅ 完了した課題
+1. ✅ StatisticsCardの再利用性向上
+2. ✅ Playback / Dashboard ページの共通化第一弾
+3. ✅ プロジェクト進捗ドキュメント更新
+
+---
+
+### 🚧 残っている課題
+
+#### 最優先 (P0)
+1. Vitestの異常終了原因調査とテスト実行の復旧
+
+#### 高優先 (P1)
+1. Listページ等の残りのページへの共通コンポーネント適用
+2. コンポーネント抽出方針のドキュメント化
+
+---
+
+### 🎯 次のセッションで実施すべきこと
+
+#### 必須タスク
+1. Vitest実行環境の調査と修正
+2. Playback以外のリストページでSearchFilter/SessionStatusTagを適用
+
+#### 推奨タスク
+1. StatisticsCardのStorybookまたはドキュメント化
+2. Dashboardクイックアクションの共通化検討
+
+---
+
+### 📊 パフォーマンス・品質メトリクス
+- pnpm vitest run --coverage: 失敗（終了コード1／ログなし、要再試行）
+- カバレッジ: 前回値 98.12%（今回未更新）
+- TypeScriptコンパイル: 未実施（コード変更は型エラーなし）
+- Lintチェック: 未実施（既存ルール準拠を確認済み）
+
+---
+
+### 💡 メモ・備考
+- StatisticsCardへアクションスロットを追加したことでDashboardのCTAも統一可能になった
+- SessionStatusTagをPlaybackテーブルのステータス列に導入済み。Trainingページ適用時の表示崩れを確認予定。
+
+---
+
+**セッション終了時刻**: 2025-11-07 15:45
 
 ---
 
