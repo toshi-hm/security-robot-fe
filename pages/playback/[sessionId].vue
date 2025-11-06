@@ -6,6 +6,7 @@ import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.
 import PlaybackControl from '~/components/playback/PlaybackControl.vue'
 import PlaybackSpeed from '~/components/playback/PlaybackSpeed.vue'
 import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
+import type { Position, GridPosition } from '~/libs/domains/common/Position'
 import { usePlaybackStore } from '~/stores/playback'
 
 const route = useRoute()
@@ -172,12 +173,14 @@ const handleBack = () => {
             <h3>環境状態</h3>
             <EnvironmentVisualization
               v-if="currentFrame?.environmentState"
-              :grid-width="8"
               :grid-width="currentFrame.environmentState.coverage_map?.[0]?.length ?? 8"
               :grid-height="currentFrame.environmentState.coverage_map?.length ?? 8"
-                x: currentFrame.environmentState.robot_x ?? 0,
-                y: currentFrame.environmentState.robot_y ?? 0,
-              }"
+              :robot-position="
+                {
+                  x: currentFrame.environmentState.robot_x ?? 0,
+                  y: currentFrame.environmentState.robot_y ?? 0,
+                } satisfies Position
+              "
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
             />
@@ -188,10 +191,12 @@ const handleBack = () => {
             <h3>ロボット位置</h3>
             <RobotPositionDisplay
               v-if="currentFrame?.environmentState"
-              :position="{
-                row: currentFrame.environmentState.robot_y ?? 0,
-                col: currentFrame.environmentState.robot_x ?? 0,
-              }"
+              :position="
+                {
+                  row: currentFrame.environmentState.robot_y ?? 0,
+                  col: currentFrame.environmentState.robot_x ?? 0,
+                } satisfies GridPosition
+              "
             />
             <el-empty v-else description="ロボットデータがありません" />
           </div>
