@@ -130,12 +130,14 @@ const drawEnvironment = () => {
       const cellValue = props.coverageMap[y]?.[x]
       const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
       if (isVisited) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
+        const visitedCellColor = getComputedStyle(document.documentElement).getPropertyValue('--color-bg-visited-cell').trim()
+        ctx.fillStyle = visitedCellColor || 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       }
 
       // Draw grid lines
-      ctx.strokeStyle = '#999'
+      const gridBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border-grid').trim()
+      ctx.strokeStyle = gridBorderColor || '#999'
       ctx.lineWidth = 1
       ctx.strokeRect(cellX, cellY, cellSize, cellSize)
     }
@@ -149,19 +151,23 @@ const drawEnvironment = () => {
     const robotX = Math.floor(props.robotPosition.x) * cellSize + cellSize / 2
     const robotY = Math.floor(props.robotPosition.y) * cellSize + cellSize / 2
 
+    const robotBodyColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-body').trim()
+    const robotBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-border').trim()
+    const robotDirectionColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-direction-indicator').trim()
+
     // Robot body (circle)
-    ctx.fillStyle = '#409eff'
+    ctx.fillStyle = robotBodyColor || '#409eff'
     ctx.beginPath()
     ctx.arc(robotX, robotY, cellSize / 3, 0, Math.PI * 2)
     ctx.fill()
 
     // Robot border
-    ctx.strokeStyle = '#fff'
+    ctx.strokeStyle = robotBorderColor || '#fff'
     ctx.lineWidth = 3
     ctx.stroke()
 
     // Robot direction indicator (small circle)
-    ctx.fillStyle = '#fff'
+    ctx.fillStyle = robotDirectionColor || '#fff'
     ctx.beginPath()
     ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
     ctx.fill()
@@ -176,7 +182,7 @@ const drawEnvironment = () => {
  * @param level - Threat level 0.0 to 1.0
  */
 const getThreatColor = (level: number): string => {
-  if (level === 0) return '#f0f0f0' // Gray for no threat
+  if (level === 0) return 'var(--color-bg-no-threat)' // Gray for no threat
 
   // Interpolate from yellow (low) to red (high)
   const red = Math.floor(255)
@@ -192,8 +198,10 @@ const getThreatColor = (level: number): string => {
 const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   if (!props.trajectory || props.trajectory.length === 0) return
 
+  const trajectoryLineColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-line').trim()
+
   // Draw trajectory path
-  ctx.strokeStyle = 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
+  ctx.strokeStyle = trajectoryLineColor || 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
   ctx.lineWidth = 3
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -211,6 +219,10 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   })
   ctx.stroke()
 
+  // Get base colors for trajectory points
+  const trajectoryPointBaseColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-point').trim()
+  const trajectoryPointBorderBaseColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-point-border').trim()
+
   // Draw trajectory points (fade from old to recent)
   props.trajectory.forEach((pos, index) => {
     const x = Math.floor(pos.x) * cellSize + cellSize / 2
@@ -219,13 +231,17 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
     // Calculate opacity based on position in trajectory (older = more transparent)
     const opacity = 0.2 + (index / props.trajectory.length) * 0.6
 
-    ctx.fillStyle = `rgba(64, 158, 255, ${opacity})`
+    // Parse RGB values from CSS variables or use fallback
+    const pointColor = trajectoryPointBaseColor || 'rgb(64 158 255)'
+    const borderColor = trajectoryPointBorderBaseColor || 'rgb(255 255 255)'
+
+    ctx.fillStyle = pointColor.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`)
     ctx.beginPath()
     ctx.arc(x, y, 4, 0, Math.PI * 2)
     ctx.fill()
 
     // White border for visibility
-    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
+    ctx.strokeStyle = borderColor.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`)
     ctx.lineWidth = 1
     ctx.stroke()
   })
@@ -313,8 +329,8 @@ onMounted(() => {
   }
 
   &__canvas {
-    background-color: #fff;
-    border: 2px solid #ddd;
+    background-color: var(--color-bg-canvas);
+    border: 2px solid var(--color-border-canvas);
     border-radius: 4px;
     cursor: grab;
     max-width: 100%;
@@ -331,10 +347,10 @@ onMounted(() => {
   }
 
   &__legend {
-    background-color: rgb(255 255 255 / 0.95);
-    border: 1px solid #ddd;
+    background-color: var(--color-bg-legend);
+    border: 1px solid var(--color-border-default);
     border-radius: 8px;
-    color: #000;
+    color: var(--color-text-legend);
     display: flex;
     gap: 24px;
     padding: 12px 16px;
@@ -365,26 +381,26 @@ onMounted(() => {
   }
 
   &__legend-color {
-    border: 1px solid #999;
+    border: 1px solid var(--color-border-legend-item);
     display: inline-block;
     height: 16px;
     width: 20px;
 
     &--threat-low {
-      background: linear-gradient(to right, #ff0, #fc0);
+      background: linear-gradient(to right, var(--color-threat-low-gradient-start), var(--color-threat-low-gradient-end));
     }
 
     &--threat-high {
-      background: linear-gradient(to right, #f60, #f00);
+      background: linear-gradient(to right, var(--color-threat-high-gradient-start), var(--color-threat-high-gradient-end));
     }
 
     &--visited {
-      background-color: rgb(0 255 0 / 0.3);
+      background-color: var(--color-bg-visited-cell);
     }
   }
 
   &__legend-line {
-    background: linear-gradient(to right, rgb(64 158 255 / 0.5) 0%, rgb(64 158 255 / 0.5) 100%);
+    background: var(--color-trajectory-legend);
     border-radius: 2px;
     display: inline-block;
     height: 3px;

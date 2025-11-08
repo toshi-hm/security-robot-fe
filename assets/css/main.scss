@@ -57,6 +57,55 @@
   --app-background: var(--md-background);
   --app-surface: var(--md-surface);
   --app-surface-alt: var(--md-surface-variant);
+
+  /* ============================================
+     Application-specific Semantic Colors
+     ============================================ */
+
+  /* Text Colors */
+  --color-text-primary: #000;
+  --color-text-secondary: #606266;
+  --color-text-tertiary: #909399;
+  --color-text-disabled: #909399;
+  --color-text-inverse: #fff;
+  --color-text-sidebar: #f9fafb;
+  --color-text-sidebar-title: #303133;
+  --color-text-info: #409eff;
+  --color-text-success: #67c23a;
+  --color-text-warning: #e6a23c;
+  --color-text-error: #f56c6c;
+  --color-text-legend: #000;
+
+  /* Background Colors */
+  --color-bg-canvas: #fff;
+  --color-bg-legend: rgb(255 255 255 / 0.95);
+  --color-bg-sidebar: #1f2937;
+  --color-bg-visited-cell: rgb(0 255 0 / 0.3);
+  --color-bg-no-threat: #f0f0f0;
+
+  /* Border Colors */
+  --color-border-default: #ddd;
+  --color-border-light: #999;
+  --color-border-canvas: #ddd;
+  --color-border-legend-item: #999;
+  --color-border-grid: #999;
+
+  /* Robot Colors */
+  --color-robot-body: #409eff;
+  --color-robot-direction-indicator: #fff;
+  --color-robot-border: #fff;
+
+  /* Trajectory Colors */
+  --color-trajectory-line: rgb(64 158 255 / 0.3);
+  --color-trajectory-point: rgb(64 158 255);
+  --color-trajectory-point-border: rgb(255 255 255);
+  --color-trajectory-legend: rgb(64 158 255 / 0.5);
+
+  /* Threat Level Colors */
+  --color-threat-low-gradient-start: #ff0;
+  --color-threat-low-gradient-end: #fc0;
+  --color-threat-high-gradient-start: #f60;
+  --color-threat-high-gradient-end: #f00;
 }
 
 body {

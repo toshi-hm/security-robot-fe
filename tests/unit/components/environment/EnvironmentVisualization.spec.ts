@@ -400,7 +400,7 @@ describe('EnvironmentVisualization', () => {
       const vm = wrapper.vm as any
 
       const color = vm.getThreatColor(0)
-      expect(color).toBe('#f0f0f0')
+      expect(color).toBe('var(--color-bg-no-threat)')
     })
 
     it('returns yellow-ish for low threat level', () => {
