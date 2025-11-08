@@ -39,7 +39,7 @@ const getStatusText = (status: string): string => {
 </script>
 
 <template>
-  <el-tag :type="getStatusType(status)" size="small">
-    {{ getStatusText(status) }}
+  <el-tag :type="getStatusType(props.status)" size="small">
+    {{ getStatusText(props.status) }}
   </el-tag>
 </template>

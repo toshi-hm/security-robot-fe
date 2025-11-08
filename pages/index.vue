@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { TrendCharts, Files, VideoPlay, Plus, Upload, Setting } from '@element-plus/icons-vue'
 
+import StatisticsCard from '~/components/common/StatisticsCard.vue'
 import { useModelsStore } from '~/stores/models'
 import { usePlaybackStore } from '~/stores/playback'
 import { useTrainingStore } from '~/stores/training'
-import StatisticsCard from '~/components/common/StatisticsCard.vue'
 
 // Stores
 const trainingStore = useTrainingStore()

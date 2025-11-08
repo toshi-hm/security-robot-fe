@@ -28,7 +28,7 @@ const ElTableStub = {
 
 const ElTableColumnStub = {
   name: 'ElTableColumn',
-  template: '<td><slot /></td>',
+  template: '<td><slot :row="{}" /></td>',
   props: ['prop', 'label', 'width', 'minWidth', 'fixed'],
 }
 
@@ -67,6 +67,13 @@ const ElProgressStub = {
   props: ['percentage', 'status'],
 }
 
+const SearchFilterStub = {
+  name: 'SearchFilter',
+  template: '<input class="search-filter" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+  props: ['modelValue', 'placeholder'],
+  emits: ['update:modelValue', 'search'],
+}
+
 describe('Models Index Page', () => {
   const globalStubs = {
     ElButton: ElButtonStub,
@@ -79,6 +86,7 @@ describe('Models Index Page', () => {
     ElAlert: ElAlertStub,
     ElIcon: ElIconStub,
     ElProgress: ElProgressStub,
+    SearchFilter: SearchFilterStub,
     UploadFilled: { template: '<span>upload</span>' },
   }
 
@@ -392,6 +400,108 @@ describe('Models Index Page', () => {
       const progressBar = wrapper.find('.el-progress')
       expect(progressBar.exists()).toBe(true)
       expect(progressBar.attributes('data-percentage')).toBe('100')
+    })
+  })
+
+  describe('Search Filter', () => {
+    it('should display search filter when models exist', () => {
+      const modelsStore = useModelsStore()
+      modelsStore.models = [
+        { id: 'model-1', original_filename: 'test1.zip', file_size: 1024, created_at: '2025-10-14' },
+      ] as any
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const searchFilter = wrapper.find('.models__search')
+      expect(searchFilter.exists()).toBe(true)
+    })
+
+    it('should not display search filter when no models exist', () => {
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const searchFilter = wrapper.find('.models__search')
+      expect(searchFilter.exists()).toBe(false)
+    })
+
+    it('should filter models by filename', async () => {
+      const modelsStore = useModelsStore()
+      modelsStore.models = [
+        { id: 'model-1', original_filename: 'alpha.zip', file_size: 1024, created_at: '2025-10-14' },
+        { id: 'model-2', original_filename: 'beta.zip', file_size: 2048, created_at: '2025-10-15' },
+        { id: 'model-3', original_filename: 'gamma.zip', file_size: 3072, created_at: '2025-10-16' },
+      ] as any
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.searchQuery = 'beta'
+      await wrapper.vm.$nextTick()
+
+      expect(vm.filteredModels.length).toBe(1)
+      expect(vm.filteredModels[0].original_filename).toBe('beta.zip')
+    })
+
+    it('should filter models by ID', async () => {
+      const modelsStore = useModelsStore()
+      modelsStore.models = [
+        { id: 'model-1', original_filename: 'alpha.zip', file_size: 1024, created_at: '2025-10-14' },
+        { id: 'model-2', original_filename: 'beta.zip', file_size: 2048, created_at: '2025-10-15' },
+        { id: 'model-3', original_filename: 'gamma.zip', file_size: 3072, created_at: '2025-10-16' },
+      ] as any
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.searchQuery = 'model-2'
+      await wrapper.vm.$nextTick()
+
+      expect(vm.filteredModels.length).toBe(1)
+      expect(vm.filteredModels[0].id).toBe('model-2')
+    })
+
+    it('should return all models when search query is empty', async () => {
+      const modelsStore = useModelsStore()
+      modelsStore.models = [
+        { id: 'model-1', original_filename: 'alpha.zip', file_size: 1024, created_at: '2025-10-14' },
+        { id: 'model-2', original_filename: 'beta.zip', file_size: 2048, created_at: '2025-10-15' },
+      ] as any
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.searchQuery = ''
+      await wrapper.vm.$nextTick()
+
+      expect(vm.filteredModels.length).toBe(2)
+    })
+
+    it('should show appropriate empty message when no search results', async () => {
+      const modelsStore = useModelsStore()
+      modelsStore.models = [
+        { id: 'model-1', original_filename: 'alpha.zip', file_size: 1024, created_at: '2025-10-14' },
+      ] as any
+
+      const wrapper = mount(ModelsIndexPage, {
+        global: { stubs: globalStubs },
+      })
+
+      const vm = wrapper.vm as any
+      vm.searchQuery = 'nonexistent'
+      await wrapper.vm.$nextTick()
+
+      const empty = wrapper.find('.el-empty')
+      expect(empty.exists()).toBe(true)
+      expect(empty.text()).toContain('検索結果が見つかりません')
     })
   })
 })

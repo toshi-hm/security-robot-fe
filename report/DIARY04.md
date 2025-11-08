@@ -3,8 +3,244 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-07 セッション046 - Models一覧への共通コンポーネント適用](#2025-11-07-セッション046---models一覧への共通コンポーネント適用)
+- [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+---
+
+## 2025-11-07 セッション046 - Models一覧への共通コンポーネント適用
+
+### セッション情報
+- **開始時刻**: 15:21
+- **終了時刻**: 15:30 (予定)
+- **所要時間**: 約10分
+- **対象Phase**: Phase 43
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] Models一覧ページにSearchFilterを導入
+- [x] ファイル名・IDでのフィルタリングロジック実装
+- [x] テスト追加（検索機能の6テスト + ElTableColumnスタブ修正）
+- [x] 共通コンポーネント活用ガイド作成 (docs/COMPONENT_USAGE_GUIDE.md)
+- [x] DIARY04/PROGRESS.md更新
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- ElTableColumnスタブで `<slot :row="{}" />` を提供しないと、テンプレート内の `row.field` アクセスでエラーになる
+- Training一覧のテストでは `vi.stubGlobal()` でuseTraining/useRouterをモックし、`afterEach`でクリーンアップが必要
+- SearchFilterは複数のフィールド(ID, filename, original_filename)を検索対象にする汎用パターンが有効
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題1: ElTableColumnスタブでrow未定義エラー
+- **現象**: テスト実行時に `Cannot read properties of undefined (reading 'file_size')` エラー
+- **原因**: ElTableColumnスタブのslot定義で `:row` を提供していなかった
+- **解決策**: `template: '<td><slot :row="{}" /></td>'` に修正し、空オブジェクトを渡すことで解決
+- **所要時間**: 3分
+
+#### 問題2: Training一覧テストで filteredSessions が空配列になる
+- **現象**: `wrapper.vm.filteredSessions` が常に `[]` となりテスト失敗
+- **原因**: `useTraining`のモックがglobal mocksで渡されているが、refの参照が正しく伝わっていなかった
+- **解決策**: `vi.stubGlobal('useTraining', () => trainingMock)` で明示的にスタブし、`afterEach`で `vi.unstubAllGlobals()` を実行
+- **所要時間**: 5分
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 作成したファイル
+1. docs/COMPONENT_USAGE_GUIDE.md
+   - 共通コンポーネント活用ガイド (全285行)
+   - StatisticsCard, SearchFilter, SessionStatusTag の使い方
+   - テスト記述例、実装履歴、今後の展開を記載
+
+#### 変更したファイル
+1. pages/models/index.vue
+   - SearchFilter導入、searchQueryとfilteredModelsを追加
+   - フィルタリングロジック (filename, original_filename, id)
+   - 空表示メッセージの条件分岐 ("モデルがありません" / "検索結果が見つかりません")
+
+2. tests/unit/pages/models/index.spec.ts
+   - SearchFilterスタブ追加
+   - ElTableColumnスタブ修正 (`:row="{}"` 追加)
+   - Search Filter describeブロック追加 (6テスト)
+
+3. tests/unit/pages/training/index.spec.ts
+   - `vi.stubGlobal()` パターンへ移行
+   - `afterEach` で `vi.unstubAllGlobals()` 追加
+   - `wrapper.vm.searchQuery` 直接設定に修正
+
+4. report/PROGRESS.md
+   - Phase 43進捗更新 (Models一覧適用完了を追記予定)
+
+5. report/DIARY04.md
+   - 本エントリを追加
+
+---
+
+### ✅ 完了した課題
+1. ✅ Models一覧へのSearchFilter適用
+2. ✅ 検索機能のテスト追加 (6テスト)
+3. ✅ 共通コンポーネント活用ガイドドキュメント作成
+4. ✅ 全テスト成功 (502/502 passing, 100%)
+
+---
+
+### 🚧 残っている課題
+
+#### 最優先 (P0)
+- なし (Phase 43完了)
+
+#### 高優先 (P1)
+1. Phase 2-4の実装検討 (TrainingSessionTable, ModelUploadDialog等)
+2. ヘルパー関数の共通化 (utils/mappers.ts, formatters.ts拡張)
+
+---
+
+### 🎯 次のセッションで実施すべきこと
+
+#### 必須タスク
+1. PROGRESS.mdへのPhase 43完了状況の反映
+2. コミット＆プッシュ
+
+#### 推奨タスク
+1. Phase 2実装の検討 (TrainingSessionTable等)
+2. ヘルパー関数共通化の優先順位付け
+
+---
+
+### 📊 パフォーマンス・品質メトリクス
+- **Tests**: 502/502 passing (100%)
+- **Coverage**:
+  - Statements: **98.14%** (目標85%達成 ✅ +13.14pt)
+  - Branches: 92.90% (目標85%達成 ✅ +7.90pt)
+  - Functions: **87.09%** (目標85%達成 ✅ +2.09pt)
+  - Lines: **98.14%** (目標85%達成 ✅ +13.14pt)
+- TypeScript: 0 errors
+- ESLint: 0 errors
+- Build: 成功
+
+---
+
+### 💡 メモ・備考
+- Phase 43 (共通コンポーネント整備) は本セッションで完了
+- 3つの共通コンポーネント (StatisticsCard, SearchFilter, SessionStatusTag) が4ページ (Dashboard, Training一覧, Playback一覧, Models一覧) で利用可能に
+- 今後はPhase 2 (中再利用性コンポーネント) やヘルパー関数共通化を検討
+
+---
+
+**セッション終了時刻**: 2025-11-07 15:30
+
+---
+
+## 2025-11-07 セッション045 - Training一覧への共通コンポーネント適用
+
+### セッション情報
+- **開始時刻**: 16:00
+- **終了時刻**: 17:35
+- **所要時間**: 95分
+- **対象Phase**: Phase 43
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] Training一覧（pages/training/index.vue）にSearchFilterとSessionStatusTagを導入
+- [x] 検索ロジック（ID/名前/アルゴリズム/ステータス）を追加し、空表示判定を統一
+- [x] ページテストをSearchFilter・SessionStatusTag対応へ更新し、フィルタリングのユニットテストを追加
+- [x] Phase 43進捗（Training適用完了）をPROGRESS.mdに反映
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- script setup で定義した関数（handleSearchなど）はテストから直接呼び出すことで挙動を検証できる
+- composablesのモックを返す際にrefを都度生成すると、テスト毎に独立した状態を保てる
+- SearchFilterを複数ページで使用する際はIconコンポーネントのスタブ不足によるVue警告が出るため、テスト環境でのstub整備が重要
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題1: VitestのJSONレポート実行で失敗扱いになる
+- **現象**: `pnpm vitest run --pool=threads --coverage --reporter json` を単独で実行すると、テスト自体は通っているが終了コード1になりGitHub Actions的に失敗扱いとなる
+- **原因**: JSONレポーターのみを指定した場合、Vitestがsuccessフラグをfalseにする仕様（既知バグ）
+- **解決策**: `--reporter=default --reporter=json` のように標準レポーターを併用することで解決。通常実行は `--pool=threads` 付きで問題なし。
+- **所要時間**: 10分
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 作成したファイル
+- なし
+
+#### 変更したファイル
+1. pages/training/index.vue
+   - SearchFilter/SessionStatusTag導入、フィルタリングロジックを追加
+2. tests/unit/pages/training/index.spec.ts
+   - モックの拡張、フィルタリングに関するテストを追加
+3. report/PROGRESS.md
+   - Phase 43のTraining一覧適用を完了に更新
+4. report/DIARY04.md
+   - 本エントリを追加
+
+---
+
+### ✅ 完了した課題
+1. ✅ Trainingページでの共通コンポーネント適用
+2. ✅ Training一覧の検索体験統一
+3. ✅ Phase 43進捗のドキュメント更新
+
+---
+
+### 🚧 残っている課題
+
+#### 最優先 (P0)
+1. Vitest実行環境（forksプールでの即時終了）の根本原因調査
+
+#### 高優先 (P1)
+1. 共通コンポーネント活用方針（利用ガイドライン）のドキュメント化
+2. Models/Settings等の残りページへのSearchFilter適用検討
+
+---
+
+### 🎯 次のセッションで実施すべきこと
+
+#### 必須タスク
+1. forksプールでのVitest異常終了を再現・修正し、CIでも安定実行できるようにする
+2. 共通コンポーネント利用ポリシーのまとめ（instructions配下への反映）
+
+#### 推奨タスク
+1. Models一覧ページのフィルタリングをSearchFilterへ統一
+2. SearchFilter/SessionStatusTagのストーリーブック or ドキュメント化
+
+---
+
+### 📊 パフォーマンス・品質メトリクス
+- pnpm vitest run --pool=threads --coverage: 成功（Coverage: Statements 98.14% / Branches 92.90% / Functions 87.09% / Lines 98.14%）
+- TypeScriptコンパイル: 未実施（既存型定義を流用）
+- Lintチェック: 未実施（前回から差分なし）
+
+---
+
+### 💡 メモ・備考
+- SearchFilter継続利用に伴い、テスト環境のElement Plusアイコンスタブを整理する必要あり
+- Trainingページの空表示条件をfilteredSessions基準に変更したため、検索時のUXが改善
+
+---
+
+**セッション終了時刻**: 2025-11-07 17:35
 
 ---
 

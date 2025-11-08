@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UploadFilled } from '@element-plus/icons-vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import type { ModelEntity } from '~/libs/entities/model/ModelEntity'
 import { useModelsStore } from '~/stores/models'
@@ -13,6 +13,7 @@ interface UploadFile {
 const modelsStore = useModelsStore()
 const uploadDialogVisible = ref(false)
 const uploadFile = ref<File | null>(null)
+const searchQuery = ref('')
 
 onMounted(async () => {
   await modelsStore.fetchModels()
@@ -84,6 +85,24 @@ const formatDate = (date: string | Date): string => {
   const d = new Date(date)
   return d.toLocaleString('ja-JP')
 }
+
+// Filter models based on search query
+const filteredModels = computed(() => {
+  if (!searchQuery.value) {
+    return modelsStore.models
+  }
+
+  const query = searchQuery.value.toLowerCase()
+  return modelsStore.models.filter(model => {
+    const filename = (model.original_filename || model.filename || '').toLowerCase()
+    const id = (model.id || '').toString().toLowerCase()
+    return filename.includes(query) || id.includes(query)
+  })
+})
+
+const handleSearch = (query: string) => {
+  searchQuery.value = query
+}
 </script>
 
 <template>
@@ -105,9 +124,17 @@ const formatDate = (date: string | Date): string => {
         class="models__error"
       />
 
-      <el-empty v-if="modelsStore.models.length === 0 && !modelsStore.isLoading" description="モデルがありません" />
+      <!-- Search Filter -->
+      <div v-if="modelsStore.models.length > 0" class="models__search">
+        <SearchFilter v-model="searchQuery" placeholder="ファイル名またはIDで検索..." @search="handleSearch" />
+      </div>
 
-      <el-table v-else :data="modelsStore.models" stripe style="width: 100%">
+      <el-empty
+        v-if="filteredModels.length === 0 && !modelsStore.isLoading"
+        :description="searchQuery ? '検索結果が見つかりません' : 'モデルがありません'"
+      />
+
+      <el-table v-else :data="filteredModels" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="original_filename" label="ファイル名" min-width="200" />
         <el-table-column label="サイズ" width="120">
@@ -198,6 +225,10 @@ const formatDate = (date: string | Date): string => {
 
   &__progress {
     margin-top: 20px;
+  }
+
+  &__search {
+    margin-bottom: 20px;
   }
 }
 </style>
