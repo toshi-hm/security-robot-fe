@@ -130,7 +130,9 @@ const drawEnvironment = () => {
       const cellValue = props.coverageMap[y]?.[x]
       const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
       if (isVisited) {
-        const visitedCellColor = getComputedStyle(document.documentElement).getPropertyValue('--color-bg-visited-cell').trim()
+        const visitedCellColor = getComputedStyle(document.documentElement)
+          .getPropertyValue('--color-bg-visited-cell')
+          .trim()
         ctx.fillStyle = visitedCellColor || 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       }
@@ -153,7 +155,9 @@ const drawEnvironment = () => {
 
     const robotBodyColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-body').trim()
     const robotBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-border').trim()
-    const robotDirectionColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-direction-indicator').trim()
+    const robotDirectionColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--color-robot-direction-indicator')
+      .trim()
 
     // Robot body (circle)
     ctx.fillStyle = robotBodyColor || '#409eff'
@@ -198,7 +202,9 @@ const getThreatColor = (level: number): string => {
 const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   if (!props.trajectory || props.trajectory.length === 0) return
 
-  const trajectoryLineColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-line').trim()
+  const trajectoryLineColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-trajectory-line')
+    .trim()
 
   // Draw trajectory path
   ctx.strokeStyle = trajectoryLineColor || 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
@@ -220,8 +226,12 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   ctx.stroke()
 
   // Get base colors for trajectory points
-  const trajectoryPointBaseColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-point').trim()
-  const trajectoryPointBorderBaseColor = getComputedStyle(document.documentElement).getPropertyValue('--color-trajectory-point-border').trim()
+  const trajectoryPointBaseColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-trajectory-point')
+    .trim()
+  const trajectoryPointBorderBaseColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-trajectory-point-border')
+    .trim()
 
   // Draw trajectory points (fade from old to recent)
   props.trajectory.forEach((pos, index) => {
@@ -387,11 +397,19 @@ onMounted(() => {
     width: 20px;
 
     &--threat-low {
-      background: linear-gradient(to right, var(--color-threat-low-gradient-start), var(--color-threat-low-gradient-end));
+      background: linear-gradient(
+        to right,
+        var(--color-threat-low-gradient-start),
+        var(--color-threat-low-gradient-end)
+      );
     }
 
     &--threat-high {
-      background: linear-gradient(to right, var(--color-threat-high-gradient-start), var(--color-threat-high-gradient-end));
+      background: linear-gradient(
+        to right,
+        var(--color-threat-high-gradient-start),
+        var(--color-threat-high-gradient-end)
+      );
     }
 
     &--visited {
