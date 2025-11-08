@@ -12,6 +12,12 @@ interface Props {
   trajectory?: Position[]
 }
 
+interface TrajectoryColors {
+  line: string
+  point: string
+  pointBorder: string
+}
+
 const props = withDefaults(defineProps<Props>(), {
   gridWidth: 8,
   gridHeight: 8,
@@ -97,14 +103,23 @@ const resetView = () => {
   drawEnvironment()
 }
 
-/**
- * Draw the environment grid on canvas
- */
 const drawEnvironment = () => {
   if (!canvas.value) return
 
   const ctx = canvas.value.getContext('2d')
   if (!ctx) return
+
+  const rootStyle = getComputedStyle(document.documentElement)
+  const visitedCellColor = rootStyle.getPropertyValue('--color-bg-visited-cell').trim() || 'rgba(0, 255, 0, 0.2)'
+  const gridBorderColor = rootStyle.getPropertyValue('--color-border-grid').trim() || '#999'
+  const robotBodyColor = rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff'
+  const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
+  const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
+  const trajectoryColors: TrajectoryColors = {
+    line: rootStyle.getPropertyValue('--color-trajectory-line').trim() || 'rgba(64, 158, 255, 0.3)',
+    point: rootStyle.getPropertyValue('--color-trajectory-point').trim() || 'rgb(64 158 255)',
+    pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || 'rgb(255 255 255)',
+  }
 
   // Clear canvas
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
@@ -130,48 +145,38 @@ const drawEnvironment = () => {
       const cellValue = props.coverageMap[y]?.[x]
       const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
       if (isVisited) {
-        const visitedCellColor = getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-bg-visited-cell')
-          .trim()
-        ctx.fillStyle = visitedCellColor || 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
+        ctx.fillStyle = visitedCellColor // Green overlay for visited
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       }
 
       // Draw grid lines
-      const gridBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border-grid').trim()
-      ctx.strokeStyle = gridBorderColor || '#999'
+      ctx.strokeStyle = gridBorderColor
       ctx.lineWidth = 1
       ctx.strokeRect(cellX, cellY, cellSize, cellSize)
     }
   }
 
   // Draw robot trajectory
-  drawTrajectory(ctx)
+  drawTrajectory(ctx, trajectoryColors)
 
   // Draw robot position
   if (props.robotPosition) {
     const robotX = Math.floor(props.robotPosition.x) * cellSize + cellSize / 2
     const robotY = Math.floor(props.robotPosition.y) * cellSize + cellSize / 2
 
-    const robotBodyColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-body').trim()
-    const robotBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-robot-border').trim()
-    const robotDirectionColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-robot-direction-indicator')
-      .trim()
-
     // Robot body (circle)
-    ctx.fillStyle = robotBodyColor || '#409eff'
+    ctx.fillStyle = robotBodyColor
     ctx.beginPath()
     ctx.arc(robotX, robotY, cellSize / 3, 0, Math.PI * 2)
     ctx.fill()
 
     // Robot border
-    ctx.strokeStyle = robotBorderColor || '#fff'
+    ctx.strokeStyle = robotBorderColor
     ctx.lineWidth = 3
     ctx.stroke()
 
     // Robot direction indicator (small circle)
-    ctx.fillStyle = robotDirectionColor || '#fff'
+    ctx.fillStyle = robotDirectionColor
     ctx.beginPath()
     ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
     ctx.fill()
@@ -199,15 +204,11 @@ const getThreatColor = (level: number): string => {
 /**
  * Draw robot trajectory (path history)
  */
-const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
+const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors) => {
   if (!props.trajectory || props.trajectory.length === 0) return
 
-  const trajectoryLineColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--color-trajectory-line')
-    .trim()
-
   // Draw trajectory path
-  ctx.strokeStyle = trajectoryLineColor || 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
+  ctx.strokeStyle = colors.line // Light blue with transparency
   ctx.lineWidth = 3
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -225,14 +226,6 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   })
   ctx.stroke()
 
-  // Get base colors for trajectory points
-  const trajectoryPointBaseColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--color-trajectory-point')
-    .trim()
-  const trajectoryPointBorderBaseColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--color-trajectory-point-border')
-    .trim()
-
   // Draw trajectory points (fade from old to recent)
   props.trajectory.forEach((pos, index) => {
     const x = Math.floor(pos.x) * cellSize + cellSize / 2
@@ -241,19 +234,20 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
     // Calculate opacity based on position in trajectory (older = more transparent)
     const opacity = 0.2 + (index / props.trajectory.length) * 0.6
 
-    // Parse RGB values from CSS variables or use fallback
-    const pointColor = trajectoryPointBaseColor || 'rgb(64 158 255)'
-    const borderColor = trajectoryPointBorderBaseColor || 'rgb(255 255 255)'
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
 
-    ctx.fillStyle = pointColor.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`)
+    ctx.fillStyle = colors.point
     ctx.beginPath()
     ctx.arc(x, y, 4, 0, Math.PI * 2)
     ctx.fill()
 
     // White border for visibility
-    ctx.strokeStyle = borderColor.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`)
+    ctx.strokeStyle = colors.pointBorder
     ctx.lineWidth = 1
     ctx.stroke()
+
+    ctx.restore()
   })
 }
 
