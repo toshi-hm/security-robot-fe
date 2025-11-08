@@ -506,6 +506,7 @@
 - [x] Training一覧（pages/training/index.vue）をSearchFilter/SessionStatusTagで統一 - Session 045
 - [x] Models一覧（pages/models/index.vue）にSearchFilter適用 - Session 046
 - [x] 共通コンポーネント活用方針のドキュメント化 (docs/COMPONENT_USAGE_GUIDE.md) - Session 046
+- [x] SessionStatusTagのステータス定数外部化 (configs/constants.ts) - Session 047
 
 ### 次フェーズ候補
 - [ ] 全ページへのMD3カラー適用（Training, Models, Settings, Dashboard）
