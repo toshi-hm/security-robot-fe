@@ -334,6 +334,7 @@ onMounted(() => {
     background-color: rgb(255 255 255 / 0.95);
     border: 1px solid #ddd;
     border-radius: 8px;
+    color: #000;
     display: flex;
     gap: 24px;
     padding: 12px 16px;
