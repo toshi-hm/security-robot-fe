@@ -508,6 +508,15 @@
 - [x] 共通コンポーネント活用方針のドキュメント化 (docs/COMPONENT_USAGE_GUIDE.md) - Session 046
 - [x] SessionStatusTagのステータス定数外部化 (configs/constants.ts) - Session 047
 
+### Phase 44: Bug Fix - Playback Environment Display ✅
+- [x] Playback再生時の脅威度ヒートマップ表示不具合修正 - Session 048
+  - 問題: `grid-width`と`grid-height`を`coverage_map`から取得していたが、nullまたは空配列の場合に不一致
+  - 解決: `threat_grid`からグリッドサイズを取得するように変更
+  - 影響ファイル: pages/playback/[sessionId].vue (2行変更)
+- [x] ロボット位置のグリッド一致性検証 - Session 048
+  - 検証結果: 座標系の一貫性が保たれており、問題なし
+  - `robot_x`（列）、`robot_y`（行）の使用が正しいことを確認
+
 ### 次フェーズ候補
 - [ ] 全ページへのMD3カラー適用（Training, Models, Settings, Dashboard）
 - [ ] ダークモード対応

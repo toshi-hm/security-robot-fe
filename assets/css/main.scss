@@ -57,15 +57,291 @@
   --app-background: var(--md-background);
   --app-surface: var(--md-surface);
   --app-surface-alt: var(--md-surface-variant);
+
+  /* ============================================
+     Application-specific Semantic Colors
+     ============================================ */
+
+  /* Text Colors */
+  --color-text-primary: #000;
+  --color-text-secondary: #606266;
+  --color-text-tertiary: #909399;
+  --color-text-disabled: #909399;
+  --color-text-inverse: #fff;
+  --color-text-sidebar: #f9fafb;
+  --color-text-sidebar-title: #303133;
+  --color-text-info: #409eff;
+  --color-text-success: #67c23a;
+  --color-text-warning: #e6a23c;
+  --color-text-error: #f56c6c;
+  --color-text-legend: #000;
+
+  /* Background Colors */
+  --color-bg-canvas: #fff;
+  --color-bg-legend: rgb(255 255 255 / 0.95);
+  --color-bg-sidebar: #1f2937;
+  --color-bg-visited-cell: rgb(0 255 0 / 0.3);
+  --color-bg-no-threat: #f0f0f0;
+
+  /* Border Colors */
+  --color-border-default: #ddd;
+  --color-border-light: #999;
+  --color-border-canvas: #ddd;
+  --color-border-legend-item: #999;
+  --color-border-grid: #999;
+
+  /* Robot Colors */
+  --color-robot-body: #409eff;
+  --color-robot-direction-indicator: #fff;
+  --color-robot-border: #fff;
+
+  /* Trajectory Colors */
+  --color-trajectory-line: rgb(64 158 255 / 0.3);
+  --color-trajectory-point: rgb(64 158 255);
+  --color-trajectory-point-border: rgb(255 255 255);
+  --color-trajectory-legend: rgb(64 158 255 / 0.5);
+
+  /* Threat Level Colors */
+  --color-threat-low-gradient-start: #ff0;
+  --color-threat-low-gradient-end: #fc0;
+  --color-threat-high-gradient-start: #f60;
+  --color-threat-high-gradient-end: #f00;
+
+  /* Button Colors - Background */
+  --color-btn-primary-bg: #409eff;
+  --color-btn-primary-hover-bg: #66b1ff;
+  --color-btn-primary-active-bg: #3a8ee6;
+  --color-btn-success-bg: #67c23a;
+  --color-btn-success-hover-bg: #85ce61;
+  --color-btn-success-active-bg: #5daf34;
+  --color-btn-warning-bg: #e6a23c;
+  --color-btn-warning-hover-bg: #ebb563;
+  --color-btn-warning-active-bg: #cf9236;
+  --color-btn-danger-bg: #f56c6c;
+  --color-btn-danger-hover-bg: #f78989;
+  --color-btn-danger-active-bg: #dd6161;
+  --color-btn-info-bg: #909399;
+  --color-btn-info-hover-bg: #a6a9ad;
+  --color-btn-info-active-bg: #82848a;
+  --color-btn-default-bg: #fff;
+  --color-btn-default-hover-bg: #f5f7fa;
+  --color-btn-default-active-bg: #e4e7ed;
+
+  /* Button Colors - Text */
+  --color-btn-primary-text: #fff;
+  --color-btn-success-text: #fff;
+  --color-btn-warning-text: #fff;
+  --color-btn-danger-text: #fff;
+  --color-btn-info-text: #fff;
+  --color-btn-default-text: #606266;
+
+  /* Button Colors - Border */
+  --color-btn-primary-border: #409eff;
+  --color-btn-success-border: #67c23a;
+  --color-btn-warning-border: #e6a23c;
+  --color-btn-danger-border: #f56c6c;
+  --color-btn-info-border: #909399;
+  --color-btn-default-border: #dcdfe6;
 }
 
 body {
   background-color: var(--md-background);
-  color: var(--md-on-background);
+  color: var(--color-text-primary);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   margin: 0;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* ============================================
+   Global Button Styles (Element Plus Override)
+   ============================================ */
+
+/* Primary Button */
+.el-button--primary {
+  background-color: var(--color-btn-primary-bg) !important;
+  border-color: var(--color-btn-primary-border) !important;
+  color: var(--color-btn-primary-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-primary-hover-bg) !important;
+    border-color: var(--color-btn-primary-hover-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-primary-active-bg) !important;
+    border-color: var(--color-btn-primary-active-bg) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-border) !important;
+    color: var(--color-btn-primary-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Success Button */
+.el-button--success {
+  background-color: var(--color-btn-success-bg) !important;
+  border-color: var(--color-btn-success-border) !important;
+  color: var(--color-btn-success-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-success-hover-bg) !important;
+    border-color: var(--color-btn-success-hover-bg) !important;
+    color: var(--color-btn-success-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-success-active-bg) !important;
+    border-color: var(--color-btn-success-active-bg) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-success-bg) !important;
+    border-color: var(--color-btn-success-border) !important;
+    color: var(--color-btn-success-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Warning Button */
+.el-button--warning {
+  background-color: var(--color-btn-warning-bg) !important;
+  border-color: var(--color-btn-warning-border) !important;
+  color: var(--color-btn-warning-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-warning-hover-bg) !important;
+    border-color: var(--color-btn-warning-hover-bg) !important;
+    color: var(--color-btn-warning-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-warning-active-bg) !important;
+    border-color: var(--color-btn-warning-active-bg) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-warning-bg) !important;
+    border-color: var(--color-btn-warning-border) !important;
+    color: var(--color-btn-warning-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Danger Button */
+.el-button--danger {
+  background-color: var(--color-btn-danger-bg) !important;
+  border-color: var(--color-btn-danger-border) !important;
+  color: var(--color-btn-danger-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-danger-hover-bg) !important;
+    border-color: var(--color-btn-danger-hover-bg) !important;
+    color: var(--color-btn-danger-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-danger-active-bg) !important;
+    border-color: var(--color-btn-danger-active-bg) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-danger-bg) !important;
+    border-color: var(--color-btn-danger-border) !important;
+    color: var(--color-btn-danger-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Info Button */
+.el-button--info {
+  background-color: var(--color-btn-info-bg) !important;
+  border-color: var(--color-btn-info-border) !important;
+  color: var(--color-btn-info-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-info-hover-bg) !important;
+    border-color: var(--color-btn-info-hover-bg) !important;
+    color: var(--color-btn-info-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-info-active-bg) !important;
+    border-color: var(--color-btn-info-active-bg) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-info-bg) !important;
+    border-color: var(--color-btn-info-border) !important;
+    color: var(--color-btn-info-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Default Button (no type or type="default") */
+.el-button--default,
+.el-button:not([class*='el-button--']) {
+  background-color: var(--color-btn-default-bg) !important;
+  border-color: var(--color-btn-default-border) !important;
+  color: var(--color-btn-default-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-default-hover-bg) !important;
+    border-color: var(--color-btn-default-border) !important;
+    color: var(--color-btn-default-text) !important;
+  }
+
+  &:active {
+    background-color: var(--color-btn-default-active-bg) !important;
+    border-color: var(--color-btn-default-border) !important;
+  }
+
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus,
+  &.is-disabled:active {
+    background-color: var(--color-btn-default-bg) !important;
+    border-color: var(--color-btn-default-border) !important;
+    color: var(--color-btn-default-text) !important;
+    opacity: 0.5;
+  }
+}
+
+/* Reset View Button in EnvironmentVisualization */
+.environment-visualization__reset-button {
+  background-color: var(--color-btn-default-bg) !important;
+  border-color: var(--color-btn-default-border) !important;
+  color: var(--color-btn-default-text) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-btn-default-hover-bg) !important;
+  }
 }

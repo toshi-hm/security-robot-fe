@@ -222,6 +222,7 @@ onMounted(() => {
     margin-bottom: 20px;
 
     :deep(.el-descriptions__label) {
+      color: #000;
       font-weight: 500;
       width: 150px;
     }

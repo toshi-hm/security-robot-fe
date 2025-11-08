@@ -53,7 +53,7 @@ const handleSearch = (value: string) => {
     <el-card v-loading="isLoading" class="training-page__sessions">
       <template #header>
         <div class="training-page__sessions-header">
-          <span>アクティブセッション</span>
+          <span class="training-page__sessions-header--title">アクティブセッション</span>
           <el-button size="small" :loading="isLoading" @click="fetchSessions">
             <i class="el-icon-refresh"></i> 更新
           </el-button>
@@ -144,6 +144,11 @@ const handleSearch = (value: string) => {
       align-items: center;
       display: flex;
       justify-content: space-between;
+
+      &--title {
+        color: var(--color-text-primary);
+        font-weight: 700;
+      }
     }
   }
 

@@ -173,8 +173,8 @@ const handleBack = () => {
             <h3>環境状態</h3>
             <EnvironmentVisualization
               v-if="currentFrame?.environmentState"
-              :grid-width="currentFrame.environmentState.coverage_map?.[0]?.length ?? 8"
-              :grid-height="currentFrame.environmentState.coverage_map?.length ?? 8"
+              :grid-width="currentFrame.environmentState.threat_grid?.[0]?.length ?? 8"
+              :grid-height="currentFrame.environmentState.threat_grid?.length ?? 8"
               :robot-position="
                 {
                   x: currentFrame.environmentState.robot_x ?? 0,
@@ -259,6 +259,11 @@ const handleBack = () => {
 
   &__frame-info {
     margin: 10px 0;
+
+    :deep(.el-descriptions__content) {
+      color: var(--md-on-surface);
+      font-weight: 600;
+    }
   }
 
   &__visualization {
@@ -279,10 +284,14 @@ const handleBack = () => {
     background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-primary);
     border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
     padding: 20px;
 
     h3 {
       color: var(--md-on-primary-container);
+      flex-shrink: 0;
     }
   }
 

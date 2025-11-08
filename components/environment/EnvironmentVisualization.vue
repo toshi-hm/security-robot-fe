@@ -12,6 +12,12 @@ interface Props {
   trajectory?: Position[]
 }
 
+interface TrajectoryColors {
+  line: string
+  point: string
+  pointBorder: string
+}
+
 const props = withDefaults(defineProps<Props>(), {
   gridWidth: 8,
   gridHeight: 8,
@@ -97,14 +103,23 @@ const resetView = () => {
   drawEnvironment()
 }
 
-/**
- * Draw the environment grid on canvas
- */
 const drawEnvironment = () => {
   if (!canvas.value) return
 
   const ctx = canvas.value.getContext('2d')
   if (!ctx) return
+
+  const rootStyle = getComputedStyle(document.documentElement)
+  const visitedCellColor = rootStyle.getPropertyValue('--color-bg-visited-cell').trim() || 'rgba(0, 255, 0, 0.2)'
+  const gridBorderColor = rootStyle.getPropertyValue('--color-border-grid').trim() || '#999'
+  const robotBodyColor = rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff'
+  const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
+  const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
+  const trajectoryColors: TrajectoryColors = {
+    line: rootStyle.getPropertyValue('--color-trajectory-line').trim() || 'rgba(64, 158, 255, 0.3)',
+    point: rootStyle.getPropertyValue('--color-trajectory-point').trim() || 'rgb(64 158 255)',
+    pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || 'rgb(255 255 255)',
+  }
 
   // Clear canvas
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
@@ -130,19 +145,19 @@ const drawEnvironment = () => {
       const cellValue = props.coverageMap[y]?.[x]
       const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
       if (isVisited) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)' // Green overlay for visited
+        ctx.fillStyle = visitedCellColor // Green overlay for visited
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       }
 
       // Draw grid lines
-      ctx.strokeStyle = '#999'
+      ctx.strokeStyle = gridBorderColor
       ctx.lineWidth = 1
       ctx.strokeRect(cellX, cellY, cellSize, cellSize)
     }
   }
 
   // Draw robot trajectory
-  drawTrajectory(ctx)
+  drawTrajectory(ctx, trajectoryColors)
 
   // Draw robot position
   if (props.robotPosition) {
@@ -150,25 +165,22 @@ const drawEnvironment = () => {
     const robotY = Math.floor(props.robotPosition.y) * cellSize + cellSize / 2
 
     // Robot body (circle)
-    ctx.fillStyle = '#409eff'
+    ctx.fillStyle = robotBodyColor
     ctx.beginPath()
     ctx.arc(robotX, robotY, cellSize / 3, 0, Math.PI * 2)
     ctx.fill()
 
     // Robot border
-    ctx.strokeStyle = '#fff'
+    ctx.strokeStyle = robotBorderColor
     ctx.lineWidth = 3
     ctx.stroke()
 
     // Robot direction indicator (small circle)
-    ctx.fillStyle = '#fff'
+    ctx.fillStyle = robotDirectionColor
     ctx.beginPath()
     ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
     ctx.fill()
   }
-
-  // Draw legend
-  drawLegend(ctx)
 
   // Restore canvas context
   ctx.restore()
@@ -179,7 +191,7 @@ const drawEnvironment = () => {
  * @param level - Threat level 0.0 to 1.0
  */
 const getThreatColor = (level: number): string => {
-  if (level === 0) return '#f0f0f0' // Gray for no threat
+  if (level === 0) return 'var(--color-bg-no-threat)' // Gray for no threat
 
   // Interpolate from yellow (low) to red (high)
   const red = Math.floor(255)
@@ -192,11 +204,11 @@ const getThreatColor = (level: number): string => {
 /**
  * Draw robot trajectory (path history)
  */
-const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
+const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors) => {
   if (!props.trajectory || props.trajectory.length === 0) return
 
   // Draw trajectory path
-  ctx.strokeStyle = 'rgba(64, 158, 255, 0.3)' // Light blue with transparency
+  ctx.strokeStyle = colors.line // Light blue with transparency
   ctx.lineWidth = 3
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -222,63 +234,21 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
     // Calculate opacity based on position in trajectory (older = more transparent)
     const opacity = 0.2 + (index / props.trajectory.length) * 0.6
 
-    ctx.fillStyle = `rgba(64, 158, 255, ${opacity})`
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
+
+    ctx.fillStyle = colors.point
     ctx.beginPath()
     ctx.arc(x, y, 4, 0, Math.PI * 2)
     ctx.fill()
 
     // White border for visibility
-    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
+    ctx.strokeStyle = colors.pointBorder
     ctx.lineWidth = 1
     ctx.stroke()
+
+    ctx.restore()
   })
-}
-
-/**
- * Draw legend for threat levels and coverage
- */
-const drawLegend = (ctx: CanvasRenderingContext2D) => {
-  const legendX = 10
-  const legendY = canvasHeight.value - 100
-
-  // Legend background
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-  ctx.fillRect(legendX, legendY, 150, 90)
-  ctx.strokeStyle = '#999'
-  ctx.strokeRect(legendX, legendY, 150, 90)
-
-  // Threat level legend
-  ctx.fillStyle = '#000'
-  ctx.font = '12px sans-serif'
-  ctx.fillText('Threat Level:', legendX + 5, legendY + 15)
-
-  // Low threat
-  ctx.fillStyle = getThreatColor(0.2)
-  ctx.fillRect(legendX + 5, legendY + 20, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('Low', legendX + 30, legendY + 32)
-
-  // High threat
-  ctx.fillStyle = getThreatColor(0.9)
-  ctx.fillRect(legendX + 70, legendY + 20, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('High', legendX + 95, legendY + 32)
-
-  // Coverage legend
-  ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'
-  ctx.fillRect(legendX + 5, legendY + 45, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('Visited', legendX + 30, legendY + 57)
-
-  // Trajectory legend
-  ctx.strokeStyle = 'rgba(64, 158, 255, 0.5)'
-  ctx.lineWidth = 3
-  ctx.beginPath()
-  ctx.moveTo(legendX + 5, legendY + 72)
-  ctx.lineTo(legendX + 25, legendY + 72)
-  ctx.stroke()
-  ctx.fillStyle = '#000'
-  ctx.fillText('Trajectory', legendX + 30, legendY + 77)
 }
 
 // Watch for prop changes and redraw
@@ -296,35 +266,78 @@ onMounted(() => {
 
 <template>
   <div class="environment-visualization">
-    <canvas
-      ref="canvas"
-      :width="canvasWidth"
-      :height="canvasHeight"
-      class="environment-visualization__canvas"
-      @wheel="handleWheel"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseLeave"
-    />
-    <el-button class="environment-visualization__reset-button" size="small" @click="resetView"> Reset View </el-button>
+    <div class="environment-visualization__canvas-wrapper">
+      <canvas
+        ref="canvas"
+        :width="canvasWidth"
+        :height="canvasHeight"
+        class="environment-visualization__canvas"
+        @wheel="handleWheel"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseLeave"
+      />
+      <el-button class="environment-visualization__reset-button" size="small" @click="resetView">
+        Reset View
+      </el-button>
+    </div>
+
+    <!-- Legend as HTML -->
+    <div class="environment-visualization__legend">
+      <div class="environment-visualization__legend-section">
+        <span class="environment-visualization__legend-title">Threat Level:</span>
+        <div class="environment-visualization__legend-items">
+          <div class="environment-visualization__legend-item">
+            <span class="environment-visualization__legend-color environment-visualization__legend-color--threat-low" />
+            <span>Low</span>
+          </div>
+          <div class="environment-visualization__legend-item">
+            <span
+              class="environment-visualization__legend-color environment-visualization__legend-color--threat-high"
+            />
+            <span>High</span>
+          </div>
+        </div>
+      </div>
+      <div class="environment-visualization__legend-section">
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-color environment-visualization__legend-color--visited" />
+          <span>Visited</span>
+        </div>
+      </div>
+      <div class="environment-visualization__legend-section">
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-line" />
+          <span>Trajectory</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .environment-visualization {
-  align-items: center;
   display: flex;
+  flex-direction: column;
+  gap: 16px;
   height: 100%;
-  justify-content: center;
-  position: relative;
   width: 100%;
 
+  &__canvas-wrapper {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+    position: relative;
+  }
+
   &__canvas {
-    background-color: #fff;
-    border: 2px solid #ddd;
+    background-color: var(--color-bg-canvas);
+    border: 2px solid var(--color-border-canvas);
     border-radius: 4px;
     cursor: grab;
+    max-width: 100%;
 
     &:active {
       cursor: grabbing;
@@ -335,6 +348,75 @@ onMounted(() => {
     position: absolute;
     right: 20px;
     top: 20px;
+  }
+
+  &__legend {
+    background-color: var(--color-bg-legend);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    color: var(--color-text-legend);
+    display: flex;
+    gap: 24px;
+    padding: 12px 16px;
+  }
+
+  &__legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__legend-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  &__legend-items {
+    display: flex;
+    gap: 16px;
+  }
+
+  &__legend-item {
+    align-items: center;
+    display: flex;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  &__legend-color {
+    border: 1px solid var(--color-border-legend-item);
+    display: inline-block;
+    height: 16px;
+    width: 20px;
+
+    &--threat-low {
+      background: linear-gradient(
+        to right,
+        var(--color-threat-low-gradient-start),
+        var(--color-threat-low-gradient-end)
+      );
+    }
+
+    &--threat-high {
+      background: linear-gradient(
+        to right,
+        var(--color-threat-high-gradient-start),
+        var(--color-threat-high-gradient-end)
+      );
+    }
+
+    &--visited {
+      background-color: var(--color-bg-visited-cell);
+    }
+  }
+
+  &__legend-line {
+    background: var(--color-trajectory-legend);
+    border-radius: 2px;
+    display: inline-block;
+    height: 3px;
+    width: 20px;
   }
 }
 </style>
