@@ -1,59 +1,42 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
+import SearchFilter from '~/components/common/SearchFilter.vue'
+import SessionStatusTag from '~/components/common/SessionStatusTag.vue'
 import TrainingControl from '~/components/training/TrainingControl.vue'
 
 const { sessions, fetchSessions, isLoading } = useTraining()
 const router = useRouter()
 
-// Real-time updates via WebSocket
-const activeSessionIds = ref<Set<number>>(new Set())
+// Filter state
+const searchQuery = ref('')
 
 onMounted(async () => {
   await fetchSessions()
-
-  // Track active sessions
-  sessions.value.forEach((session) => {
-    if (session.isRunning) {
-      activeSessionIds.value.add(session.id)
-    }
-  })
 })
 
 const handleSessionClick = (sessionId: number) => {
   router.push(`/training/${sessionId}`)
 }
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case 'running':
-      return 'success'
-    case 'paused':
-      return 'warning'
-    case 'completed':
-      return 'info'
-    case 'failed':
-      return 'danger'
-    default:
-      return 'info'
+const filteredSessions = computed(() => {
+  if (!searchQuery.value) {
+    return sessions.value
   }
-}
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'running':
-      return '実行中'
-    case 'paused':
-      return '一時停止'
-    case 'completed':
-      return '完了'
-    case 'failed':
-      return '失敗'
-    case 'created':
-      return '作成済み'
-    default:
-      return status
-  }
+  const query = searchQuery.value.toLowerCase()
+  return sessions.value.filter((session) => {
+    return (
+      session.id?.toString().includes(query) ||
+      session.name?.toLowerCase().includes(query) ||
+      session.algorithmDisplayName?.toLowerCase().includes(query) ||
+      session.status?.toLowerCase().includes(query)
+    )
+  })
+})
+
+const handleSearch = (value: string) => {
+  searchQuery.value = value
 }
 </script>
 
@@ -77,8 +60,16 @@ const getStatusText = (status: string) => {
         </div>
       </template>
 
+      <div class="training-page__filter">
+        <SearchFilter
+          v-model="searchQuery"
+          placeholder="ID、名前、アルゴリズム、ステータスで検索..."
+          @search="handleSearch"
+        />
+      </div>
+
       <el-table
-        :data="sessions"
+        :data="filteredSessions"
         style="width: 100%"
         :row-class-name="({ row }) => (row.isRunning ? 'active-row' : '')"
         @row-click="handleSessionClick"
@@ -92,9 +83,7 @@ const getStatusText = (status: string) => {
         </el-table-column>
         <el-table-column label="ステータス" width="120">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
+            <SessionStatusTag :status="row.status" />
           </template>
         </el-table-column>
         <el-table-column label="進捗" width="120">
@@ -121,7 +110,7 @@ const getStatusText = (status: string) => {
         </el-table-column>
       </el-table>
 
-      <el-empty v-if="sessions.length === 0 && !isLoading" description="学習セッションが見つかりません" />
+      <el-empty v-if="filteredSessions.length === 0 && !isLoading" description="学習セッションが見つかりません" />
     </el-card>
   </div>
 </template>
@@ -156,6 +145,10 @@ const getStatusText = (status: string) => {
       display: flex;
       justify-content: space-between;
     }
+  }
+
+  &__filter {
+    margin-bottom: 20px;
   }
 
   :deep(.active-row) {

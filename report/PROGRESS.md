@@ -21,15 +21,15 @@
 - **TypeScript**: ✅ Strict mode enabled (typeCheck in tests only)
 
 ### テスト・カバレッジ状況
-- **総テスト数**: 478テスト (ユニットテスト)
-  - ✅ パス: 464テスト (100%)
+- **総テスト数**: 502テスト (ユニットテスト) - **Session 046更新**
+  - ✅ パス: 502テスト (100%)
   - ❌ 失敗: 0テスト
-- **Unit Test Coverage** (Session 039達成):
-  - Lines: **98.11%** (目標85%達成 ✅ **+13.11pt**) 🎉
-  - Functions: **86.66%** (目標85%達成 ✅ **+1.66pt**) 🎉
-  - Branches: 93.12% (目標85%達成 ✅ +8.12pt)
-  - Statements: **98.11%** (目標85%達成 ✅ **+13.11pt**) 🎉
-- **初期カバレッジ**: 26.99% → **+71.12pt 改善** (98.11%達成)
+- **Unit Test Coverage** (Session 046達成):
+  - Statements: **98.14%** (目標85%達成 ✅ **+13.14pt**) 🎉
+  - Branches: **92.90%** (目標85%達成 ✅ **+7.90pt**) 🎉
+  - Functions: **87.09%** (目標85%達成 ✅ **+2.09pt**) 🎉
+  - Lines: **98.14%** (目標85%達成 ✅ **+13.14pt**) 🎉
+- **初期カバレッジ**: 26.99% → **+71.15pt 改善** (98.14%達成)
 
 ---
 
@@ -498,6 +498,15 @@
   - Coverage: 98.12% statements, 93.1% branches, 86.66% functions
   - ESLint: 0 errors, 133 warnings (acceptable)
   - Build: 1.99 MB (496 kB gzip)
+
+### Phase 43: UI Component Refactoring ♻️ - 完了 ✅
+- [x] 再利用コンポーネント整備（StatisticsCard, SearchFilter, SessionStatusTag）- commit 4513904
+- [x] Playback一覧（pages/playback/index.vue）を共通コンポーネント化 - Session 044
+- [x] Dashboard統計カード（pages/index.vue）をStatisticsCard＋アクションスロットへ移行 - Session 044
+- [x] Training一覧（pages/training/index.vue）をSearchFilter/SessionStatusTagで統一 - Session 045
+- [x] Models一覧（pages/models/index.vue）にSearchFilter適用 - Session 046
+- [x] 共通コンポーネント活用方針のドキュメント化 (docs/COMPONENT_USAGE_GUIDE.md) - Session 046
+- [x] SessionStatusTagのステータス定数外部化 (configs/constants.ts) - Session 047
 
 ### 次フェーズ候補
 - [ ] 全ページへのMD3カラー適用（Training, Models, Settings, Dashboard）
