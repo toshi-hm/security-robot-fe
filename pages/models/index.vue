@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UploadFilled } from '@element-plus/icons-vue'
 import { computed, onMounted, ref } from 'vue'
-
+import SearchFilter from '~/components/common/SearchFilter.vue'
 import type { ModelEntity } from '~/libs/entities/model/ModelEntity'
 import { useModelsStore } from '~/stores/models'
 
