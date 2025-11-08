@@ -93,7 +93,7 @@ const filteredModels = computed(() => {
   }
 
   const query = searchQuery.value.toLowerCase()
-  return modelsStore.models.filter(model => {
+  return modelsStore.models.filter((model) => {
     const filename = (model.original_filename || model.filename || '').toLowerCase()
     const id = (model.id || '').toString().toLowerCase()
     return filename.includes(query) || id.includes(query)

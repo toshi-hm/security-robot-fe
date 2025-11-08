@@ -69,7 +69,8 @@ const ElProgressStub = {
 
 const SearchFilterStub = {
   name: 'SearchFilter',
-  template: '<input class="search-filter" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+  template:
+    '<input class="search-filter" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
   props: ['modelValue', 'placeholder'],
   emits: ['update:modelValue', 'search'],
 }
