@@ -13,6 +13,7 @@ const ElTagStub = {
 describe('RobotPositionDisplay', () => {
   const defaultProps = {
     position: { row: 5, col: 3 },
+    orientation: 1,
   }
 
   it('renders the container element', () => {
@@ -38,7 +39,7 @@ describe('RobotPositionDisplay', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Robot Position: (5, 3)')
+    expect(wrapper.text()).toContain('座標: (5, 3)')
   })
 
   it('uses ElTag with info type', () => {
@@ -68,10 +69,10 @@ describe('RobotPositionDisplay', () => {
 
     await wrapper.setProps({ position: { row: 10, col: 7 } })
 
-    expect(wrapper.text()).toContain('Robot Position: (10, 7)')
+    expect(wrapper.text()).toContain('座標: (10, 7)')
   })
 
-  it('handles zero coordinates', () => {
+  it('handles zero coordinates and missing orientation', () => {
     const wrapper = mount(RobotPositionDisplay, {
       props: { position: { row: 0, col: 0 } },
       global: {
@@ -81,6 +82,22 @@ describe('RobotPositionDisplay', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Robot Position: (0, 0)')
+    expect(wrapper.text()).toContain('座標: (0, 0)')
+    expect(wrapper.text()).toContain('向き')
+    expect(wrapper.text()).toContain('未取得')
+  })
+
+  it('renders orientation label and icon when provided', () => {
+    const wrapper = mount(RobotPositionDisplay, {
+      props: defaultProps,
+      global: {
+        stubs: {
+          ElTag: ElTagStub,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('向き')
+    expect(wrapper.text()).toContain('東')
   })
 })

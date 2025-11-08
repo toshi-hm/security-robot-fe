@@ -50,13 +50,22 @@ const PlaybackSpeedStub = {
 const EnvironmentVisualizationStub = {
   name: 'EnvironmentVisualization',
   template: '<div class="environment-viz-stub"></div>',
-  props: ['environmentState'],
+  props: [
+    'gridWidth',
+    'gridHeight',
+    'robotPosition',
+    'robotOrientation',
+    'coverageMap',
+    'threatGrid',
+    'trajectory',
+    'patrolRadius',
+  ],
 }
 
 const RobotPositionDisplayStub = {
   name: 'RobotPositionDisplay',
   template: '<div class="robot-pos-stub"></div>',
-  props: ['position'],
+  props: ['position', 'orientation'],
 }
 
 const ElButtonStub = {
@@ -166,5 +175,72 @@ describe('Playback Session Page', () => {
     expect(wrapper.findComponent(PlaybackControlStub).exists()).toBe(true)
     expect(wrapper.findComponent(PlaybackSpeedStub).exists()).toBe(true)
     expect(wrapper.findComponent(PlaybackTimelineStub).exists()).toBe(true)
+  })
+
+  it('renders frame info cards with label and value together', () => {
+    const playbackStore = usePlaybackStore()
+    playbackStore.frames = [
+      {
+        timestamp: new Date('2025-01-01T00:00:00Z').toISOString(),
+        reward: 1.234,
+        environmentState: {
+          robot_x: 0,
+          robot_y: 0,
+          robot_orientation: 0,
+          threat_grid: [[0]],
+          coverage_map: [[0]],
+        },
+      },
+    ] as any
+
+    const wrapper = mount(PlaybackSessionPage, {
+      global: { stubs: globalStubs },
+    })
+
+    const cards = wrapper.findAll('.playback-detail__frame-card')
+    expect(cards.length).toBeGreaterThan(0)
+    const firstCardText = cards[0].text()
+    expect(firstCardText).toContain('フレーム')
+    expect(firstCardText).toContain('1 / 1')
+  })
+
+  it('passes robot trajectory to EnvironmentVisualization', () => {
+    const playbackStore = usePlaybackStore()
+    playbackStore.frames = [
+      {
+        timestamp: '',
+        reward: 0,
+        environmentState: {
+          robot_x: 1,
+          robot_y: 1,
+          robot_orientation: 0,
+          threat_grid: [[0]],
+          coverage_map: [[0]],
+        },
+      },
+      {
+        timestamp: '',
+        reward: 0,
+        environmentState: {
+          robot_x: 2,
+          robot_y: 1,
+          robot_orientation: 1,
+          threat_grid: [[0]],
+          coverage_map: [[0]],
+        },
+      },
+    ] as any
+    playbackStore.currentFrameIndex = 1
+
+    const wrapper = mount(PlaybackSessionPage, {
+      global: { stubs: globalStubs },
+    })
+
+    const env = wrapper.findComponent(EnvironmentVisualizationStub)
+    expect(env.exists()).toBe(true)
+    expect(env.props('trajectory')).toEqual([
+      { x: 1, y: 1 },
+      { x: 2, y: 1 },
+    ])
   })
 })

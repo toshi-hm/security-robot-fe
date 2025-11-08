@@ -149,6 +149,7 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   episode: number
   step: number
   robot_position: { x: number; y: number; orientation?: number } | [number, number]
+  robot_orientation?: number | null
   action_taken?: number | null
   reward_received?: number | null
   grid_width?: number

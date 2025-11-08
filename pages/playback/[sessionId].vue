@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted, ref } from 'vue'
 
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import PlaybackControl from '~/components/playback/PlaybackControl.vue'
 import PlaybackSpeed from '~/components/playback/PlaybackSpeed.vue'
 import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
+import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position, GridPosition } from '~/libs/domains/common/Position'
 import { usePlaybackStore } from '~/stores/playback'
 
 const route = useRoute()
 const router = useRouter()
 const playbackStore = usePlaybackStore()
+const PATROL_RADIUS = DEFAULT_PATROL_RADIUS
+const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1920)
 
 const sessionId = computed(() => route.params.sessionId as string)
 const currentFrame = computed(() => {
@@ -19,8 +22,75 @@ const currentFrame = computed(() => {
   const index = playbackStore.currentFrameIndex
   return frames[index] || null
 })
+const robotTrajectory = computed<Position[]>(() => {
+  const frames = playbackStore.frames
+  const index = playbackStore.currentFrameIndex
+  if (!frames.length || index < 0) return []
+
+  const path: Position[] = []
+  for (let i = 0; i <= index && i < frames.length; i++) {
+    const env = frames[i]?.environmentState
+    if (!env || typeof env.robot_x !== 'number' || typeof env.robot_y !== 'number') continue
+
+    const x = env.robot_x
+    const y = env.robot_y
+    const last = path[path.length - 1]
+    if (last && last.x === x && last.y === y) continue
+    path.push({ x, y })
+  }
+
+  return path
+})
+
+const frameInfoColumns = computed(() => {
+  if (viewportWidth.value >= 1280) return 4
+  if (viewportWidth.value >= 1024) return 3
+  return 2
+})
+
+const frameInfoItems = computed(() => {
+  if (!currentFrame.value) return []
+  const env = currentFrame.value.environmentState
+  const items: Array<{ label: string; value: string }> = [
+    {
+      label: 'フレーム',
+      value: `${playbackStore.currentFrameIndex + 1} / ${playbackStore.frames.length}`,
+    },
+    {
+      label: 'フレーム番号',
+      value: String(playbackStore.currentFrameIndex),
+    },
+    {
+      label: '報酬',
+      value: currentFrame.value.reward?.toFixed(2) ?? 'N/A',
+    },
+    {
+      label: 'タイムスタンプ',
+      value: currentFrame.value.timestamp
+        ? new Date(currentFrame.value.timestamp).toLocaleTimeString('ja-JP')
+        : 'N/A',
+    },
+    {
+      label: '警備半径(セル)',
+      value: String(PATROL_RADIUS),
+    },
+  ]
+
+  if (env) {
+    items.splice(3, 0, {
+      label: '向き',
+      value: formatOrientation(env.robot_orientation),
+    })
+  }
+
+  return items
+})
 
 let playbackInterval: ReturnType<typeof setInterval> | null = null
+const handleResize = () => {
+  if (typeof window === 'undefined') return
+  viewportWidth.value = window.innerWidth
+}
 
 onMounted(async () => {
   try {
@@ -28,12 +98,18 @@ onMounted(async () => {
   } catch {
     ElMessage.error('セッションデータの読み込みに失敗しました')
   }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize)
+  }
 })
 
 onUnmounted(() => {
   playbackStore.stop()
   if (playbackInterval) {
     clearInterval(playbackInterval)
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', handleResize)
   }
 })
 
@@ -105,6 +181,13 @@ const handleTimelineChange = (value: number) => {
 const handleBack = () => {
   router.push('/playback')
 }
+
+const orientationLabels = ['北', '東', '南', '西'] as const
+const formatOrientation = (orientation?: number | null) => {
+  if (typeof orientation !== 'number' || Number.isNaN(orientation)) return '未取得'
+  const normalized = ((Math.round(orientation) % orientationLabels.length) + orientationLabels.length) % orientationLabels.length
+  return orientationLabels[normalized]
+}
 </script>
 
 <template>
@@ -151,20 +234,15 @@ const handleBack = () => {
 
         <!-- Frame Info -->
         <div v-if="currentFrame" class="playback-detail__frame-info">
-          <el-descriptions :column="4" border>
-            <el-descriptions-item label="フレーム">
-              {{ playbackStore.currentFrameIndex + 1 }} / {{ playbackStore.frames.length }}
-            </el-descriptions-item>
-            <el-descriptions-item label="フレーム番号">
-              {{ playbackStore.currentFrameIndex }}
-            </el-descriptions-item>
-            <el-descriptions-item label="報酬">
-              {{ currentFrame.reward?.toFixed(2) || 'N/A' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="タイムスタンプ">
-              {{ currentFrame.timestamp ? new Date(currentFrame.timestamp).toLocaleTimeString('ja-JP') : 'N/A' }}
-            </el-descriptions-item>
-          </el-descriptions>
+          <div
+            class="playback-detail__frame-grid"
+            :style="{ gridTemplateColumns: `repeat(${frameInfoColumns}, minmax(0, 1fr))` }"
+          >
+            <div v-for="item in frameInfoItems" :key="item.label" class="playback-detail__frame-card">
+              <span class="playback-detail__frame-label">{{ item.label }}</span>
+              <span class="playback-detail__frame-value">{{ item.value }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Environment Visualization -->
@@ -181,8 +259,11 @@ const handleBack = () => {
                   y: currentFrame.environmentState.robot_y ?? 0,
                 } satisfies Position
               "
+              :robot-orientation="currentFrame.environmentState.robot_orientation ?? null"
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
+              :trajectory="robotTrajectory"
+              :patrol-radius="PATROL_RADIUS"
             />
             <el-empty v-else description="環境データがありません" />
           </div>
@@ -197,6 +278,7 @@ const handleBack = () => {
                   col: currentFrame.environmentState.robot_x ?? 0,
                 } satisfies GridPosition
               "
+              :orientation="currentFrame.environmentState.robot_orientation ?? null"
             />
             <el-empty v-else description="ロボットデータがありません" />
           </div>
@@ -259,11 +341,36 @@ const handleBack = () => {
 
   &__frame-info {
     margin: 10px 0;
+  }
 
-    :deep(.el-descriptions__content) {
-      color: var(--md-on-surface);
-      font-weight: 600;
-    }
+  &__frame-grid {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+  }
+
+  &__frame-card {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 72px;
+    padding: 12px 16px;
+  }
+
+  &__frame-label {
+    color: var(--md-on-surface-variant);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  &__frame-value {
+    color: var(--md-on-surface);
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
   }
 
   &__visualization {
@@ -307,3 +414,8 @@ const handleBack = () => {
   }
 }
 </style>
+const frameInfoColumns = computed(() => {
+  if (width.value >= 1280) return 4
+  if (width.value >= 1024) return 3
+  return 2
+})

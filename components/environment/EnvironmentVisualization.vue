@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 
+import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 
 interface Props {
   gridWidth?: number
   gridHeight?: number
   robotPosition?: Position | null
+  robotOrientation?: number | null
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
   trajectory?: Position[]
+  patrolRadius?: number
 }
 
 interface TrajectoryColors {
@@ -25,6 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
   coverageMap: () => [],
   threatGrid: () => [],
   trajectory: () => [],
+  robotOrientation: null,
+  patrolRadius: DEFAULT_PATROL_RADIUS,
 })
 
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -103,6 +108,12 @@ const resetView = () => {
   drawEnvironment()
 }
 
+const normalizeOrientation = (orientation: number | null | undefined): number | null => {
+  if (typeof orientation !== 'number' || Number.isNaN(orientation)) return null
+  const normalized = Math.round(orientation) % 4
+  return normalized < 0 ? normalized + 4 : normalized
+}
+
 const drawEnvironment = () => {
   if (!canvas.value) return
 
@@ -115,6 +126,8 @@ const drawEnvironment = () => {
   const robotBodyColor = rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff'
   const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
   const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
+  const patrolRangeFillColor = rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
+  const patrolRangeStrokeColor = rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
   const trajectoryColors: TrajectoryColors = {
     line: rootStyle.getPropertyValue('--color-trajectory-line').trim() || 'rgba(64, 158, 255, 0.3)',
     point: rootStyle.getPropertyValue('--color-trajectory-point').trim() || 'rgb(64 158 255)',
@@ -164,6 +177,8 @@ const drawEnvironment = () => {
     const robotX = Math.floor(props.robotPosition.x) * cellSize + cellSize / 2
     const robotY = Math.floor(props.robotPosition.y) * cellSize + cellSize / 2
 
+    drawPatrolRange(ctx, robotX, robotY, patrolRangeFillColor, patrolRangeStrokeColor)
+
     // Robot body (circle)
     ctx.fillStyle = robotBodyColor
     ctx.beginPath()
@@ -176,10 +191,7 @@ const drawEnvironment = () => {
     ctx.stroke()
 
     // Robot direction indicator (small circle)
-    ctx.fillStyle = robotDirectionColor
-    ctx.beginPath()
-    ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
-    ctx.fill()
+    drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor)
   }
 
   // Restore canvas context
@@ -251,9 +263,97 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors)
   })
 }
 
+const drawOrientationIndicator = (ctx: CanvasRenderingContext2D, robotX: number, robotY: number, color: string) => {
+  const orientation = normalizeOrientation(props.robotOrientation)
+  if (orientation === null) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
+    ctx.fill()
+    return
+  }
+
+  const vectors: Array<{ dx: number; dy: number }> = [
+    { dx: 0, dy: -1 }, // 北
+    { dx: 1, dy: 0 }, // 東
+    { dx: 0, dy: 1 }, // 南
+    { dx: -1, dy: 0 }, // 西
+  ]
+  const { dx, dy } = vectors[orientation] || vectors[0]
+  const arrowLength = cellSize * 0.45
+  const startX = robotX
+  const startY = robotY
+  const endX = startX + dx * arrowLength
+  const endY = startY + dy * arrowLength
+
+  ctx.strokeStyle = color
+  ctx.lineWidth = 3
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(startX, startY)
+  ctx.lineTo(endX, endY)
+  ctx.stroke()
+
+  // Arrow head
+  const headLength = 10
+  const angle = Math.atan2(dy, dx)
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(endX, endY)
+  ctx.lineTo(
+    endX - headLength * Math.cos(angle - Math.PI / 6),
+    endY - headLength * Math.sin(angle - Math.PI / 6)
+  )
+  ctx.lineTo(
+    endX - headLength * Math.cos(angle + Math.PI / 6),
+    endY - headLength * Math.sin(angle + Math.PI / 6)
+  )
+  ctx.closePath()
+  ctx.fill()
+}
+
+const drawPatrolRange = (
+  ctx: CanvasRenderingContext2D,
+  robotX: number,
+  robotY: number,
+  fillColor: string,
+  strokeColor: string
+) => {
+  if (!props.patrolRadius || props.patrolRadius <= 0) return
+
+  const radius = props.patrolRadius * cellSize
+  ctx.save()
+  ctx.lineWidth = 2
+  ctx.fillStyle = fillColor
+  ctx.beginPath()
+  ctx.arc(robotX, robotY, radius, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.strokeStyle = strokeColor
+  if (typeof ctx.setLineDash === 'function') {
+    ctx.setLineDash([8, 6])
+  }
+  ctx.beginPath()
+  ctx.arc(robotX, robotY, radius, 0, Math.PI * 2)
+  ctx.stroke()
+  if (typeof ctx.setLineDash === 'function') {
+    ctx.setLineDash([])
+  }
+  ctx.restore()
+}
+
 // Watch for prop changes and redraw
 watch(
-  () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight, props.trajectory],
+  () => [
+    props.robotPosition,
+    props.robotOrientation,
+    props.coverageMap,
+    props.threatGrid,
+    props.gridWidth,
+    props.gridHeight,
+    props.trajectory,
+    props.patrolRadius,
+  ],
   () => {
     drawEnvironment()
   }
@@ -304,6 +404,12 @@ onMounted(() => {
         <div class="environment-visualization__legend-item">
           <span class="environment-visualization__legend-color environment-visualization__legend-color--visited" />
           <span>Visited</span>
+        </div>
+      </div>
+      <div class="environment-visualization__legend-section">
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-circle" />
+          <span>警備範囲 ({{ patrolRadius }}セル)</span>
         </div>
       </div>
       <div class="environment-visualization__legend-section">
@@ -409,6 +515,15 @@ onMounted(() => {
     &--visited {
       background-color: var(--color-bg-visited-cell);
     }
+  }
+
+  &__legend-circle {
+    border: 2px dashed var(--color-patrol-range-stroke);
+    border-radius: 50%;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    background-color: var(--color-patrol-range-fill);
   }
 
   &__legend-line {

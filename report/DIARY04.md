@@ -3,12 +3,89 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-10 セッション049 - Playbackロボット向きと警備範囲表示強化](#2025-11-10-セッション049---playbackロボット向きと警備範囲表示強化)
 - [2025-11-09 セッション048 - Playback再生時の脅威度ヒートマップとロボット位置修正](#2025-11-09-セッション048---playback再生時の脅威度ヒートマップとロボット位置修正)
 - [2025-11-08 セッション047 - コード品質改善（Lint修正・定数外部化）](#2025-11-08-セッション047---コード品質改善lint修正定数外部化)
 - [2025-11-07 セッション046 - Models一覧への共通コンポーネント適用](#2025-11-07-セッション046---models一覧への共通コンポーネント適用)
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+---
+
+## 2025-11-10 セッション049 - Playbackロボット向きと警備範囲表示強化
+
+### セッション情報
+- **開始時刻**: 04:05
+- **終了時刻**: 05:05
+- **所要時間**: 約60分
+- **対象Phase**: Phase 44 (Playback Environment Display)
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] `instructions/03_frontend_design_standalone.md` と `report/PROGRESS.md`/`DIARY04.md` を再確認し、警備範囲(radius=2)仕様を再把握
+- [x] EnvironmentVisualization.vue を拡張
+  - ロボットの方位ベクトル描画（北/東/南/西）と矢印ヘッド
+  - 警備半径サークル＋半透明の警戒ゾーン、凡例アイテム追加
+  - CSS変数 `--color-patrol-range-*` を assets/css/main.scss に定義
+- [x] RobotPositionDisplay.vue を情報カード化し、向きラベル＋矢印を表示
+- [x] Playback/Training ページで `robot_orientation` と `DEFAULT_PATROL_RADIUS` を連携
+  - `configs/constants.ts` に `DEFAULT_PATROL_RADIUS = 2` を追加し、両ページ・コンポーネントで利用
+  - Trainingページ: WebSocket `environment_update` メッセージから orientation を抽出、メタ情報カードに表示
+  - Playbackページ: Frame info に向き・警備半径を追加
+- [x] Playbackページで現在フレームまでの `robotTrajectory` を計算し、EnvironmentVisualization に渡して軌跡ラインを描画
+- [x] Playbackフレーム情報テーブルを `el-descriptions` からカード型CSSグリッドへ刷新し、ラベル＋値を1セルで表示。`frameInfoColumns` により4/3/2列へレスポンシブ調整しても幅が変動しないよう固定化
+- [x] 型とテストの整備
+  - `types/api.ts` の EnvironmentUpdateMessage に `robot_orientation` を追加
+  - 環境・ロボット関連テスト（components/pages/spec）を新APIに合わせて更新し、新規ケース（方位矢印/警備範囲）を追加
+- [x] `pnpm vitest run --coverage --pool=threads` 実行（509/509 tests passing, coverage S 98.23 / B 90.84 / F 87.09 / L 98.23）
+
+---
+
+### 🎓 技術的学び
+- Forkプール(`--pool=forks`)ではこの環境でVitestが無言終了するため、`--pool=threads`で実行すると安定して結果・カバレッジが得られることを確認
+- 巡回半径は設計書(01_system_architecture, 報酬計算式)で radius=2 と明記されており、定数として切り出すと training/playback 間で矛盾なく再利用できる
+- 向き表現は `0=北,1=東,2=南,3=西` の循環値なので正規化してからUI/Canvasに渡すと拡張しやすい
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題: Vitest が `pnpm vitest run --coverage` で即時終了し出力が表示されない
+- **原因**: デフォルトの fork プールがこのCLI環境で正常に起動できず無言で exit 1 になる
+- **解決策**: `--pool=threads` を明示し、スレッドプールでテストを実行。以後テストコマンドは `pnpm vitest run --coverage --pool=threads` を使用する
+- **所要時間**: 10分（原因調査＋再実行）
+
+---
+
+### 📁 作成・変更したファイル
+1. `components/environment/EnvironmentVisualization.vue`
+   - 方位矢印・巡回サークル描画、凡例更新、プロパティ追加
+2. `components/environment/RobotPositionDisplay.vue`
+   - 向きタグ表示、スタイル/BEM化
+3. `pages/playback/[sessionId].vue`, `pages/training/[sessionId]/index.vue`
+   - Orientation/Patrol Radius のバインドとUI表示
+4. `configs/constants.ts`, `assets/css/main.scss`
+   - `DEFAULT_PATROL_RADIUS`、パトロール色の定義
+5. `types/api.ts` および関連テスト (`tests/unit/components/...`, `tests/unit/pages/...`)
+   - 型拡張と新規ユニットテスト
+
+---
+
+### ✅ 完了した課題
+1. ✅ ロボットの現在向きをグリッド上で視覚化
+2. ✅ 巡回範囲(radius=2)を視覚的に示すオーバーレイを追加
+3. ✅ Playback/Training UI に向き・警備半径のテレメトリを表示
+4. ✅ 509件のユニットテスト＆カバレッジ基準(≥85%)を維持
+
+---
+
+### 🔄 次のアクション
+- Trainingページの環境情報カードに方向別のアクション履歴/巡回種別を表示するアイデアを検討
+- Playback可視化における警備範囲サークルのアニメーション（フェードイン/アウト）を追加するか検討
+- `pnpm vitest run --coverage --pool=threads` を標準手順としてPROGRESSに明記済みだが、READMEテストコマンドへの追記も次回検討
 
 ---
 
