@@ -11,7 +11,7 @@ describe('SessionStatusTag', () => {
       global: {
         stubs: {
           ElTag: {
-            template: '<span class="el-tag" :class="`el-tag--${type}`"><slot /></span>',
+            template: '<span class="el-tag" :class="\'el-tag--\' + type"><slot /></span>',
             props: ['type', 'size'],
           },
         },
