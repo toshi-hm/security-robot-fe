@@ -225,10 +225,20 @@ describe('EnvironmentVisualization', () => {
       expect(canvasMock.fillRect).toHaveBeenCalled()
     })
 
-    it('draws legend', () => {
-      mount(EnvironmentVisualization, mountOptions)
+    it('renders HTML legend', () => {
+      const wrapper = mount(EnvironmentVisualization, mountOptions)
 
-      expect(canvasMock.fillText).toHaveBeenCalled()
+      // Check that legend container exists
+      const legend = wrapper.find('.environment-visualization__legend')
+      expect(legend.exists()).toBe(true)
+
+      // Check that legend sections exist
+      const sections = wrapper.findAll('.environment-visualization__legend-section')
+      expect(sections.length).toBeGreaterThan(0)
+
+      // Check that legend items exist
+      const items = wrapper.findAll('.environment-visualization__legend-item')
+      expect(items.length).toBeGreaterThan(0)
     })
 
     it('draws trajectory path when provided', () => {

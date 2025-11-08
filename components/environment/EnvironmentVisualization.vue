@@ -167,9 +167,6 @@ const drawEnvironment = () => {
     ctx.fill()
   }
 
-  // Draw legend
-  drawLegend(ctx)
-
   // Restore canvas context
   ctx.restore()
 }
@@ -234,53 +231,6 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D) => {
   })
 }
 
-/**
- * Draw legend for threat levels and coverage
- */
-const drawLegend = (ctx: CanvasRenderingContext2D) => {
-  const legendX = 10
-  const legendY = canvasHeight.value - 100
-
-  // Legend background
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-  ctx.fillRect(legendX, legendY, 150, 90)
-  ctx.strokeStyle = '#999'
-  ctx.strokeRect(legendX, legendY, 150, 90)
-
-  // Threat level legend
-  ctx.fillStyle = '#000'
-  ctx.font = '12px sans-serif'
-  ctx.fillText('Threat Level:', legendX + 5, legendY + 15)
-
-  // Low threat
-  ctx.fillStyle = getThreatColor(0.2)
-  ctx.fillRect(legendX + 5, legendY + 20, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('Low', legendX + 30, legendY + 32)
-
-  // High threat
-  ctx.fillStyle = getThreatColor(0.9)
-  ctx.fillRect(legendX + 70, legendY + 20, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('High', legendX + 95, legendY + 32)
-
-  // Coverage legend
-  ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'
-  ctx.fillRect(legendX + 5, legendY + 45, 20, 15)
-  ctx.fillStyle = '#000'
-  ctx.fillText('Visited', legendX + 30, legendY + 57)
-
-  // Trajectory legend
-  ctx.strokeStyle = 'rgba(64, 158, 255, 0.5)'
-  ctx.lineWidth = 3
-  ctx.beginPath()
-  ctx.moveTo(legendX + 5, legendY + 72)
-  ctx.lineTo(legendX + 25, legendY + 72)
-  ctx.stroke()
-  ctx.fillStyle = '#000'
-  ctx.fillText('Trajectory', legendX + 30, legendY + 77)
-}
-
 // Watch for prop changes and redraw
 watch(
   () => [props.robotPosition, props.coverageMap, props.threatGrid, props.gridWidth, props.gridHeight, props.trajectory],
@@ -296,35 +246,78 @@ onMounted(() => {
 
 <template>
   <div class="environment-visualization">
-    <canvas
-      ref="canvas"
-      :width="canvasWidth"
-      :height="canvasHeight"
-      class="environment-visualization__canvas"
-      @wheel="handleWheel"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseLeave"
-    />
-    <el-button class="environment-visualization__reset-button" size="small" @click="resetView"> Reset View </el-button>
+    <div class="environment-visualization__canvas-wrapper">
+      <canvas
+        ref="canvas"
+        :width="canvasWidth"
+        :height="canvasHeight"
+        class="environment-visualization__canvas"
+        @wheel="handleWheel"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseLeave"
+      />
+      <el-button class="environment-visualization__reset-button" size="small" @click="resetView">
+        Reset View
+      </el-button>
+    </div>
+
+    <!-- Legend as HTML -->
+    <div class="environment-visualization__legend">
+      <div class="environment-visualization__legend-section">
+        <span class="environment-visualization__legend-title">Threat Level:</span>
+        <div class="environment-visualization__legend-items">
+          <div class="environment-visualization__legend-item">
+            <span class="environment-visualization__legend-color environment-visualization__legend-color--threat-low" />
+            <span>Low</span>
+          </div>
+          <div class="environment-visualization__legend-item">
+            <span
+              class="environment-visualization__legend-color environment-visualization__legend-color--threat-high"
+            />
+            <span>High</span>
+          </div>
+        </div>
+      </div>
+      <div class="environment-visualization__legend-section">
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-color environment-visualization__legend-color--visited" />
+          <span>Visited</span>
+        </div>
+      </div>
+      <div class="environment-visualization__legend-section">
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-line" />
+          <span>Trajectory</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .environment-visualization {
-  align-items: center;
   display: flex;
+  flex-direction: column;
+  gap: 16px;
   height: 100%;
-  justify-content: center;
-  position: relative;
   width: 100%;
+
+  &__canvas-wrapper {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+    position: relative;
+  }
 
   &__canvas {
     background-color: #fff;
     border: 2px solid #ddd;
     border-radius: 4px;
     cursor: grab;
+    max-width: 100%;
 
     &:active {
       cursor: grabbing;
@@ -335,6 +328,66 @@ onMounted(() => {
     position: absolute;
     right: 20px;
     top: 20px;
+  }
+
+  &__legend {
+    background-color: rgb(255 255 255 / 0.95);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    gap: 24px;
+    padding: 12px 16px;
+  }
+
+  &__legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__legend-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  &__legend-items {
+    display: flex;
+    gap: 16px;
+  }
+
+  &__legend-item {
+    align-items: center;
+    display: flex;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  &__legend-color {
+    border: 1px solid #999;
+    display: inline-block;
+    height: 16px;
+    width: 20px;
+
+    &--threat-low {
+      background: linear-gradient(to right, #ff0, #fc0);
+    }
+
+    &--threat-high {
+      background: linear-gradient(to right, #f60, #f00);
+    }
+
+    &--visited {
+      background-color: rgb(0 255 0 / 0.3);
+    }
+  }
+
+  &__legend-line {
+    background: linear-gradient(to right, rgb(64 158 255 / 0.5) 0%, rgb(64 158 255 / 0.5) 100%);
+    border-radius: 2px;
+    display: inline-block;
+    height: 3px;
+    width: 20px;
   }
 }
 </style>

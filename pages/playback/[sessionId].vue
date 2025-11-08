@@ -279,10 +279,14 @@ const handleBack = () => {
     background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-primary);
     border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
     padding: 20px;
 
     h3 {
       color: var(--md-on-primary-container);
+      flex-shrink: 0;
     }
   }
 
