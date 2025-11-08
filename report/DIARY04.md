@@ -3,11 +3,109 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-09 セッション048 - Playback再生時の脅威度ヒートマップとロボット位置修正](#2025-11-09-セッション048---playback再生時の脅威度ヒートマップとロボット位置修正)
 - [2025-11-08 セッション047 - コード品質改善（Lint修正・定数外部化）](#2025-11-08-セッション047---コード品質改善lint修正定数外部化)
 - [2025-11-07 セッション046 - Models一覧への共通コンポーネント適用](#2025-11-07-セッション046---models一覧への共通コンポーネント適用)
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+---
+
+## 2025-11-09 セッション048 - Playback再生時の脅威度ヒートマップとロボット位置修正
+
+### セッション情報
+- **開始時刻**: 02:23
+- **終了時刻**: 02:45
+- **所要時間**: 約22分
+- **対象Phase**: Phase 44 (Bug Fix - Playback環境表示)
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] Playback再生における脅威度ヒートマップ表示不具合の原因特定
+- [x] グリッドサイズ取得元の修正（coverage_map → threat_grid）
+- [x] 全テスト実行（505テスト、100%成功）
+- [x] Lintチェック（0エラー、145警告）
+- [x] ビルド確認（1.99 MB、497 kB gzip）
+
+---
+
+### 🎯 解決した問題
+
+#### 問題1: 脅威度ヒートマップが表示されない
+- **現象**: `/playback`でのセッション再生時、環境の脅威度がヒートマップで示されず、全体がグレー表示
+- **原因**: `grid-width`と`grid-height`を`coverage_map`から取得していたが、`coverage_map`がnullまたは空配列の場合、デフォルト値8x8が使われ、実際の`threat_grid`のサイズと不一致
+- **解決策**: `grid-width`と`grid-height`を`threat_grid`から取得するように変更
+  ```vue
+  <!-- 修正前 -->
+  :grid-width="currentFrame.environmentState.coverage_map?.[0]?.length ?? 8"
+  :grid-height="currentFrame.environmentState.coverage_map?.length ?? 8"
+
+  <!-- 修正後 -->
+  :grid-width="currentFrame.environmentState.threat_grid?.[0]?.length ?? 8"
+  :grid-height="currentFrame.environmentState.threat_grid?.length ?? 8"
+  ```
+
+#### 問題2: ロボット位置がグリッドと一致しない可能性の検証
+- **検証結果**: 現在の実装は正しい
+  - `robot_x`（列）と`robot_y`（行）を`Position { x, y }`として渡している
+  - EnvironmentVisualizationでは`x * cellSize`、`y * cellSize`で描画
+  - RobotPositionDisplayには`{ row: robot_y, col: robot_x }`として渡している
+  - 座標系の一貫性が保たれている
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- **グリッドサイズの決定**: 環境の表示では、`coverage_map`ではなく`threat_grid`からグリッドサイズを取得すべき
+  - `threat_grid`は常に存在し、環境の実際のサイズを表す
+  - `coverage_map`はnullまたは空配列の場合があり、信頼性が低い
+- **座標系の一貫性**: Backend APIの座標系（`robot_x`=列、`robot_y`=行）とFrontendの座標系を一致させることが重要
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル
+1. **pages/playback/[sessionId].vue** (176-177行目)
+   - `grid-width`と`grid-height`の取得元を`coverage_map`から`threat_grid`に変更
+
+---
+
+### ✅ 品質保証
+
+#### テスト結果
+- **Total Tests**: 505/505 passing (100%)
+- **Coverage**:
+  - Statements: **98.17%** (目標85%達成 ✅ **+13.17pt**)
+  - Branches: **92.98%** (目標85%達成 ✅ **+7.98pt**)
+  - Functions: **86.81%** (目標85%達成 ✅ **+1.81pt**)
+  - Lines: **98.17%** (目標85%達成 ✅ **+13.17pt**)
+
+#### コード品質
+- **ESLint**: 0 errors, 145 warnings (test `any` types - acceptable)
+- **TypeScript**: 0 errors
+- **Stylelint**: 0 errors
+- **Build**: 1.99 MB (497 kB gzip) - Success
+
+---
+
+### 📊 セッション統計
+- **変更ファイル数**: 1ファイル
+- **変更行数**: 2行
+- **追加テスト**: 0（既存テストで検証）
+- **削除コード**: 0行
+- **純増加**: 0行
+
+---
+
+### 🔄 次のアクション
+- Playback再生機能の実際のBackendとの統合テスト
+- 実際のセッションデータでの動作確認
+- 脅威度ヒートマップの色彩調整の検討
 
 ---
 

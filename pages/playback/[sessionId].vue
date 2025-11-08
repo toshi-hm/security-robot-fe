@@ -173,8 +173,8 @@ const handleBack = () => {
             <h3>環境状態</h3>
             <EnvironmentVisualization
               v-if="currentFrame?.environmentState"
-              :grid-width="currentFrame.environmentState.coverage_map?.[0]?.length ?? 8"
-              :grid-height="currentFrame.environmentState.coverage_map?.length ?? 8"
+              :grid-width="currentFrame.environmentState.threat_grid?.[0]?.length ?? 8"
+              :grid-height="currentFrame.environmentState.threat_grid?.length ?? 8"
               :robot-position="
                 {
                   x: currentFrame.environmentState.robot_x ?? 0,
