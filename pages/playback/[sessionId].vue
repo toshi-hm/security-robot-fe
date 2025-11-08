@@ -259,6 +259,11 @@ const handleBack = () => {
 
   &__frame-info {
     margin: 10px 0;
+
+    :deep(.el-descriptions__content) {
+      color: var(--md-on-surface);
+      font-weight: 600;
+    }
   }
 
   &__visualization {
