@@ -6,7 +6,7 @@ interface Props {
   value: number | string
   label: string
   colorTheme: 'primary' | 'secondary' | 'tertiary'
-  icon?: Component | string
+  icon?: Component
   tagText?: string
   tagType?: 'success' | 'warning' | 'info' | 'danger'
 }
