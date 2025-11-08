@@ -25,7 +25,6 @@ describe('Training Index Page', () => {
     vi.stubGlobal('useRouter', () => routerMock)
 
     const wrapper = mount(TrainingIndexPage, {
-      shallow: true,
       global: {
         stubs: {
           TrainingControl: {
@@ -42,10 +41,21 @@ describe('Training Index Page', () => {
             template: '<span class="session-status-tag"></span>',
             props: ['status'],
           },
-          'el-card': true,
+          'el-card': {
+            name: 'ElCard',
+            template: '<div class="el-card"><slot /></div>',
+          },
           'el-button': true,
-          'el-table': true,
-          'el-table-column': true,
+          'el-table': {
+            name: 'ElTable',
+            template: '<table><slot /></table>',
+            props: ['data'],
+          },
+          'el-table-column': {
+            name: 'ElTableColumn',
+            template: '<td><slot :row="{}" /></td>',
+            props: ['prop', 'label'],
+          },
           'el-tag': true,
           'el-progress': true,
           'el-empty': true,
@@ -82,6 +92,6 @@ describe('Training Index Page', () => {
 
   it('renders search filter component', () => {
     const { wrapper } = mountPage()
-    expect(wrapper.findComponent({ name: 'SearchFilter' }).exists()).toBe(true)
+    expect(wrapper.find('.search-filter').exists()).toBe(true)
   })
 })
