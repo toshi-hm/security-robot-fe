@@ -39,7 +39,7 @@ export const useModelsStore = defineStore('models', () => {
   /**
    * Upload a new model file
    */
-  const uploadModel = async (file: File, metadata?: Record<string, any>) => {
+  const uploadModel = async (file: File, metadata?: Record<string, unknown>) => {
     isLoading.value = true
     error.value = null
     uploadProgress.value = 0

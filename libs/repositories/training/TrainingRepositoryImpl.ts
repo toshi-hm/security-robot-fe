@@ -35,7 +35,7 @@ interface FetchOptions {
     | 'patch'
     | 'head'
     | 'options'
-  body?: BodyInit | Record<string, any> | null
+  body?: BodyInit | Record<string, unknown> | null
   params?: Record<string, unknown>
   signal?: AbortSignal
   [key: string]: unknown

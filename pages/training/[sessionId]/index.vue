@@ -201,11 +201,11 @@ const handleTrainingStatus = (message: Record<string, unknown>) => {
 const handleConnectionAck = (message: Record<string, unknown>) => {
   if (!isConnectionAckMessage(message)) return
 
-  console.log('WebSocket connected, client_id:', message.client_id)
+  // WebSocket connection acknowledged
 }
 
 const handlePong = () => {
-  console.log('Pong received')
+  // Pong response received from server
 }
 
 const handleTrainingError = (message: Record<string, unknown>) => {

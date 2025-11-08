@@ -21,7 +21,11 @@ export interface ModelRepository {
    * Upload a new model file
    * @param onProgress - Progress callback (0-100)
    */
-  uploadModel(file: File, metadata?: Record<string, any>, onProgress?: (progress: number) => void): Promise<ModelEntity>
+  uploadModel(
+    file: File,
+    metadata?: Record<string, unknown>,
+    onProgress?: (progress: number) => void
+  ): Promise<ModelEntity>
 
   /**
    * Download model file by ID

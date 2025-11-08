@@ -38,7 +38,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
         isConnected.value = true
         error.value = null
         reconnectAttempts.value = 0
-        console.log('WebSocket connected to session:', sessionId)
+        // WebSocket connection established successfully
       }
 
       socket.value.onmessage = (event) => {
@@ -57,13 +57,13 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
 
       socket.value.onclose = (event) => {
         isConnected.value = false
-        console.log('WebSocket closed:', event.code, event.reason)
+        // WebSocket connection closed
 
         // Auto-reconnect logic
         if (reconnectAttempts.value < maxReconnectAttempts && event.code !== 1000) {
           reconnectAttempts.value++
           setTimeout(() => {
-            console.log(`Attempting to reconnect (${reconnectAttempts.value}/${maxReconnectAttempts})...`)
+            // Attempting reconnection
             connect(sessionId)
           }, reconnectDelay * reconnectAttempts.value)
         } else if (reconnectAttempts.value >= maxReconnectAttempts) {
@@ -146,7 +146,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
       return // すでにポーリング中
     }
 
-    console.log('Starting fallback polling for session:', sessionId)
+    // Starting fallback polling mechanism
     useFallbackPolling.value = true
 
     pollingInterval.value = setInterval(async () => {
@@ -176,7 +176,7 @@ export const useWebSocket = (repository: TrainingRepository = new TrainingReposi
       clearInterval(pollingInterval.value)
       pollingInterval.value = null
       useFallbackPolling.value = false
-      console.log('Fallback polling stopped')
+      // Fallback polling stopped
     }
   }
 

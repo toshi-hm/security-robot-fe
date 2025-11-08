@@ -43,7 +43,7 @@ export class ModelRepositoryImpl implements ModelRepository {
 
   async uploadModel(
     file: File,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     onProgress?: (progress: number) => void
   ): Promise<ModelEntity> {
     try {

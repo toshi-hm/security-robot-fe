@@ -81,7 +81,7 @@ export const useTraining = () => {
       const coverageRatio = Math.min(currentStep / session.totalTimesteps, 1)
       const explorationScore = Math.random() * 0.5 + 0.5 // 0.5 to 1.0
 
-      const dummyMetrics = new TrainingMetricsClass(
+      const _dummyMetrics = new TrainingMetricsClass(
         Date.now(),
         session.id,
         currentStep,
@@ -94,7 +94,7 @@ export const useTraining = () => {
       )
 
       // WebSocketの代わりにログを出力（実際はWebSocketで送信する想定）
-      console.log('Simulated metrics:', dummyMetrics)
+      // Note: Simulated metrics generation for development/testing (currently unused)
     }, 2000) // 2秒ごとにメトリクスを生成
   }
 
