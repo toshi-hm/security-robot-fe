@@ -156,6 +156,11 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   grid_height?: number
   coverage_map?: number[][]
   threat_grid?: number[][]
+  // バッテリーシステム (Session 050)
+  battery_percentage?: number
+  is_charging?: boolean
+  distance_to_charging_station?: number
+  charging_station_position?: [number, number]
 }
 
 export interface ConnectionAckMessage extends BaseWebSocketMessage {

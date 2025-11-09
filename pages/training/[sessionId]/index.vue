@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 
+import BatteryDisplay from '~/components/environment/BatteryDisplay.vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
@@ -46,6 +47,12 @@ const gridHeight = ref<number>(8)
 const coverageMap = ref<boolean[][]>([])
 const threatGrid = ref<number[][]>([])
 const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
+
+// Battery system state (Session 050)
+const batteryPercentage = ref<number | null>(null)
+const isCharging = ref<boolean>(false)
+const distanceToStation = ref<number | null>(null)
+const chargingStationPosition = ref<{ x: number; y: number } | null>(null)
 
 // Computed property for RobotPositionDisplay (converts x,y to row,col)
 const robotPositionForDisplay = computed(() => {
@@ -286,6 +293,23 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     if (Array.isArray(message.threat_grid)) {
       threatGrid.value = message.threat_grid
     }
+
+    // Update battery information (Session 050)
+    if (typeof message.battery_percentage === 'number') {
+      batteryPercentage.value = message.battery_percentage
+    }
+    if (typeof message.is_charging === 'boolean') {
+      isCharging.value = message.is_charging
+    }
+    if (typeof message.distance_to_charging_station === 'number') {
+      distanceToStation.value = message.distance_to_charging_station
+    }
+    if (Array.isArray(message.charging_station_position) && message.charging_station_position.length === 2) {
+      chargingStationPosition.value = {
+        x: message.charging_station_position[0],
+        y: message.charging_station_position[1],
+      }
+    }
   }
 }
 
@@ -379,6 +403,7 @@ onBeforeUnmount(() => {
             :threat-grid="threatGrid"
             :trajectory="robotTrajectory"
             :patrol-radius="patrolRadius"
+            :charging-station-position="chargingStationPosition"
           />
         </el-card>
       </el-col>
@@ -391,6 +416,12 @@ onBeforeUnmount(() => {
             v-if="robotPositionForDisplay"
             :position="robotPositionForDisplay"
             :orientation="robotOrientation"
+          />
+          <BatteryDisplay
+            :battery-percentage="batteryPercentage"
+            :is-charging="isCharging"
+            :distance-to-station="distanceToStation"
+            style="margin-top: 15px"
           />
           <el-descriptions :column="2" border style="margin-top: 15px">
             <el-descriptions-item label="Position X">

@@ -13,6 +13,7 @@ interface Props {
   threatGrid?: number[][]
   trajectory?: Position[]
   patrolRadius?: number
+  chargingStationPosition?: Position | null // バッテリーシステム (Session 050)
 }
 
 interface TrajectoryColors {
@@ -30,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   trajectory: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
+  chargingStationPosition: null,
 })
 
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -171,6 +173,13 @@ const drawEnvironment = () => {
     }
   }
 
+  // Draw charging station (before robot)
+  if (props.chargingStationPosition) {
+    const stationX = Math.floor(props.chargingStationPosition.x) * cellSize + cellSize / 2
+    const stationY = Math.floor(props.chargingStationPosition.y) * cellSize + cellSize / 2
+    drawChargingStation(ctx, stationX, stationY)
+  }
+
   // Draw robot trajectory
   drawTrajectory(ctx, trajectoryColors)
 
@@ -281,7 +290,8 @@ const drawOrientationIndicator = (ctx: CanvasRenderingContext2D, robotX: number,
     { dx: 0, dy: 1 }, // 南
     { dx: -1, dy: 0 }, // 西
   ]
-  const { dx, dy } = vectors[orientation] || vectors[0]
+  const vector = (vectors[orientation] ?? vectors[0])!
+  const { dx, dy } = vector
   const arrowLength = cellSize * 0.45
   const startX = robotX
   const startY = robotY
@@ -338,6 +348,31 @@ const drawPatrolRange = (
   ctx.restore()
 }
 
+/**
+ * Draw charging station icon (battery symbol with lightning bolt)
+ */
+const drawChargingStation = (ctx: CanvasRenderingContext2D, stationX: number, stationY: number) => {
+  const size = cellSize * 0.7 // Station size relative to cell
+
+  // Draw background circle (green)
+  ctx.fillStyle = '#67c23a' // Element Plus success color
+  ctx.beginPath()
+  ctx.arc(stationX, stationY, size / 2, 0, Math.PI * 2)
+  ctx.fill()
+
+  // Draw border
+  ctx.strokeStyle = '#fff'
+  ctx.lineWidth = 3
+  ctx.stroke()
+
+  // Draw lightning bolt symbol (⚡)
+  ctx.fillStyle = '#fff'
+  ctx.font = `bold ${size * 0.6}px Arial`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('⚡', stationX, stationY)
+}
+
 // Watch for prop changes and redraw
 watch(
   () => [
@@ -349,6 +384,7 @@ watch(
     props.gridHeight,
     props.trajectory,
     props.patrolRadius,
+    props.chargingStationPosition,
   ],
   () => {
     drawEnvironment()

@@ -199,7 +199,7 @@ describe('Playback Session Page', () => {
 
     const cards = wrapper.findAll('.playback-detail__frame-card')
     expect(cards.length).toBeGreaterThan(0)
-    const firstCardText = cards[0].text()
+    const firstCardText = cards[0]?.text()
     expect(firstCardText).toContain('フレーム')
     expect(firstCardText).toContain('1 / 1')
   })
