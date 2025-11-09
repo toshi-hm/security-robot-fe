@@ -514,12 +514,12 @@ onMounted(() => {
   }
 
   &__legend-circle {
+    background-color: var(--color-patrol-range-fill);
     border: 2px dashed var(--color-patrol-range-stroke);
     border-radius: 50%;
     display: inline-block;
     height: 16px;
     width: 16px;
-    background-color: var(--color-patrol-range-fill);
   }
 
   &__legend-line {
