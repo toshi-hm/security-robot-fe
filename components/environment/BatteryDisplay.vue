@@ -70,11 +70,7 @@ const formattedDistance = computed(() => {
     <div class="battery-display__content">
       <!-- バッテリー残量プログレスバー -->
       <div class="battery-display__progress">
-        <el-progress
-          :percentage="batteryPercentage ?? 0"
-          :color="batteryColor"
-          :stroke-width="20"
-        />
+        <el-progress :percentage="batteryPercentage ?? 0" :color="batteryColor" :stroke-width="20" />
       </div>
 
       <!-- バッテリー情報 -->
