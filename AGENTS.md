@@ -18,6 +18,7 @@
 ## 2. 開発ルール
 - **アーキテクチャ**: DDD構成（ドメイン/エンティティ/リポジトリ/コンポーザブル/コンポーネント/ページ）を厳守  
 - **TDD**: テスト先行。`instructions/04_test_design_standalone.md` の基準に従い、カバレッジ85%以上を維持  
+- **テスト実行コマンド**: この環境では `pnpm vitest run --coverage --pool=threads` 以外だとVitestが失敗するため、必ず `--pool=threads` を付けて実行すること（部分的に回す場合も同様）  
 - **スタイル**: Material Design 3配色とSCSS(BEM)ルールを尊重。Element Plusのカスタマイズは既存パターンに合わせる  
 - **言語**: 変数・UIテキストは日本語への統一方針に従う  
 - **バージョン管理**: 既存変更を壊さず、小さく明確なコミットを作成。ユーザー指示なく `git reset --hard` 等禁止  

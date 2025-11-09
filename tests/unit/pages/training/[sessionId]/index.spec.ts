@@ -33,14 +33,23 @@ const TrainingMetricsStub = {
 const RobotPositionDisplayStub = {
   name: 'RobotPositionDisplay',
   template: '<div class="robot-position-stub"></div>',
-  props: ['position'],
+  props: ['position', 'orientation'],
 }
 
 // Mock EnvironmentVisualization component
 const EnvironmentVisualizationStub = {
   name: 'EnvironmentVisualization',
   template: '<div class="environment-visualization-stub"></div>',
-  props: ['gridWidth', 'gridHeight', 'robotPosition', 'coverageMap', 'threatGrid', 'trajectory'],
+  props: [
+    'gridWidth',
+    'gridHeight',
+    'robotPosition',
+    'robotOrientation',
+    'coverageMap',
+    'threatGrid',
+    'trajectory',
+    'patrolRadius',
+  ],
 }
 
 describe('Training Session Page', () => {

@@ -24,6 +24,7 @@ describe('EnvironmentVisualization', () => {
       arc: vi.fn(),
       fill: vi.fn(),
       stroke: vi.fn(),
+      closePath: vi.fn(),
       fillText: vi.fn(),
       moveTo: vi.fn(),
       lineTo: vi.fn(),
@@ -31,6 +32,7 @@ describe('EnvironmentVisualization', () => {
       restore: vi.fn(),
       scale: vi.fn(),
       translate: vi.fn(),
+      setLineDash: vi.fn(),
     }
 
     HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasMock)
@@ -128,6 +130,17 @@ describe('EnvironmentVisualization', () => {
     })
 
     expect(wrapper.props('threatGrid')).toEqual(threatGrid)
+  })
+
+  it('accepts robot orientation prop', () => {
+    const wrapper = mount(EnvironmentVisualization, {
+      ...mountOptions,
+      props: {
+        robotOrientation: 1,
+      },
+    })
+
+    expect(wrapper.props('robotOrientation')).toBe(1)
   })
 
   it('accepts trajectory prop', async () => {
@@ -276,6 +289,30 @@ describe('EnvironmentVisualization', () => {
       const arcCallsAfter = canvasMock.arc.mock.calls.length
       // Trajectory would add multiple arc calls if it had points
       expect(arcCallsAfter).toBeLessThan(5)
+    })
+
+    it('draws orientation indicator when orientation is provided', () => {
+      mount(EnvironmentVisualization, {
+        ...mountOptions,
+        props: {
+          robotPosition: { x: 1, y: 1 },
+          robotOrientation: 1,
+        },
+      })
+
+      expect(canvasMock.lineTo).toHaveBeenCalled()
+    })
+
+    it('draws patrol range overlay when patrol radius is set', () => {
+      mount(EnvironmentVisualization, {
+        ...mountOptions,
+        props: {
+          robotPosition: { x: 1, y: 1 },
+          patrolRadius: 2,
+        },
+      })
+
+      expect(canvasMock.setLineDash).toHaveBeenCalled()
     })
   })
 

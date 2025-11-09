@@ -12,3 +12,6 @@ export const SESSION_STATUS_MAP = {
 } as const
 
 export type SessionStatus = keyof typeof SESSION_STATUS_MAP
+
+// Patrol radius used for visualization (instructions Section 3.2: radius=2)
+export const DEFAULT_PATROL_RADIUS = 2

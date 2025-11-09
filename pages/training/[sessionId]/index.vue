@@ -4,6 +4,7 @@ import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
+import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type {
   TrainingProgressMessage,
   TrainingStatusMessage,
@@ -36,6 +37,7 @@ const showStatusAlert = ref(false)
 
 // Environment update state
 const robotPosition = ref<{ x: number; y: number } | null>(null)
+const robotOrientation = ref<number | null>(null)
 const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
@@ -43,6 +45,7 @@ const gridWidth = ref<number>(8)
 const gridHeight = ref<number>(8)
 const coverageMap = ref<boolean[][]>([])
 const threatGrid = ref<number[][]>([])
+const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 
 // Computed property for RobotPositionDisplay (converts x,y to row,col)
 const robotPositionForDisplay = computed(() => {
@@ -51,6 +54,15 @@ const robotPositionForDisplay = computed(() => {
     row: Math.round(robotPosition.value.y),
     col: Math.round(robotPosition.value.x),
   }
+})
+
+const orientationLabels = ['北', '東', '南', '西'] as const
+const robotOrientationText = computed(() => {
+  if (robotOrientation.value === null || Number.isNaN(robotOrientation.value)) return '未取得'
+  const normalized =
+    ((Math.round(robotOrientation.value) % orientationLabels.length) + orientationLabels.length) %
+    orientationLabels.length
+  return orientationLabels[normalized]
 })
 
 // Type guards for 2D arrays
@@ -146,7 +158,8 @@ const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessa
     (m.grid_width === undefined || typeof m.grid_width === 'number') &&
     (m.grid_height === undefined || typeof m.grid_height === 'number') &&
     (m.coverage_map === undefined || isNumberArray2D(m.coverage_map)) &&
-    (m.threat_grid === undefined || isNumberArray2D(m.threat_grid))
+    (m.threat_grid === undefined || isNumberArray2D(m.threat_grid)) &&
+    (m.robot_orientation === undefined || m.robot_orientation === null || typeof m.robot_orientation === 'number')
   )
 }
 
@@ -235,6 +248,10 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
         x: robotPos.x ?? 0,
         y: robotPos.y ?? 0,
       }
+      const orientationFromPayload =
+        (!Array.isArray(message.robot_position) && typeof robotPos.orientation === 'number'
+          ? robotPos.orientation
+          : null) ?? (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
 
       // Add to trajectory if position changed
       if (!robotPosition.value || robotPosition.value.x !== newPosition.x || robotPosition.value.y !== newPosition.y) {
@@ -247,6 +264,9 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
       }
 
       robotPosition.value = newPosition
+      if (orientationFromPayload !== null) {
+        robotOrientation.value = orientationFromPayload
+      }
     }
 
     // Update action and reward
@@ -354,9 +374,11 @@ onBeforeUnmount(() => {
             :grid-width="gridWidth"
             :grid-height="gridHeight"
             :robot-position="robotPosition"
+            :robot-orientation="robotOrientation"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
             :trajectory="robotTrajectory"
+            :patrol-radius="patrolRadius"
           />
         </el-card>
       </el-col>
@@ -365,7 +387,11 @@ onBeforeUnmount(() => {
           <template #header>
             <span>Environment State</span>
           </template>
-          <RobotPositionDisplay v-if="robotPositionForDisplay" :position="robotPositionForDisplay" />
+          <RobotPositionDisplay
+            v-if="robotPositionForDisplay"
+            :position="robotPositionForDisplay"
+            :orientation="robotOrientation"
+          />
           <el-descriptions :column="2" border style="margin-top: 15px">
             <el-descriptions-item label="Position X">
               {{ robotPosition.x.toFixed(2) }}
@@ -373,11 +399,17 @@ onBeforeUnmount(() => {
             <el-descriptions-item label="Position Y">
               {{ robotPosition.y.toFixed(2) }}
             </el-descriptions-item>
+            <el-descriptions-item label="Orientation">
+              {{ robotOrientationText }}
+            </el-descriptions-item>
             <el-descriptions-item label="Last Action">
               {{ lastAction || 'N/A' }}
             </el-descriptions-item>
             <el-descriptions-item label="Last Reward">
               {{ lastReward.toFixed(4) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="警備半径 (セル)">
+              {{ patrolRadius }}
             </el-descriptions-item>
           </el-descriptions>
         </el-card>
