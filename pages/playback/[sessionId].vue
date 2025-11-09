@@ -413,5 +413,3 @@ const formatOrientation = (orientation?: number | null) => {
   }
 }
 </style>
-const frameInfoColumns = computed(() => { if (width.value >= 1280) return 4 if (width.value >= 1024) return 3 return 2
-})
