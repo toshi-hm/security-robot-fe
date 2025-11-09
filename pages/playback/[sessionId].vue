@@ -66,9 +66,7 @@ const frameInfoItems = computed(() => {
     },
     {
       label: 'タイムスタンプ',
-      value: currentFrame.value.timestamp
-        ? new Date(currentFrame.value.timestamp).toLocaleTimeString('ja-JP')
-        : 'N/A',
+      value: currentFrame.value.timestamp ? new Date(currentFrame.value.timestamp).toLocaleTimeString('ja-JP') : 'N/A',
     },
     {
       label: '警備半径(セル)',
@@ -185,7 +183,8 @@ const handleBack = () => {
 const orientationLabels = ['北', '東', '南', '西'] as const
 const formatOrientation = (orientation?: number | null) => {
   if (typeof orientation !== 'number' || Number.isNaN(orientation)) return '未取得'
-  const normalized = ((Math.round(orientation) % orientationLabels.length) + orientationLabels.length) % orientationLabels.length
+  const normalized =
+    ((Math.round(orientation) % orientationLabels.length) + orientationLabels.length) % orientationLabels.length
   return orientationLabels[normalized]
 }
 </script>
@@ -414,8 +413,5 @@ const formatOrientation = (orientation?: number | null) => {
   }
 }
 </style>
-const frameInfoColumns = computed(() => {
-  if (width.value >= 1280) return 4
-  if (width.value >= 1024) return 3
-  return 2
+const frameInfoColumns = computed(() => { if (width.value >= 1280) return 4 if (width.value >= 1024) return 3 return 2
 })

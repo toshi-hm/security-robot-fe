@@ -30,9 +30,7 @@ const orientationIcon = computed(() => {
 
 <template>
   <div class="robot-position">
-    <el-tag type="info" class="robot-position__coordinate">
-      座標: ({{ position.row }}, {{ position.col }})
-    </el-tag>
+    <el-tag type="info" class="robot-position__coordinate"> 座標: ({{ position.row }}, {{ position.col }}) </el-tag>
     <el-tag :type="hasOrientation ? 'success' : 'warning'" class="robot-position__orientation">
       向き:
       <span v-if="hasOrientation">

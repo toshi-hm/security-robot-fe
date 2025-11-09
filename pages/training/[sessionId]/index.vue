@@ -59,7 +59,9 @@ const robotPositionForDisplay = computed(() => {
 const orientationLabels = ['北', '東', '南', '西'] as const
 const robotOrientationText = computed(() => {
   if (robotOrientation.value === null || Number.isNaN(robotOrientation.value)) return '未取得'
-  const normalized = ((Math.round(robotOrientation.value) % orientationLabels.length) + orientationLabels.length) % orientationLabels.length
+  const normalized =
+    ((Math.round(robotOrientation.value) % orientationLabels.length) + orientationLabels.length) %
+    orientationLabels.length
   return orientationLabels[normalized]
 })
 
@@ -247,8 +249,9 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
         y: robotPos.y ?? 0,
       }
       const orientationFromPayload =
-        (!Array.isArray(message.robot_position) && typeof robotPos.orientation === 'number' ? robotPos.orientation : null) ??
-        (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
+        (!Array.isArray(message.robot_position) && typeof robotPos.orientation === 'number'
+          ? robotPos.orientation
+          : null) ?? (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
 
       // Add to trajectory if position changed
       if (!robotPosition.value || robotPosition.value.x !== newPosition.x || robotPosition.value.y !== newPosition.y) {

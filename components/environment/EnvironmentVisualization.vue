@@ -126,8 +126,10 @@ const drawEnvironment = () => {
   const robotBodyColor = rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff'
   const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
   const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
-  const patrolRangeFillColor = rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
-  const patrolRangeStrokeColor = rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
+  const patrolRangeFillColor =
+    rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
+  const patrolRangeStrokeColor =
+    rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
   const trajectoryColors: TrajectoryColors = {
     line: rootStyle.getPropertyValue('--color-trajectory-line').trim() || 'rgba(64, 158, 255, 0.3)',
     point: rootStyle.getPropertyValue('--color-trajectory-point').trim() || 'rgb(64 158 255)',
@@ -300,14 +302,8 @@ const drawOrientationIndicator = (ctx: CanvasRenderingContext2D, robotX: number,
   ctx.fillStyle = color
   ctx.beginPath()
   ctx.moveTo(endX, endY)
-  ctx.lineTo(
-    endX - headLength * Math.cos(angle - Math.PI / 6),
-    endY - headLength * Math.sin(angle - Math.PI / 6)
-  )
-  ctx.lineTo(
-    endX - headLength * Math.cos(angle + Math.PI / 6),
-    endY - headLength * Math.sin(angle + Math.PI / 6)
-  )
+  ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), endY - headLength * Math.sin(angle - Math.PI / 6))
+  ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), endY - headLength * Math.sin(angle + Math.PI / 6))
   ctx.closePath()
   ctx.fill()
 }
