@@ -88,25 +88,21 @@ const frameInfoItems = computed(() => {
 // Battery system computed properties (Session 050)
 const batteryPercentage = computed(() => {
   const env = currentFrame.value?.environmentState
-  // @ts-expect-error - battery_percentage may not exist yet in type definition
   return env?.battery_percentage ?? null
 })
 
 const isCharging = computed(() => {
   const env = currentFrame.value?.environmentState
-  // @ts-expect-error - is_charging may not exist yet in type definition
   return env?.is_charging ?? false
 })
 
 const distanceToStation = computed(() => {
   const env = currentFrame.value?.environmentState
-  // @ts-expect-error - distance_to_charging_station may not exist yet in type definition
   return env?.distance_to_charging_station ?? null
 })
 
 const chargingStationPosition = computed<Position | null>(() => {
   const env = currentFrame.value?.environmentState
-  // @ts-expect-error - charging_station_position may not exist yet in type definition
   const station = env?.charging_station_position
   if (!station || !Array.isArray(station) || station.length !== 2) return null
   return { x: station[0], y: station[1] }

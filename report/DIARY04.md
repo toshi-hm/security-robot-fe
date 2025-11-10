@@ -3,6 +3,7 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-11 セッション051 - 型安全性向上：@ts-expect-errorの削除](#2025-11-11-セッション051---型安全性向上ts-expect-errorの削除)
 - [2025-11-10 セッション050 - バッテリー充電システムUI実装](#2025-11-10-セッション050---バッテリー充電システムui実装)
 - [2025-11-10 セッション049 - Playbackロボット向きと警備範囲表示強化](#2025-11-10-セッション049---playbackロボット向きと警備範囲表示強化)
 - [2025-11-09 セッション048 - Playback再生時の脅威度ヒートマップとロボット位置修正](#2025-11-09-セッション048---playback再生時の脅威度ヒートマップとロボット位置修正)
@@ -11,6 +12,93 @@
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+---
+
+## 2025-11-11 セッション051 - 型安全性向上：@ts-expect-errorの削除
+
+### セッション情報
+- **開始時刻**: 03:40
+- **終了時刻**: 03:55
+- **所要時間**: 約15分
+- **対象Phase**: Phase 50後続改善 (型安全性向上)
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] `types/api.ts` の `EnvironmentStateResponseDTO` にバッテリー関連フィールドを追加
+  - `battery_percentage?: number`
+  - `is_charging?: boolean`
+  - `distance_to_charging_station?: number`
+  - `charging_station_position?: [number, number]`
+- [x] `pages/playback/[sessionId].vue` の4箇所の `@ts-expect-error` コメントを削除
+- [x] TypeScriptとテストの実行確認
+- [x] ESLintチェック（0エラー、147警告 - 許容範囲内）
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- `@ts-expect-error` は一時的な対処法として有効だが、型定義が整った段階で削除すべき
+- `EnvironmentUpdateMessage` と `EnvironmentStateResponseDTO` は別々のインターフェースだが、同じデータ構造を持つ場合は型を揃えることで一貫性が向上
+- オプショナルプロパティ (`?:`) を使用することで、後方互換性を保ちながら新機能を追加できる
+
+---
+
+### 🐛 遭遇した問題と解決方法
+
+#### 問題: バックエンドの型定義が追加されたにもかかわらず @ts-expect-error が使われている
+- **現象**: `pages/playback/[sessionId].vue` の91-112行目に4箇所の `@ts-expect-error` コメントが存在
+- **原因**: `EnvironmentStateResponseDTO` (Playback用) にバッテリー関連フィールドが未定義だった
+  - `EnvironmentUpdateMessage` (WebSocket用) には既に定義されていた
+- **解決策**: `EnvironmentStateResponseDTO` に4つのオプショナルフィールドを追加
+- **所要時間**: 10分
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル
+1. **types/api.ts** (243-247行目)
+   - `EnvironmentStateResponseDTO` インターフェース拡張
+   - バッテリー関連フィールド4つ追加（全てオプショナル）
+
+2. **pages/playback/[sessionId].vue** (88-109行目)
+   - 4つの computed properties から `@ts-expect-error` コメントを削除
+   - 型安全性が完全に確保された状態に
+
+---
+
+### ✅ 完了した課題
+1. ✅ 型定義の完全性向上（`EnvironmentStateResponseDTO`）
+2. ✅ `@ts-expect-error` の完全削除（4箇所）
+3. ✅ TypeScript型チェック成功（全テスト521/521成功）
+4. ✅ ESLint 0エラー（147警告は許容範囲内）
+
+---
+
+### 📊 パフォーマンス・品質メトリクス
+- **Tests**: 521/521 passing (100%)
+- **Coverage**:
+  - Statements: **97.21%** (目標85%達成 ✅ **+12.21pt**)
+  - Branches: **91.18%** (目標85%達成 ✅ **+6.18pt**)
+  - Functions: **86.17%** (目標85%達成 ✅ **+1.17pt**)
+  - Lines: **97.21%** (目標85%達成 ✅ **+12.21pt**)
+- **TypeScript**: 0 errors
+- **ESLint**: 0 errors, 147 warnings (test `any` types - acceptable)
+
+---
+
+### 🔄 次のアクション
+- Backend APIとの実際の統合テストでバッテリーデータが正しく表示されるか確認
+- 他のページでも同様の `@ts-expect-error` が存在しないか確認
+- 型定義の一貫性を維持するためのレビュー
+
+---
+
+**セッション終了時刻**: 2025-11-11 03:55
 
 ---
 

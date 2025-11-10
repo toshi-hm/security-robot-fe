@@ -240,6 +240,11 @@ export interface EnvironmentStateResponseDTO {
   reward_received: number | null
   created_at: string
   updated_at: string
+  // バッテリーシステム (Session 050)
+  battery_percentage?: number
+  is_charging?: boolean
+  distance_to_charging_station?: number
+  charging_station_position?: [number, number]
 }
 
 /**

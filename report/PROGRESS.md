@@ -554,6 +554,21 @@
   - ESLint: 0 errors, 147 warnings
   - Stylelint: 0 errors
 
+### Phase 51: 型安全性向上（@ts-expect-errorの削除） ✅
+- [x] EnvironmentStateResponseDTO型定義拡張 (Session 051)
+  - battery_percentage, is_charging, distance_to_charging_station, charging_station_position追加
+  - EnvironmentUpdateMessageとの型一貫性確保
+- [x] playback/[sessionId].vueの@ts-expect-error削除 (4箇所)
+  - batteryPercentage computed property
+  - isCharging computed property
+  - distanceToStation computed property
+  - chargingStationPosition computed property
+- [x] 品質保証
+  - Tests: 521/521 passing (100%)
+  - Coverage: 97.21% statements (目標85%達成 ✅ +12.21pt)
+  - TypeScript: 0 errors (完全な型安全性を確保)
+  - ESLint: 0 errors, 147 warnings (acceptable)
+
 ### 次フェーズ候補
 - [ ] Backend APIとのバッテリーシステム統合テスト
 - [ ] バッテリー切れ時の警告UI実装
