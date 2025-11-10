@@ -13,6 +13,100 @@
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
 
+## 2025-11-11 セッション052 - バッテリーシステムAPI統合調査(Backend修正が必要)
+
+### セッション情報
+- **開始時刻**: 現在時刻
+- **終了時刻**: 現在時刻 + 約30分
+- **所要時間**: 約30分
+- **対象Phase**: Phase 50後続調査 (Backend API統合)
+- **担当者**: AI実装アシスタント
+
+---
+
+### 📋 実施したタスク
+- [x] Playbackページでのバッテリーシステム表示状態を確認
+- [x] Frontend UI実装状況を確認
+  - `pages/playback/[sessionId].vue`: BatteryDisplay/EnvironmentVisualization統合済み ✅
+  - `types/api.ts`: バッテリー関連フィールド型定義済み ✅
+- [x] Backend APIスキーマを調査
+  - `app/schemas/environment.py`: `EnvironmentStateResponse`にバッテリーフィールド**未定義** ❌
+  - `app/core/environment/schemas.py`: `EnvironmentState`にバッテリーフィールド**未定義** ❌
+- [x] 環境実装を調査
+  - `rl/environments/security_env.py`: バッテリーシステム**実装済み** ✅
+  - `_get_info()`: バッテリー情報**返却済み** ✅
+- [x] 問題の根本原因を特定: **Backend API Schemaにバッテリーフィールドが未定義**
+- [x] Backend修正用プロンプトを生成: `report/session052_backend_prompt.md`
+
+---
+
+### 🔍 問題の分析結果
+
+#### **現状の確認**
+
+1. **環境側(security_env.py)**: バッテリーシステムは**実装済み** ✅
+   - `battery_percentage`, `is_charging`, `distance_to_charging_station`, `charging_station_position`
+   - `_get_info()`メソッドで全フィールド返却
+
+2. **API Schema側**: バッテリーフィールドが**未定義** ❌
+   - `app/schemas/environment.py`の`EnvironmentStateResponse`に不足
+   - `app/core/environment/schemas.py`の`EnvironmentState`に不足
+
+3. **Frontend側**: UI実装は**完了済み** ✅
+   - `types/api.ts`でオプショナルフィールドとして型定義済み
+   - `pages/playback/[sessionId].vue`でBatteryDisplay/EnvironmentVisualizationに渡している
+   - しかし、APIから空データが返ってくるため表示されない
+
+#### **結論**
+**問題はBackend API側にあります。** 以下の2ファイルの修正が必要です:
+
+1. `app/schemas/environment.py`の`EnvironmentStateResponse`
+2. `app/core/environment/schemas.py`の`EnvironmentState`
+
+---
+
+### 🛠️ Backend修正用プロンプト
+
+生成ファイル: `report/session052_backend_prompt.md`
+
+**修正箇所サマリー**:
+1. `app/schemas/environment.py`の`EnvironmentStateResponse`にバッテリーフィールド追加
+2. `app/core/environment/schemas.py`の`EnvironmentState`にバッテリーフィールド追加
+3. DBマイグレーション実行(必要な場合)
+4. データ保存ロジックの確認
+
+**詳細は上記ファイルを参照してください。**
+
+---
+
+### ✅ 完了した課題
+1. ✅ 問題の根本原因を特定(Backend API Schema不足)
+2. ✅ Frontend UI実装状況の確認(完了済み)
+3. ✅ Backend環境実装状況の確認(実装済み)
+4. ✅ Backend修正用プロンプトの生成(`report/session052_backend_prompt.md`)
+
+---
+
+### 🚧 残っている課題
+
+#### 最優先 (P0)
+1. Backend側でAPI Schemaへのバッテリーフィールド追加(Backend修正用プロンプト実行)
+2. DBマイグレーション実行(必要な場合)
+3. Backend API統合テスト
+
+---
+
+### 🔄 次のアクション
+1. `../security-robot-be/`リポジトリで`report/session052_backend_prompt.md`のプロンプトを実行
+2. Backend修正完了後、Frontend UIで動作確認
+3. 統合テスト実施
+
+---
+
+**セッション終了時刻**: 2025-11-11
+
+---
+
 ---
 
 ## 2025-11-11 セッション051 - 型安全性向上：@ts-expect-errorの削除
