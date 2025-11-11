@@ -527,7 +527,53 @@
   - Playback Session: 現在フレームまでの`robotTrajectory`を計算し、EnvironmentVisualizationに渡して軌跡を線で描画（今までの道筋を可視化）
   - フレーム情報カード: `el-descriptions` を廃止し、ラベルと値を1カードにまとめたCSSグリッドへ変更。`frameInfoColumns`で4/3/2列へレスポンシブ対応しつつカード幅を固定化して数値の桁数に依存しないレイアウトを実現
 
+### Phase 50: バッテリー充電システムUI実装 ✅
+- [x] Backend API仕様調査 (instructions/02_battery_charging_system.md)
+  - バッテリー消費: 1000ステップで1%減少
+  - 充電: 充電ステーションで1ステップ1%回復
+  - バッテリー切れペナルティ: -100ポイント
+- [x] 型定義拡張 (types/api.ts)
+  - EnvironmentUpdateMessage: battery_percentage, is_charging, distance_to_charging_station, charging_station_position追加
+- [x] BatteryDisplay.vueコンポーネント新規作成
+  - プログレスバー表示 (色分け: success/warning/danger)
+  - 充電状態表示 (充電中/良好/普通/低下/警告/危険)
+  - 充電ステーションまでの距離表示
+  - バッテリーアイコン (⚡/🔋/🪫)
+  - 10テスト作成 (96.82% coverage)
+- [x] EnvironmentVisualization.vue 拡張
+  - 充電ステーション描画 (緑色サークル + ⚡アイコン)
+  - chargingStationPosition prop追加
+- [x] Training/Playback ページ統合
+  - Training: WebSocketからバッテリー情報受信
+  - Playback: フレームデータからバッテリー情報抽出
+  - 両ページにBatteryDisplay統合
+- [x] 品質保証
+  - Tests: 521/521 passing (100%)
+  - Coverage: 97.22% statements (+0.99pt from 96.23%)
+  - TypeScript: 0 errors
+  - ESLint: 0 errors, 147 warnings
+  - Stylelint: 0 errors
+
+### Phase 51: 型安全性向上（@ts-expect-errorの削除） ✅
+- [x] EnvironmentStateResponseDTO型定義拡張 (Session 051)
+  - battery_percentage, is_charging, distance_to_charging_station, charging_station_position追加
+  - EnvironmentUpdateMessageとの型一貫性確保
+- [x] playback/[sessionId].vueの@ts-expect-error削除 (4箇所)
+  - batteryPercentage computed property
+  - isCharging computed property
+  - distanceToStation computed property
+  - chargingStationPosition computed property
+- [x] 品質保証
+  - Tests: 521/521 passing (100%)
+  - Coverage: 97.21% statements (目標85%達成 ✅ +12.21pt)
+  - TypeScript: 0 errors (完全な型安全性を確保)
+  - ESLint: 0 errors, 147 warnings (acceptable)
+
 ### 次フェーズ候補
+- [ ] Backend APIとのバッテリーシステム統合テスト
+- [ ] バッテリー切れ時の警告UI実装
+- [ ] 充電ステーションへの最短経路表示
+- [ ] バッテリー履歴グラフ機能
 - [ ] 全ページへのMD3カラー適用（Training, Models, Settings, Dashboard）
 - [ ] ダークモード対応
 - [ ] カラーテーマのカスタマイズ機能

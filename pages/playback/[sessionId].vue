@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted, ref } from 'vue'
 
+import BatteryDisplay from '~/components/environment/BatteryDisplay.vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import PlaybackControl from '~/components/playback/PlaybackControl.vue'
@@ -9,6 +10,7 @@ import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position, GridPosition } from '~/libs/domains/common/Position'
 import { usePlaybackStore } from '~/stores/playback'
+import { getChargingStationPosition } from '~/utils/batteryHelpers'
 
 const route = useRoute()
 const router = useRouter()
@@ -82,6 +84,28 @@ const frameInfoItems = computed(() => {
   }
 
   return items
+})
+
+// Battery system computed properties (Session 050)
+const batteryPercentage = computed(() => {
+  const env = currentFrame.value?.environmentState
+  return env?.battery_percentage ?? null
+})
+
+const isCharging = computed(() => {
+  const env = currentFrame.value?.environmentState
+  return env?.is_charging ?? false
+})
+
+const distanceToStation = computed(() => {
+  const env = currentFrame.value?.environmentState
+  return env?.distance_to_charging_station ?? null
+})
+
+const chargingStationPosition = computed<Position | null>(() => {
+  const env = currentFrame.value?.environmentState
+  if (!env) return null
+  return getChargingStationPosition(env)
 })
 
 let playbackInterval: ReturnType<typeof setInterval> | null = null
@@ -181,11 +205,11 @@ const handleBack = () => {
 }
 
 const orientationLabels = ['北', '東', '南', '西'] as const
-const formatOrientation = (orientation?: number | null) => {
+const formatOrientation = (orientation?: number | null): string => {
   if (typeof orientation !== 'number' || Number.isNaN(orientation)) return '未取得'
   const normalized =
     ((Math.round(orientation) % orientationLabels.length) + orientationLabels.length) % orientationLabels.length
-  return orientationLabels[normalized]
+  return orientationLabels[normalized] ?? '未取得'
 }
 </script>
 
@@ -263,6 +287,7 @@ const formatOrientation = (orientation?: number | null) => {
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
               :trajectory="robotTrajectory"
               :patrol-radius="PATROL_RADIUS"
+              :charging-station-position="chargingStationPosition"
             />
             <el-empty v-else description="環境データがありません" />
           </div>
@@ -280,6 +305,15 @@ const formatOrientation = (orientation?: number | null) => {
               :orientation="currentFrame.environmentState.robot_orientation ?? null"
             />
             <el-empty v-else description="ロボットデータがありません" />
+          </div>
+
+          <div class="playback-detail__battery">
+            <h3>バッテリー状態</h3>
+            <BatteryDisplay
+              :battery-percentage="batteryPercentage"
+              :is-charging="isCharging"
+              :distance-to-station="distanceToStation"
+            />
           </div>
         </div>
       </div>
