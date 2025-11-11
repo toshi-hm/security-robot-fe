@@ -111,7 +111,7 @@ describe('useTraining', () => {
     const composable = await loadComposable()
     const existingSession = createSession()
     composable.sessions.value = [existingSession]
-    
+
     const newSession = new TrainingSession(
       2,
       'Unique Session',
