@@ -13,6 +13,7 @@ import type {
   TrainingErrorMessage,
   EnvironmentUpdateMessage,
 } from '~/types/api'
+import { getChargingStationPosition } from '~/utils/batteryHelpers'
 
 const route = useRoute()
 const sessionId = computed(() => Number(route.params.sessionId))
@@ -304,11 +305,9 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     if (typeof message.distance_to_charging_station === 'number') {
       distanceToStation.value = message.distance_to_charging_station
     }
-    if (Array.isArray(message.charging_station_position) && message.charging_station_position.length === 2) {
-      chargingStationPosition.value = {
-        x: message.charging_station_position[0],
-        y: message.charging_station_position[1],
-      }
+    const stationPosition = getChargingStationPosition(message)
+    if (stationPosition) {
+      chargingStationPosition.value = stationPosition
     }
   }
 }

@@ -10,6 +10,7 @@ import PlaybackTimeline from '~/components/playback/PlaybackTimeline.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position, GridPosition } from '~/libs/domains/common/Position'
 import { usePlaybackStore } from '~/stores/playback'
+import { getChargingStationPosition } from '~/utils/batteryHelpers'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,9 +104,8 @@ const distanceToStation = computed(() => {
 
 const chargingStationPosition = computed<Position | null>(() => {
   const env = currentFrame.value?.environmentState
-  const station = env?.charging_station_position
-  if (!station || !Array.isArray(station) || station.length !== 2) return null
-  return { x: station[0], y: station[1] }
+  if (!env) return null
+  return getChargingStationPosition(env)
 })
 
 let playbackInterval: ReturnType<typeof setInterval> | null = null

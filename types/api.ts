@@ -160,7 +160,8 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   battery_percentage?: number
   is_charging?: boolean
   distance_to_charging_station?: number
-  charging_station_position?: [number, number]
+  charging_station_position_x?: number
+  charging_station_position_y?: number
 }
 
 export interface ConnectionAckMessage extends BaseWebSocketMessage {
@@ -244,7 +245,8 @@ export interface EnvironmentStateResponseDTO {
   battery_percentage?: number
   is_charging?: boolean
   distance_to_charging_station?: number
-  charging_station_position?: [number, number]
+  charging_station_position_x?: number
+  charging_station_position_y?: number
 }
 
 /**
