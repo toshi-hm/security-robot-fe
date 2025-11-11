@@ -189,6 +189,14 @@ export const useTraining = () => {
     error.value = null
 
     try {
+      // 名前重複チェック
+      const isDuplicate = sessions.value.some((session) => session.name === config.name)
+      if (isDuplicate) {
+        error.value = `トレーニング名「${config.name}」は既に使用されています。別の名前を指定してください。`
+        ElMessage.error(error.value)
+        return null
+      }
+
       // シミュレーションモードの場合、ダミーセッションを返す
       if (isSimulationMode()) {
         const dummySession = createDummySession(config)

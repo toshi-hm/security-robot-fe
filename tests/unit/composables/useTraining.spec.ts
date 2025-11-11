@@ -92,6 +92,58 @@ describe('useTraining', () => {
     expect(composable.currentSession.value?.id).toBe(session.id)
   })
 
+  it('rejects duplicate training names', async () => {
+    const composable = await loadComposable()
+    const existingSession = createSession()
+    composable.sessions.value = [existingSession]
+
+    const result = await composable.createSession({
+      ...DEFAULT_TRAINING_CONFIG,
+      name: 'Session', // 既存セッションと同じ名前
+    })
+
+    expect(result).toBeNull()
+    expect(composable.error.value).toContain('既に使用されています')
+    expect(create).not.toHaveBeenCalled() // API呼び出しがスキップされることを確認
+  })
+
+  it('allows creating session with unique name', async () => {
+    const composable = await loadComposable()
+    const existingSession = createSession()
+    composable.sessions.value = [existingSession]
+    
+    const newSession = new TrainingSession(
+      2,
+      'Unique Session',
+      'ppo',
+      'standard',
+      'queued',
+      10_000,
+      0,
+      0,
+      10,
+      10,
+      1,
+      2,
+      3,
+      null,
+      null,
+      new Date('2024-01-02T00:00:00Z'),
+      new Date('2024-01-02T00:00:00Z'),
+      null
+    )
+    create.mockResolvedValue(newSession)
+
+    const result = await composable.createSession({
+      ...DEFAULT_TRAINING_CONFIG,
+      name: 'Unique Session',
+    })
+
+    expect(result).toBe(newSession)
+    expect(composable.error.value).toBeNull()
+    expect(create).toHaveBeenCalled()
+  })
+
   it('handles create errors', async () => {
     const composable = await loadComposable()
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
