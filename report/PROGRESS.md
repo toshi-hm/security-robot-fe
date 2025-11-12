@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-11-12 (Session 053 - トレーニング名重複バリデーション実装)
+最終更新日: 2025-11-12 (Session 054 - バッテリー表示の小数点制御最適化)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -551,9 +551,14 @@
   - Training: WebSocketからバッテリー情報受信
   - Playback: フレームデータからバッテリー情報抽出
   - 両ページにBatteryDisplay統合
+- [x] バッテリー表示の小数点制御最適化 (Session 054)
+  - BatteryDisplay.vue: プログレスバー値を小数点以下1桁に四捨五入
+  - roundedBatteryPercentage computed property追加
+  - コード最適化: toFixed + Number → Math.round(value * 10) / 10
+  - nullish coalescing演算子 (??) 使用でコード簡潔化
 - [x] 品質保証
-  - Tests: 521/521 passing (100%)
-  - Coverage: 97.22% statements (+0.99pt from 96.23%)
+  - Tests: 523/523 passing (100%)
+  - Coverage: 96.81% statements (目標85%達成 ✅)
   - TypeScript: 0 errors
   - ESLint: 0 errors, 147 warnings
   - Stylelint: 0 errors
