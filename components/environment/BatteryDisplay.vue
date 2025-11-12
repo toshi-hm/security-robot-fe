@@ -14,6 +14,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 /**
+ * 小数点以下1桁に四捨五入されたバッテリー残量
+ */
+const roundedBatteryPercentage = computed(() => {
+  const value = props.batteryPercentage ?? 0
+  return Math.round(value * 10) / 10
+})
+
+/**
  * バッテリー残量に応じた色を取得
  */
 const batteryColor = computed(() => {
@@ -70,7 +78,7 @@ const formattedDistance = computed(() => {
     <div class="battery-display__content">
       <!-- バッテリー残量プログレスバー -->
       <div class="battery-display__progress">
-        <el-progress :percentage="batteryPercentage ?? 0" :color="batteryColor" :stroke-width="20" />
+        <el-progress :percentage="roundedBatteryPercentage" :color="batteryColor" :stroke-width="20" />
       </div>
 
       <!-- バッテリー情報 -->

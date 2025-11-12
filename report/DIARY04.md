@@ -3,6 +3,8 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-12 セッション054 - バッテリー表示の小数点制御最適化](#2025-11-12-セッション054---バッテリー表示の小数点制御最適化)
+- [2025-11-12 セッション053 - トレーニング名重複バリデーション実装](#2025-11-12-セッション053---トレーニング名重複バリデーション実装)
 - [2025-11-11 セッション051 - 型安全性向上：@ts-expect-errorの削除](#2025-11-11-セッション051---型安全性向上ts-expect-errorの削除)
 - [2025-11-10 セッション050 - バッテリー充電システムUI実装](#2025-11-10-セッション050---バッテリー充電システムui実装)
 - [2025-11-10 セッション049 - Playbackロボット向きと警備範囲表示強化](#2025-11-10-セッション049---playbackロボット向きと警備範囲表示強化)
@@ -12,6 +14,304 @@
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+## 2025-11-12 セッション054 - バッテリー表示の小数点制御最適化
+
+### セッション情報
+- **開始時刻**: 2025-11-12 15:20
+- **終了時刻**: 2025-11-12 15:45
+- **所要時間**: 約25分
+- **対象Phase**: Phase 50後続改善 (UI最適化)
+- **担当者**: AI実装アシスタント
+- **ブランチ**: feature/session-053-training-name-validation
+
+---
+
+### 📋 実施したタスク
+- [x] BatteryDisplay.vueのバッテリー残量表示を小数点以下1桁に制御
+- [x] プログレスバーの値も小数点以下1桁に四捨五入
+- [x] コードの最適化（toFixed + Number → Math.round）
+- [x] CSS構文エラー修正（pages/training/[sessionId]/index.vue）
+- [x] Lint/TypeScript確認（0エラー）
+
+---
+
+### 🔧 実装の詳細
+
+#### 1. BatteryDisplay.vue - 小数点制御
+**変更内容**: プログレスバーの値を小数点以下1桁に四捨五入
+
+**最終実装**:
+```typescript
+/**
+ * 小数点以下1桁に四捨五入されたバッテリー残量
+ */
+const roundedBatteryPercentage = computed(() => {
+  const value = props.batteryPercentage ?? 0
+  return Math.round(value * 10) / 10
+})
+```
+
+**テンプレート変更**:
+```vue
+<!-- プログレスバー -->
+<el-progress :percentage="roundedBatteryPercentage" :color="batteryColor" :stroke-width="20" />
+
+<!-- テキスト表示（既存） -->
+<span>{{ batteryPercentage?.toFixed(1) ?? '---' }}%</span>
+```
+
+**最適化の理由**:
+- `toFixed(1)` は文字列を返すため、`Number()` で変換が必要
+- `Math.round(value * 10) / 10` は直接数値で処理できるため効率的
+- nullish coalescing演算子 (`??`) でコードを簡潔化
+
+#### 2. pages/training/[sessionId]/index.vue - CSS修正
+**問題**: `&__header` ブロックの閉じ括弧不足によるstylelintエラー
+
+**修正箇所** (471行目):
+```scss
+h2 {
+  color: var(--md-on-background);
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+}
+}  // この閉じ括弧を追加
+```
+
+---
+
+### 📊 品質メトリクス
+- **Tests**: 523/523 passing (100%)
+- **Coverage**: 96.81% statements (目標85%達成 ✅)
+- **TypeScript**: 0 errors
+- **ESLint**: 0 errors, 147 warnings (acceptable)
+- **Stylelint**: 0 errors
+
+---
+
+### 🎓 技術的学び
+
+#### 1. 学んだこと
+- **Math.round() vs toFixed()**:
+  - `toFixed()`: 文字列を返すため数値変換が必要（`Number(value.toFixed(1))`）
+  - `Math.round()`: 直接数値で処理できるため効率的（`Math.round(value * 10) / 10`）
+- **nullish coalescing演算子**:
+  - `props.batteryPercentage ?? 0` は `null` と `undefined` のみをチェック
+  - `||` より厳密で、`0` や `false` を誤って置換しない
+
+#### 2. コード最適化の観点
+- 文字列変換を避けることで、メモリ効率とパフォーマンスが向上
+- computed propertyで四捨五入を一元管理することで、DRY原則を維持
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル
+1. **components/environment/BatteryDisplay.vue** (19-22行目)
+   - `roundedBatteryPercentage` computed propertyを最適化
+   - nullish coalescing演算子を使用
+   - `Math.round(value * 10) / 10` に変更
+
+2. **components/environment/BatteryDisplay.vue** (83行目)
+   - プログレスバーに `roundedBatteryPercentage` を適用
+
+3. **pages/training/[sessionId]/index.vue** (471行目)
+   - `&__header` ブロックの閉じ括弧追加（CSS構文エラー修正）
+
+---
+
+### ✅ 完了した課題
+1. ✅ バッテリー残量表示の小数点制御（テキスト + プログレスバー）
+2. ✅ コードの最適化（Math.round使用）
+3. ✅ CSS構文エラーの修正
+4. ✅ 全Lint・TypeScriptチェック成功
+
+---
+
+### 💡 メモ・備考
+- Element Plus の `el-progress` コンポーネントは数値型の `percentage` プロパティを期待
+- `toFixed()` は文字列を返すため、プログレスバーに直接使用できない
+- 今回の最適化により、コードがより簡潔で効率的になった
+
+---
+
+### 🔄 次のアクション
+- Backend APIとのバッテリーシステム統合テスト
+- バッテリー履歴グラフ機能の検討
+
+---
+
+**セッション終了時刻**: 2025-11-12 15:45
+
+---
+
+## 2025-11-12 セッション053 - トレーニング名重複バリデーション実装
+
+### セッション情報
+- **開始時刻**: 2025-11-12 10:58
+- **終了時刻**: (実装中)
+- **所要時間**: (実装中)
+- **対象Phase**: Phase 7 (Composables Layer) - useTraining拡張
+- **担当者**: AI実装アシスタント
+- **ブランチ**: feature/session-053-training-name-validation
+
+---
+
+### 📋 実装目標
+
+トレーニングセッション作成時に、既存のセッション名と重複している場合はバリデーションエラーを表示し、トレーニングを実行できないようにする。
+
+---
+
+### 🎯 実装方針
+
+#### 1. バックエンドAPI調査結果
+- **調査結果**: `/app/services/training_service.py`の`create_session`メソッドでは名前重複チェックが実装されていない
+- **結論**: フロントエンド側でクライアントサイドバリデーションを実装する
+
+#### 2. 実装アプローチ
+- **レイヤー**: Application Layer (composables/useTraining.ts)
+- **方針**: 
+  1. `createSession`メソッド内で既存セッション名との重複をチェック
+  2. 重複がある場合はエラーメッセージを返し、API呼び出しをスキップ
+  3. ElMessage.errorでユーザーに通知
+
+#### 3. テスト戦略
+- 重複名でのセッション作成試行テスト
+- 正常な名前でのセッション作成テスト
+- 空文字列などのエッジケーステスト
+
+---
+
+### 📝 実施したタスク
+
+#### Phase 1: 設計・調査
+- [x] Git ブランチ作成 (`feature/session-053-training-name-validation`)
+- [x] 設計書・進捗レポート読み込み (PROGRESS.md, DIARY04.md)
+- [x] バックエンドAPI調査 (training_service.py)
+- [x] 実装方針策定
+
+#### Phase 2: 実装
+- [ ] composables/useTraining.ts に名前重複チェックロジック追加
+- [ ] エラーメッセージ表示実装
+- [ ] ユニットテスト作成
+
+#### Phase 3: 検証
+- [ ] テスト実行・全パス確認
+- [ ] カバレッジ確認（80%以上維持）
+- [ ] 手動動作確認
+
+---
+
+### 🔧 実装の詳細
+
+#### 1. composables/useTraining.ts
+**変更内容**: `createSession` メソッドに名前重複チェックロジックを追加
+
+```typescript
+const createSession = async (config: TrainingConfig): Promise<TrainingSession | null> => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    // 名前重複チェック
+    const isDuplicate = sessions.value.some((session) => session.name === config.name)
+    if (isDuplicate) {
+      error.value = `トレーニング名「${config.name}」は既に使用されています。別の名前を指定してください。`
+      ElMessage.error(error.value)
+      return null
+    }
+    
+    // 既存のロジック（シミュレーション/通常モード）
+    // ...
+  }
+}
+```
+
+**ポイント**:
+- 既存のセッション一覧 (`sessions.value`) から同じ名前が存在するかチェック
+- 重複がある場合は即座にエラーを返し、API呼び出しをスキップ
+- ElMessage.errorでユーザーに視覚的にフィードバック
+
+#### 2. tests/unit/composables/useTraining.spec.ts
+**追加したテスト**:
+- `rejects duplicate training names`: 重複名でセッション作成を試行し、nullが返ることを確認
+- `allows creating session with unique name`: ユニークな名前の場合は正常に作成できることを確認
+
+**テスト結果**:
+- 新規テスト: 2件追加
+- 総テスト数: 523件（全成功）
+- useTraining関連: 22件（全成功）
+
+---
+
+### 📊 テスト結果・カバレッジ
+
+#### テスト実行結果
+```
+Test Files  59 passed (59)
+Tests  523 passed (523)
+```
+
+#### カバレッジ（全体）
+- **Statements**: 96.81% ✅ (目標80%達成)
+- **Branches**: 90.74% ✅ (目標80%達成)
+- **Functions**: 85.41% ✅ (目標80%達成)
+- **Lines**: 96.81% ✅ (目標80%達成)
+
+#### useTraining.ts カバレッジ
+- **Statements**: 91.54%
+- **Branches**: 85.36%
+- **Functions**: 100%
+- **Lines**: 91.54%
+
+---
+
+### ✅ 完了したタスク
+
+#### Phase 2: 実装
+- [x] composables/useTraining.ts に名前重複チェックロジック追加
+- [x] エラーメッセージ表示実装（ElMessage.error）
+- [x] ユニットテスト作成（2件追加）
+
+#### Phase 3: 検証
+- [x] テスト実行・全パス確認（523/523テスト成功）
+- [x] カバレッジ確認（80%以上維持）
+
+---
+
+### 💡 学んだこと・気づき
+
+1. **クライアントサイドバリデーションの重要性**
+   - バックエンドに名前重複チェック機能がない場合でも、フロントエンドで実装することでUXを向上
+   - 不要なAPI呼び出しを削減
+
+2. **既存データの活用**
+   - `sessions.value` に既にデータが格納されているため、追加のAPI呼び出し不要
+   - リアクティブな状態管理により、常に最新のセッション一覧を参照可能
+
+3. **テスト駆動開発の効果**
+   - テストを先に書くことで、仕様を明確化
+   - リグレッション防止
+
+---
+
+### 🔄 次回への申し送り
+
+- バックエンド側でも名前重複チェックを実装する場合は、フロントエンドのロジックを調整する必要がある
+- 現在はクライアントサイドのみでチェックしているため、複数ユーザーが同時にセッションを作成する場合は考慮外
+
+---
+
+### セッション終了
+- **終了時刻**: 2025-11-12 11:25
+- **所要時間**: 約27分
+- **ステータス**: ✅ 完了
+
+---
 
 ## 2025-11-11 セッション052 - バッテリーシステムAPI統合調査(Backend修正が必要)
 
