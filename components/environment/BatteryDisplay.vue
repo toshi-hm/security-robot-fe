@@ -17,10 +17,8 @@ const props = withDefaults(defineProps<Props>(), {
  * 小数点以下1桁に四捨五入されたバッテリー残量
  */
 const roundedBatteryPercentage = computed(() => {
-  if (props.batteryPercentage === null || props.batteryPercentage === undefined) {
-    return 0
-  }
-  return Number(props.batteryPercentage.toFixed(1))
+  const value = props.batteryPercentage ?? 0
+  return Math.round(value * 10) / 10
 })
 
 /**
