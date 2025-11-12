@@ -369,20 +369,22 @@ onBeforeUnmount(() => {
 
     <el-card class="training-session__metrics">
       <template #header>
-        <span>Real-time Metrics</span>
+        <span class="training-session__metrics-title">Real-time Metrics</span>
       </template>
       <el-descriptions :column="2" border>
         <el-descriptions-item label="Timestep">
-          {{ currentMetrics.timestep }}
+          <div class="training-session__metrics-value">{{ currentMetrics.timestep }}</div>
         </el-descriptions-item>
         <el-descriptions-item label="Episode">
-          {{ currentMetrics.episode }}
+          <div class="training-session__metrics-value">{{ currentMetrics.episode }}</div>
         </el-descriptions-item>
         <el-descriptions-item label="Reward">
-          {{ currentMetrics.reward.toFixed(2) }}
+          <div class="training-session__metrics-value">{{ currentMetrics.reward.toFixed(2) }}</div>
         </el-descriptions-item>
         <el-descriptions-item label="Loss">
-          {{ currentMetrics.loss !== null ? currentMetrics.loss.toFixed(4) : 'N/A' }}
+          <div class="training-session__metrics-value">
+            {{ currentMetrics.loss !== null ? currentMetrics.loss.toFixed(4) : 'N/A' }}
+          </div>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -466,6 +468,10 @@ onBeforeUnmount(() => {
       font-weight: 600;
       margin: 0;
     }
+  }
+
+  &__metrics-value {
+    color: var(--color-text-primary);
   }
 
   &__metrics {
