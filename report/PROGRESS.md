@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-11-12 (Session 054 - バッテリー表示の小数点制御最適化)
+最終更新日: 2025-11-13 (Session 055 - 環境変数読み込み修正)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -577,6 +577,28 @@
   - Coverage: 97.21% statements (目標85%達成 ✅ +12.21pt)
   - TypeScript: 0 errors (完全な型安全性を確保)
   - ESLint: 0 errors, 147 warnings (acceptable)
+
+### Phase 55: 環境変数読み込み修正（useRuntimeConfig対応） ✅
+- [x] 問題調査・原因特定 (Session 055)
+  - 現象: `.env`の`NUXT_PUBLIC_API_BASE_URL`が本番ビルドで反映されない
+  - 原因: Nuxt 3 SPAモードで`process.env`がビルド時に空オブジェクトに置換される
+  - 検証: 開発モードでは動作するが、`pnpm build`では動作しないことを確認
+- [x] configs/api.tsのリファクタリング
+  - `useApiEndpoints()`関数を実装（`useRuntimeConfig()`使用）
+  - `useWsEndpoints()`関数を実装
+  - 後方互換性のためgetterプロパティでラップ
+  - `@deprecated`コメントで新APIへの移行を促進
+- [x] 品質保証
+  - Tests: 523/523 passing (100%)
+  - Coverage: 96.81% statements (目標85%達成 ✅)
+  - TypeScript: 0 errors
+  - ESLint: 0 errors, 129 warnings (acceptable)
+  - Build: 1.99 MB (497 kB gzip) - Success
+  - 環境変数のハードコード: なし（実行時読み込み確認 ✅）
+- [x] 効果
+  - `pnpm build && pnpm start`で`.env`の値が正しく使用可能に
+  - 開発モードと本番ビルドで環境変数読み込み方法が統一
+  - 既存コードは変更不要（後方互換性維持）
 
 ### 次フェーズ候補
 - [ ] Backend APIとのバッテリーシステム統合テスト
