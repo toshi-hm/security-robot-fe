@@ -4,6 +4,7 @@
 
 ## 📑 目次
 - [2025-11-12 セッション054 - バッテリー表示の小数点制御最適化](#2025-11-12-セッション054---バッテリー表示の小数点制御最適化)
+- [2025-11-13 セッション055 - 環境変数読み込み修正（useRuntimeConfig対応）](#2025-11-13-セッション055---環境変数読み込み修正useruntimeconfig対応)
 - [2025-11-12 セッション053 - トレーニング名重複バリデーション実装](#2025-11-12-セッション053---トレーニング名重複バリデーション実装)
 - [2025-11-11 セッション051 - 型安全性向上：@ts-expect-errorの削除](#2025-11-11-セッション051---型安全性向上ts-expect-errorの削除)
 - [2025-11-10 セッション050 - バッテリー充電システムUI実装](#2025-11-10-セッション050---バッテリー充電システムui実装)
@@ -14,6 +15,153 @@
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+## 2025-11-13 セッション055 - 環境変数読み込み修正（useRuntimeConfig対応）
+
+### セッション情報
+- **開始時刻**: 2025-11-13 12:25
+- **終了時刻**: 2025-11-13 12:50
+- **所要時間**: 約25分
+- **対象Phase**: インフラ設定修正
+- **担当者**: AI実装アシスタント
+- **ブランチ**: fix/session-055-env-variable-loading
+
+---
+
+### 📋 実施したタスク
+- [x] 環境変数読み込みの問題調査・原因特定
+- [x] configs/api.tsをuseRuntimeConfig()パターンに修正
+- [x] 後方互換性を保つためのgetterプロパティ実装
+- [x] 全テスト実行・確認（523テスト成功）
+- [x] ビルド確認（環境変数がハードコードされていないことを確認）
+
+---
+
+### 🔧 実装の詳細
+
+#### 問題の原因
+**現象**: `.env`ファイルに`NUXT_PUBLIC_API_BASE_URL`を定義しているが、本番ビルド時には反映されない
+
+**原因**:
+- `configs/api.ts`で`process.env.NUXT_PUBLIC_API_BASE_URL`を直接使用していた
+- Nuxt 3のSPAモード (`ssr: false`) では、Viteが`process.env`を空のオブジェクトに置き換えるため、ビルド時に環境変数が評価されない
+- 開発モード (`pnpm dev`) では動作するが、本番ビルド (`pnpm build`) では動作しない
+
+**検証結果**:
+```bash
+# ビルド後の出力を確認
+grep -r "150.93.153.236" node_modules/.cache/nuxt/.nuxt/dist/client/_nuxt/*.js
+# → 結果: 見つからない（デフォルト値 localhost:8000 が使用されている）
+```
+
+#### 解決策
+`configs/api.ts`を`useRuntimeConfig()`を使用するパターンに変更:
+
+**変更前**:
+```typescript
+const API_BASE_URL = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+
+export const API_ENDPOINTS = {
+  health: `${API_BASE_URL}/api/v1/health/`,
+  // ...
+}
+```
+
+**変更後**:
+```typescript
+export const useApiEndpoints = () => {
+  const runtimeConfig = useRuntimeConfig()
+  const API_BASE_URL = runtimeConfig.public.apiBaseUrl
+
+  return {
+    health: `${API_BASE_URL}/api/v1/health/`,
+    // ...
+  } as const
+}
+
+// 後方互換性のためのgetterプロパティ
+export const API_ENDPOINTS = {
+  get health() {
+    return useApiEndpoints().health
+  },
+  // ...
+}
+```
+
+#### 後方互換性
+既存のコードを一度に書き換える必要がないように、getterプロパティを使用した後方互換性を確保:
+- `API_ENDPOINTS.health` → 内部で`useApiEndpoints().health`を呼び出す
+- 既存のimport文を変更する必要なし
+- 新しいコードでは`useApiEndpoints()`を使用することを推奨
+
+---
+
+### 📊 品質メトリクス
+- **Tests**: 523/523 passing (100%)
+- **Coverage**: 96.81% statements (目標85%達成 ✅)
+- **TypeScript**: 0 errors
+- **ESLint**: 0 errors, 129 warnings (acceptable)
+- **Build**: 1.99 MB (497 kB gzip) - Success
+- **環境変数のハードコード**: なし（実行時に読み込み ✅）
+
+---
+
+### 🎓 技術的学び
+
+#### 1. Nuxt 3のSPAモードにおける環境変数の扱い
+- **開発モード**: `process.env`は正しく評価される
+- **本番ビルド**: Viteが`process.env`を空のオブジェクト`{}`に置き換える
+- **解決方法**: `useRuntimeConfig()`を使用して実行時に環境変数を読み込む
+
+#### 2. useRuntimeConfig()の動作
+- `nuxt.config.ts`の`runtimeConfig.public`に定義された値を取得
+- ビルド時ではなく、実行時に環境変数を評価
+- `.env`ファイルの値が正しく反映される
+
+#### 3. 後方互換性の設計
+- getterプロパティを使用することで、既存のAPIを変更せずに内部実装を変更可能
+- `@deprecated`コメントで新しいAPIへの移行を促す
+
+---
+
+### 📁 作成・変更したファイル
+
+#### 変更したファイル
+1. **configs/api.ts** (全面リファクタリング)
+   - `useApiEndpoints()`関数を追加
+   - `useWsEndpoints()`関数を追加
+   - `API_ENDPOINTS`と`WS_ENDPOINTS`をgetterプロパティに変更
+   - `@deprecated`コメントを追加
+
+---
+
+### ✅ 完了した課題
+1. ✅ 環境変数読み込みの問題を特定・修正
+2. ✅ `useRuntimeConfig()`パターンへの移行
+3. ✅ 後方互換性の確保
+4. ✅ 全テスト成功（523/523テスト）
+5. ✅ ビルド成功（環境変数がハードコードされていないことを確認）
+
+---
+
+### 💡 メモ・備考
+- 本修正により、`pnpm build && pnpm start`で`.env`の値が正しく使用されるようになった
+- 開発モードと本番ビルドで環境変数の読み込み方法が統一された
+- 既存のコードは変更不要（後方互換性あり）
+- 新しいコードでは`useApiEndpoints()`の使用を推奨
+
+---
+
+### 🔄 次のアクション
+- 実際に本番環境で動作確認
+- 他のファイルで`process.env`を直接使用している箇所がないか確認
+- `useApiEndpoints()`への段階的な移行を検討
+
+---
+
+**セッション終了時刻**: 2025-11-13 12:50
+
+---
 
 ## 2025-11-12 セッション054 - バッテリー表示の小数点制御最適化
 
