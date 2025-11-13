@@ -31,17 +31,26 @@ export const setWsEndpointsCache = (endpoints: ReturnType<typeof useWsEndpoints>
 
 /**
  * キャッシュを取得（後方互換性のためのAPI_ENDPOINTS等から呼び出される）
+ *
+ * Lazy initialization: キャッシュが未初期化の場合は自動的に初期化します。
+ * これにより、以下の問題を解決します：
+ * 1. プラグイン読み込み順序に依存しない
+ * 2. テスト環境でも自動的に動作
+ * 3. SSRモードへの移行時も動作
  */
 export const getApiEndpointsCache = () => {
   if (!cachedApiEndpoints) {
-    throw new Error('API endpoints cache not initialized. Make sure the api-config plugin is loaded.')
+    // プラグインで初期化されていない場合は自動的に初期化
+    // 通常はプラグインで初期化されるため、この分岐は稀
+    cachedApiEndpoints = useApiEndpoints()
   }
   return cachedApiEndpoints
 }
 
 export const getWsEndpointsCache = () => {
   if (!cachedWsEndpoints) {
-    throw new Error('WS endpoints cache not initialized. Make sure the api-config plugin is loaded.')
+    // プラグインで初期化されていない場合は自動的に初期化
+    cachedWsEndpoints = useWsEndpoints()
   }
   return cachedWsEndpoints
 }
