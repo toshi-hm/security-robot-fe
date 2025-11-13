@@ -8,10 +8,54 @@
  * Backend repository: ../security-robot-be/
  */
 
+// ========================================
+// キャッシュ機構
+// ========================================
+/**
+ * エンドポイントのキャッシュ
+ * プラグインで初期化時に1回だけ設定され、以降は再利用される
+ */
+let cachedApiEndpoints: ReturnType<typeof useApiEndpoints> | null = null
+let cachedWsEndpoints: ReturnType<typeof useWsEndpoints> | null = null
+
+/**
+ * キャッシュを設定（プラグインから呼び出される）
+ */
+export const setApiEndpointsCache = (endpoints: ReturnType<typeof useApiEndpoints>) => {
+  cachedApiEndpoints = endpoints
+}
+
+export const setWsEndpointsCache = (endpoints: ReturnType<typeof useWsEndpoints>) => {
+  cachedWsEndpoints = endpoints
+}
+
+/**
+ * キャッシュを取得（後方互換性のためのAPI_ENDPOINTS等から呼び出される）
+ */
+export const getApiEndpointsCache = () => {
+  if (!cachedApiEndpoints) {
+    throw new Error('API endpoints cache not initialized. Make sure the api-config plugin is loaded.')
+  }
+  return cachedApiEndpoints
+}
+
+export const getWsEndpointsCache = () => {
+  if (!cachedWsEndpoints) {
+    throw new Error('WS endpoints cache not initialized. Make sure the api-config plugin is loaded.')
+  }
+  return cachedWsEndpoints
+}
+
+// ========================================
+// エンドポイント生成関数
+// ========================================
 /**
  * API_ENDPOINTSを取得する関数
  * Nuxt 3のSPAモードでは、process.envはビルド時にのみ評価されるため、
  * 実行時に環境変数を読み込むにはuseRuntimeConfig()を使用する必要があります。
+ *
+ * 注意: この関数は通常、プラグインから1回だけ呼び出されます。
+ * アプリケーションコードからは getApiEndpointsCache() またはAPI_ENDPOINTSを使用してください。
  */
 export const useApiEndpoints = () => {
   const runtimeConfig = useRuntimeConfig()
@@ -68,34 +112,39 @@ export const useWsEndpoints = () => {
   } as const
 }
 
+// ========================================
+// 後方互換性エクスポート
+// ========================================
 /**
- * 後方互換性のための定数エクスポート（非推奨）
- * 新しいコードでは useApiEndpoints() と useWsEndpoints() を使用してください
- * @deprecated Use useApiEndpoints() instead
+ * 後方互換性のための定数エクスポート
+ * キャッシュから取得するため、パフォーマンス問題なし
+ *
+ * 新しいコードでは getApiEndpointsCache() の直接使用を推奨
+ * @deprecated Use getApiEndpointsCache() instead
  */
 export const API_ENDPOINTS = {
   get health() {
-    return useApiEndpoints().health
+    return getApiEndpointsCache().health
   },
   get training() {
-    return useApiEndpoints().training
+    return getApiEndpointsCache().training
   },
   get environment() {
-    return useApiEndpoints().environment
+    return getApiEndpointsCache().environment
   },
   get files() {
-    return useApiEndpoints().files
+    return getApiEndpointsCache().files
   },
   get playback() {
-    return useApiEndpoints().playback
+    return getApiEndpointsCache().playback
   },
 }
 
 /**
- * @deprecated Use useWsEndpoints() instead
+ * @deprecated Use getWsEndpointsCache() instead
  */
 export const WS_ENDPOINTS = {
   get training() {
-    return useWsEndpoints().training
+    return getWsEndpointsCache().training
   },
 }
