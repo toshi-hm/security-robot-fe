@@ -40,6 +40,17 @@ const canExecute = computed(() => {
   }
 })
 
+// el-table用データ (readonly配列を通常配列に変換)
+const episodeMetricsTableData = computed(() => {
+  if (!executeResult.value?.episode_metrics) return []
+  return [...executeResult.value.episode_metrics]
+})
+
+const comparisonResultsTableData = computed(() => {
+  if (!compareResult.value?.results) return []
+  return [...compareResult.value.results]
+})
+
 // 初期化
 onMounted(async () => {
   await fetchAgentTypes()
@@ -88,8 +99,9 @@ const handleReset = () => {
 
 /**
  * 障害物の総数をカウント
+ * readonly配列に対応
  */
-const countObstacles = (obstacles: boolean[][]): number => {
+const countObstacles = (obstacles: readonly (readonly boolean[])[]): number => {
   return obstacles.reduce((count, row) => {
     return count + row.filter((cell) => cell).length
   }, 0)
@@ -97,8 +109,9 @@ const countObstacles = (obstacles: boolean[][]): number => {
 
 /**
  * 脅威度グリッドの平均値を計算
+ * readonly配列に対応
  */
-const calculateAverageThreat = (threatGrid: number[][]): number => {
+const calculateAverageThreat = (threatGrid: readonly (readonly number[])[]): number => {
   const total = threatGrid.reduce((sum, row) => {
     return sum + row.reduce((rowSum, cell) => rowSum + cell, 0)
   }, 0)
@@ -108,8 +121,9 @@ const calculateAverageThreat = (threatGrid: number[][]): number => {
 
 /**
  * 脅威度グリッドの最大値を取得
+ * readonly配列に対応
  */
-const calculateMaxThreat = (threatGrid: number[][]): number => {
+const calculateMaxThreat = (threatGrid: readonly (readonly number[])[]): number => {
   return threatGrid.reduce((max, row) => {
     const rowMax = Math.max(...row)
     return Math.max(max, rowMax)
@@ -250,7 +264,7 @@ const navigateToPlayback = (episode: number) => {
         </div>
 
         <!-- エピソード詳細テーブル -->
-        <el-table :data="executeResult.episode_metrics as any" stripe class="template-agents__table">
+        <el-table :data="episodeMetricsTableData" stripe class="template-agents__table">
           <el-table-column prop="episode" label="エピソード" width="100" />
           <el-table-column prop="total_reward" label="報酬" width="100">
             <template #default="{ row }">
@@ -296,7 +310,7 @@ const navigateToPlayback = (episode: number) => {
         </div>
 
         <!-- 比較テーブル -->
-        <el-table :data="compareResult.results as any" stripe class="template-agents__table">
+        <el-table :data="comparisonResultsTableData" stripe class="template-agents__table">
           <el-table-column prop="rank" label="順位" width="80">
             <template #default="{ row }">
               <el-tag v-if="row.rank === 1" type="success">🥇 {{ row.rank }}</el-tag>

@@ -55,9 +55,6 @@ export const useTemplateAgents = (repository: TemplateAgentRepository = new Temp
     error.value = null
     executeResult.value = null
 
-    // デバッグログ: リクエスト内容を確認
-    console.log('[useTemplateAgents] Execute request:', JSON.stringify(request, null, 2))
-
     try {
       const result = await repository.executeAgent(request)
       executeResult.value = result

@@ -10,9 +10,55 @@ import type {
   TemplateAgentExecuteResponse,
   TemplateAgentCompareRequest,
   TemplateAgentCompareResponse,
+  ApiError,
 } from '~/types/api'
 
 import type { TemplateAgentRepository } from './TemplateAgentRepository'
+
+/**
+ * APIエラーから詳細なエラーメッセージを生成
+ * @param error - キャッチされたエラー
+ * @param context - エラーが発生した操作のコンテキスト
+ * @returns 詳細なエラーメッセージ
+ */
+function createDetailedErrorMessage(error: unknown, context: string): string {
+  // ApiError型のチェック
+  const apiError = error as ApiError
+  const statusCode = apiError?.status || apiError?.response?.status
+
+  // HTTPステータスコードに基づいたメッセージ
+  if (statusCode) {
+    switch (statusCode) {
+      case 400:
+        return `${context}: 不正なリクエストです (ステータスコード: ${statusCode})`
+      case 401:
+        return `${context}: 認証に失敗しました (ステータスコード: ${statusCode})`
+      case 403:
+        return `${context}: アクセスが拒否されました (ステータスコード: ${statusCode})`
+      case 404:
+        return `${context}: リソースが見つかりませんでした (ステータスコード: ${statusCode})`
+      case 500:
+        return `${context}: サーバーエラーが発生しました (ステータスコード: ${statusCode})`
+      case 503:
+        return `${context}: サービスが利用できません (ステータスコード: ${statusCode})`
+      default:
+        return `${context}: エラーが発生しました (ステータスコード: ${statusCode})`
+    }
+  }
+
+  // エラーメッセージが含まれている場合
+  if (apiError?.message) {
+    return `${context}: ${apiError.message}`
+  }
+
+  // その他のエラー
+  if (error instanceof Error) {
+    return `${context}: ${error.message}`
+  }
+
+  // 不明なエラー
+  return `${context}: 不明なエラーが発生しました`
+}
 
 export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
   /**
@@ -26,7 +72,8 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
       return response
     } catch (error) {
       console.error('Failed to fetch template agent types:', error)
-      throw new Error('テンプレートエージェントのタイプ一覧の取得に失敗しました')
+      const message = createDetailedErrorMessage(error, 'テンプレートエージェントのタイプ一覧の取得に失敗しました')
+      throw new Error(message, { cause: error })
     }
   }
 
@@ -42,7 +89,8 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
       return response
     } catch (error) {
       console.error('Failed to execute template agent:', error)
-      throw new Error('テンプレートエージェントの実行に失敗しました')
+      const message = createDetailedErrorMessage(error, 'テンプレートエージェントの実行に失敗しました')
+      throw new Error(message, { cause: error })
     }
   }
 
@@ -58,7 +106,8 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
       return response
     } catch (error) {
       console.error('Failed to compare template agents:', error)
-      throw new Error('テンプレートエージェントの比較に失敗しました')
+      const message = createDetailedErrorMessage(error, 'テンプレートエージェントの比較に失敗しました')
+      throw new Error(message, { cause: error })
     }
   }
 }
