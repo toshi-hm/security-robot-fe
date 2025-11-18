@@ -73,7 +73,7 @@ describe('Default Layout', () => {
     })
 
     const menuItems = wrapper.findAllComponents(ElMenuItemStub)
-    expect(menuItems.length).toBe(5)
+    expect(menuItems.length).toBe(6) // Added Template Agents menu item
   })
 
   it('has correct menu item routes', () => {
@@ -85,8 +85,9 @@ describe('Default Layout', () => {
     expect(menuItems[0]?.props('index')).toBe('/')
     expect(menuItems[1]?.props('index')).toBe('/training')
     expect(menuItems[2]?.props('index')).toBe('/playback')
-    expect(menuItems[3]?.props('index')).toBe('/models')
-    expect(menuItems[4]?.props('index')).toBe('/settings')
+    expect(menuItems[3]?.props('index')).toBe('/template-agents') // Added Template Agents menu item
+    expect(menuItems[4]?.props('index')).toBe('/models')
+    expect(menuItems[5]?.props('index')).toBe('/settings')
   })
 
   it('has correct layout structure with grid', () => {

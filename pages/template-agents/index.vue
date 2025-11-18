@@ -83,6 +83,48 @@ const handleReset = () => {
   }
   clearResults()
 }
+
+// ヘルパー関数 (Future: Backend実装後に使用)
+
+/**
+ * 障害物の総数をカウント
+ */
+const countObstacles = (obstacles: boolean[][]): number => {
+  return obstacles.reduce((count, row) => {
+    return count + row.filter((cell) => cell).length
+  }, 0)
+}
+
+/**
+ * 脅威度グリッドの平均値を計算
+ */
+const calculateAverageThreat = (threatGrid: number[][]): number => {
+  const total = threatGrid.reduce((sum, row) => {
+    return sum + row.reduce((rowSum, cell) => rowSum + cell, 0)
+  }, 0)
+  const cells = threatGrid.length * (threatGrid[0]?.length || 0)
+  return cells > 0 ? total / cells : 0
+}
+
+/**
+ * 脅威度グリッドの最大値を取得
+ */
+const calculateMaxThreat = (threatGrid: number[][]): number => {
+  return threatGrid.reduce((max, row) => {
+    const rowMax = Math.max(...row)
+    return Math.max(max, rowMax)
+  }, 0)
+}
+
+/**
+ * Playbackページへ遷移 (Future: 専用Playbackページ実装時に使用)
+ */
+const navigateToPlayback = (episode: number) => {
+  // TODO: 将来実装
+  // 現在は仮で警告を表示
+  console.log(`Navigate to playback for episode ${episode}`)
+  alert(`エピソード ${episode} のPlayback機能は、Backend API実装後に利用可能になります`)
+}
 </script>
 
 <template>
@@ -284,6 +326,116 @@ const handleReset = () => {
         </el-table>
       </el-card>
     </template>
+
+    <!-- 環境情報表示 (Future: Backend実装後に表示) -->
+    <template v-if="executeResult && executeResult.environment_info">
+      <el-card class="template-agents__environment-card">
+        <template #header>
+          <span>環境情報</span>
+        </template>
+
+        <div class="template-agents__environment-grid">
+          <!-- グリッドサイズ -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">グリッドサイズ</div>
+            <div class="template-agents__env-value">
+              {{ executeResult.environment_info.width }} × {{ executeResult.environment_info.height }}
+            </div>
+          </div>
+
+          <!-- 障害物数 -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">障害物数</div>
+            <div class="template-agents__env-value">
+              {{ countObstacles(executeResult.environment_info.obstacles) }}
+            </div>
+          </div>
+
+          <!-- 充電ステーション -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">充電ステーション</div>
+            <div class="template-agents__env-value">
+              ({{ executeResult.environment_info.charging_station.x }},
+              {{ executeResult.environment_info.charging_station.y }})
+            </div>
+          </div>
+
+          <!-- 不審物数 -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">不審物数</div>
+            <div class="template-agents__env-value">
+              {{ executeResult.environment_info.suspicious_objects.length }}
+            </div>
+          </div>
+
+          <!-- 脅威度統計 -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">平均脅威度</div>
+            <div class="template-agents__env-value">
+              {{ calculateAverageThreat(executeResult.environment_info.threat_grid).toFixed(3) }}
+            </div>
+          </div>
+
+          <!-- 最大脅威度 -->
+          <div class="template-agents__env-stat">
+            <div class="template-agents__env-label">最大脅威度</div>
+            <div class="template-agents__env-value">
+              {{ calculateMaxThreat(executeResult.environment_info.threat_grid).toFixed(3) }}
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </template>
+
+    <!-- エピソードPlayback (Future: Backend実装後に表示) -->
+    <template v-if="executeResult && executeResult.episode_playbacks && executeResult.episode_playbacks.length > 0">
+      <el-card class="template-agents__playback-card">
+        <template #header>
+          <span>エピソードPlayback</span>
+        </template>
+
+        <div class="template-agents__playback-info">
+          <el-alert type="info" :closable="false" show-icon>
+            <template #title>各エピソードの実行をPlaybackで再生できます</template>
+          </el-alert>
+        </div>
+
+        <div class="template-agents__playback-grid">
+          <el-button
+            v-for="playback in executeResult.episode_playbacks"
+            :key="playback.episode"
+            type="primary"
+            class="template-agents__playback-button"
+            @click="navigateToPlayback(playback.episode)"
+          >
+            <span class="template-agents__playback-button-text">
+              エピソード {{ playback.episode }}
+              <br />
+              <small>({{ playback.frames.length }} フレーム, 報酬: {{ playback.total_reward.toFixed(2) }})</small>
+            </span>
+          </el-button>
+        </div>
+      </el-card>
+    </template>
+
+    <!-- 実行中進捗表示 (Future: WebSocket実装時に使用) -->
+    <template v-if="false">
+      <el-card class="template-agents__progress-card">
+        <template #header>
+          <span>実行中...</span>
+        </template>
+
+        <div class="template-agents__progress-content">
+          <el-progress :percentage="50" :stroke-width="20" />
+          <div class="template-agents__progress-text">エピソード 5 / 10</div>
+          <div class="template-agents__progress-stats">
+            <span>現在の報酬: 125.5</span>
+            <span>カバレッジ: 85%</span>
+            <span>バッテリー: 75%</span>
+          </div>
+        </div>
+      </el-card>
+    </template>
   </div>
 </template>
 
@@ -383,6 +535,93 @@ const handleReset = () => {
 
   &__table {
     width: 100%;
+  }
+
+  // 環境情報表示スタイル
+  &__environment-card {
+    margin-bottom: 24px;
+  }
+
+  &__environment-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  &__env-stat {
+    background: var(--md-sys-color-surface-container, #f3edf7);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  &__env-label {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  &__env-value {
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  // Playbackボタンスタイル
+  &__playback-card {
+    margin-bottom: 24px;
+  }
+
+  &__playback-info {
+    margin-bottom: 16px;
+  }
+
+  &__playback-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  &__playback-button {
+    height: auto;
+    padding: 16px;
+  }
+
+  &__playback-button-text {
+    display: block;
+    line-height: 1.5;
+
+    small {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+  }
+
+  // 進捗表示スタイル (Future)
+  &__progress-card {
+    margin-bottom: 24px;
+  }
+
+  &__progress-content {
+    text-align: center;
+  }
+
+  &__progress-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 16px;
+  }
+
+  &__progress-stats {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 16px;
+
+    span {
+      color: var(--md-sys-color-on-surface-variant, #49454f);
+      font-size: 14px;
+    }
   }
 }
 </style>

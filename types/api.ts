@@ -341,6 +341,9 @@ export interface TemplateAgentExecuteResponse {
   average_min_battery: number
   total_battery_deaths: number
   episode_metrics: TemplateAgentEpisodeMetrics[]
+  // Future: Playback & Environment info (Backend implementation pending)
+  environment_info?: TemplateAgentEnvironmentInfo
+  episode_playbacks?: TemplateAgentEpisodePlayback[]
 }
 
 /**
@@ -388,4 +391,74 @@ export interface TemplateAgentCompareResponse {
   best_agent: string
   worst_agent: string
   performance_gap: number
+}
+
+/**
+ * Template Agent Frame Data (for Playback)
+ * Backend: TemplateAgentFrameData (Future implementation)
+ */
+export interface TemplateAgentFrameData {
+  timestep: number
+  robot_x: number
+  robot_y: number
+  robot_orientation: number // 0=North, 1=East, 2=South, 3=West
+  action: number // 0=move, 1=turn_left, 2=turn_right, 3=patrol
+  reward: number
+  battery_percentage: number
+  is_charging: boolean
+  coverage_map: number[][]
+  timestamp: string
+}
+
+/**
+ * Template Agent Episode Playback
+ * Backend: TemplateAgentEpisodePlayback (Future implementation)
+ */
+export interface TemplateAgentEpisodePlayback {
+  episode: number
+  frames: TemplateAgentFrameData[]
+  total_reward: number
+  final_coverage: number
+  episode_length: number
+}
+
+/**
+ * Template Agent Environment Info
+ * Backend: TemplateAgentEnvironmentInfo (Future implementation)
+ */
+export interface TemplateAgentEnvironmentInfo {
+  width: number
+  height: number
+  threat_grid: number[][]
+  obstacles: boolean[][]
+  charging_station: {
+    x: number
+    y: number
+  }
+  suspicious_objects: Array<{
+    x: number
+    y: number
+    type: string
+    threat_level: number
+  }>
+}
+
+/**
+ * Template Agent Progress Message (WebSocket)
+ * Backend: Future WebSocket implementation
+ */
+export interface TemplateAgentProgressMessage extends BaseWebSocketMessage {
+  type: 'execution_started' | 'episode_started' | 'step_update' | 'episode_completed' | 'execution_completed'
+  execution_id?: string
+  episode?: number
+  step?: number
+  total_episodes?: number
+  total_steps_per_episode?: number
+  current_reward?: number
+  current_coverage?: number
+  battery_percentage?: number
+  total_reward?: number
+  coverage?: number
+  episode_length?: number
+  result_url?: string
 }
