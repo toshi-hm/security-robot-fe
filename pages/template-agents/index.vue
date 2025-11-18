@@ -208,7 +208,7 @@ const handleReset = () => {
         </div>
 
         <!-- エピソード詳細テーブル -->
-        <el-table :data="executeResult.episode_metrics" stripe class="template-agents__table">
+        <el-table :data="executeResult.episode_metrics as any" stripe class="template-agents__table">
           <el-table-column prop="episode" label="エピソード" width="100" />
           <el-table-column prop="total_reward" label="報酬" width="100">
             <template #default="{ row }">
@@ -254,7 +254,7 @@ const handleReset = () => {
         </div>
 
         <!-- 比較テーブル -->
-        <el-table :data="compareResult.results" stripe class="template-agents__table">
+        <el-table :data="compareResult.results as any" stripe class="template-agents__table">
           <el-table-column prop="rank" label="順位" width="80">
             <template #default="{ row }">
               <el-tag v-if="row.rank === 1" type="success">🥇 {{ row.rank }}</el-tag>
@@ -289,24 +289,24 @@ const handleReset = () => {
 
 <style scoped lang="scss">
 .template-agents {
-  padding: 24px;
-  max-width: 1400px;
   margin: 0 auto;
+  max-width: 1400px;
+  padding: 24px;
 
   &__header {
     margin-bottom: 24px;
   }
 
   &__title {
+    color: var(--md-sys-color-on-background, #1c1b1f);
     font-size: 28px;
     font-weight: 700;
-    color: var(--md-sys-color-on-background, #1c1b1f);
-    margin: 0 0 8px 0;
+    margin: 0 0 8px;
   }
 
   &__subtitle {
-    font-size: 14px;
     color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 14px;
     margin: 0;
   }
 
@@ -330,54 +330,54 @@ const handleReset = () => {
 
   &__summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     margin-bottom: 24px;
   }
 
   &__stat {
-    padding: 16px;
     background: linear-gradient(
       135deg,
       var(--md-sys-color-primary-container, #eaddff) 0%,
       var(--md-sys-color-surface, #fefbff) 100%
     );
-    border-radius: 12px;
-    text-align: center;
     border: 1px solid var(--md-sys-color-outline-variant, #c9c5d0);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
   }
 
   &__stat-label {
-    font-size: 12px;
     color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 12px;
     margin-bottom: 8px;
   }
 
   &__stat-value {
+    color: var(--md-sys-color-on-surface, #1c1b1f);
     font-size: 24px;
     font-weight: 700;
-    color: var(--md-sys-color-on-surface, #1c1b1f);
   }
 
   &__comparison-summary {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 16px;
-    margin-bottom: 24px;
     align-items: center;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr 1fr auto;
+    margin-bottom: 24px;
   }
 
   &__performance-gap {
-    padding: 16px;
     background: var(--md-sys-color-surface-variant, #e7e0ec);
     border-radius: 8px;
-    text-align: center;
-    font-size: 14px;
     color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 14px;
+    padding: 16px;
+    text-align: center;
 
     strong {
-      font-size: 18px;
       color: var(--md-sys-color-primary, #6442d6);
+      font-size: 18px;
     }
   }
 
