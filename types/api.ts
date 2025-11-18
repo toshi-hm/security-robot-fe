@@ -270,3 +270,122 @@ export interface ApiError {
     status?: number
   }
 }
+
+// ============================================
+// Template Agents API Types (Session 056)
+// ============================================
+
+/**
+ * Template Agent Type Enum
+ * Backend: TemplateAgentType
+ */
+export type TemplateAgentType = 'horizontal_scan' | 'vertical_scan' | 'spiral' | 'random_walk'
+
+/**
+ * Template Agent Type Definition
+ * Backend: GET /template-agents/types response
+ */
+export interface TemplateAgentTypeDefinition {
+  type: TemplateAgentType
+  name: string
+  description: string
+}
+
+/**
+ * Template Agent Execute Request
+ * Backend: TemplateAgentExecuteRequest
+ */
+export interface TemplateAgentExecuteRequest {
+  agent_type: TemplateAgentType
+  width?: number
+  height?: number
+  episodes?: number
+  max_steps?: number
+  seed?: number | null
+}
+
+/**
+ * Template Agent Episode Metrics
+ * Backend: TemplateAgentEpisodeMetrics
+ */
+export interface TemplateAgentEpisodeMetrics {
+  episode: number
+  total_reward: number
+  episode_length: number
+  coverage_ratio: number
+  patrol_count: number
+  move_count: number
+  turn_count: number
+  min_battery: number
+  battery_deaths: number
+  charging_events: number
+}
+
+/**
+ * Template Agent Execute Response
+ * Backend: TemplateAgentExecuteResponse
+ */
+export interface TemplateAgentExecuteResponse {
+  agent_type: TemplateAgentType
+  agent_name: string
+  environment: {
+    width: number
+    height: number
+  }
+  episodes: number
+  average_reward: number
+  std_reward: number
+  average_coverage: number
+  average_episode_length: number
+  average_patrol_count: number
+  average_min_battery: number
+  total_battery_deaths: number
+  episode_metrics: TemplateAgentEpisodeMetrics[]
+}
+
+/**
+ * Template Agent Compare Request
+ * Backend: TemplateAgentCompareRequest
+ */
+export interface TemplateAgentCompareRequest {
+  agent_types: TemplateAgentType[]
+  width?: number
+  height?: number
+  episodes?: number
+  max_steps?: number
+  seed?: number | null
+}
+
+/**
+ * Template Agent Comparison Summary
+ * Backend: TemplateAgentComparisonSummary
+ */
+export interface TemplateAgentComparisonSummary {
+  agent_type: TemplateAgentType
+  agent_name: string
+  rank: number
+  average_reward: number
+  std_reward: number
+  average_coverage: number
+  average_episode_length: number
+  average_patrol_count: number
+  average_min_battery: number
+  total_battery_deaths: number
+}
+
+/**
+ * Template Agent Compare Response
+ * Backend: TemplateAgentCompareResponse
+ */
+export interface TemplateAgentCompareResponse {
+  environment: {
+    width: number
+    height: number
+  }
+  episodes: number
+  max_steps: number
+  results: TemplateAgentComparisonSummary[]
+  best_agent: string
+  worst_agent: string
+  performance_gap: number
+}

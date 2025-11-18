@@ -106,6 +106,13 @@ export const useApiEndpoints = () => {
       sessions: `${API_BASE_URL}/api/v1/playback/sessions`, // GET with pagination (page, page_size)
       frames: (sessionId: number) => `${API_BASE_URL}/api/v1/playback/${sessionId}/frames`, // GET with pagination
     },
+
+    // Template Agents API (Session 056)
+    templateAgents: {
+      types: `${API_BASE_URL}/api/v1/template-agents/types`, // GET - list all agent types
+      execute: `${API_BASE_URL}/api/v1/template-agents/execute`, // POST - execute single agent
+      compare: `${API_BASE_URL}/api/v1/template-agents/compare`, // POST - compare multiple agents
+    },
   } as const
 }
 
@@ -146,6 +153,9 @@ export const API_ENDPOINTS = {
   },
   get playback() {
     return getApiEndpointsCache().playback
+  },
+  get templateAgents() {
+    return getApiEndpointsCache().templateAgents
   },
 }
 
