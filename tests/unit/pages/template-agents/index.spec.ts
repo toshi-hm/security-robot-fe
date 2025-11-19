@@ -16,11 +16,13 @@ const ElOption = { name: 'ElOption', template: '<div class="el-option"><slot /><
 const ElCheckboxGroup = { name: 'ElCheckboxGroup', template: '<div class="el-checkbox-group"><slot /></div>' }
 const ElCheckbox = { name: 'ElCheckbox', template: '<div class="el-checkbox"><slot /></div>' }
 const ElInputNumber = { name: 'ElInputNumber', template: '<input class="el-input-number" />' }
+const ElSwitch = { name: 'ElSwitch', template: '<input class="el-switch" type="checkbox" />' }
 const ElButton = { name: 'ElButton', template: '<button class="el-button"><slot /></button>' }
 const ElTable = { name: 'ElTable', template: '<table class="el-table"><slot /></table>' }
-const ElTableColumn = { name: 'ElTableColumn', template: '<td class="el-table-column"><slot /></td>' }
+const ElTableColumn = { name: 'ElTableColumn', template: '<td class="el-table-column"></td>' }
 const ElTag = { name: 'ElTag', template: '<span class="el-tag"><slot /></span>' }
 const ElEmpty = { name: 'ElEmpty', template: '<div class="el-empty"><slot /></div>' }
+const ElProgress = { name: 'ElProgress', template: '<div class="el-progress"><slot /></div>' }
 
 const EnvironmentVisualizationStub = defineComponent({
   name: 'EnvironmentVisualization',
@@ -49,11 +51,13 @@ const baseStubs = {
   ElCheckboxGroup,
   ElCheckbox,
   ElInputNumber,
+  ElSwitch,
   ElButton,
   ElTable,
   ElTableColumn,
   ElTag,
   ElEmpty,
+  ElProgress,
   EnvironmentVisualization: EnvironmentVisualizationStub,
 }
 
@@ -80,6 +84,11 @@ describe('TemplateAgentsPage', () => {
   it('should render subtitle correctly', () => {
     const wrapper = mountPage()
     expect(wrapper.find('.template-agents__subtitle').text()).toContain('事前定義された巡回パターン')
+  })
+
+  it('shows dynamic max steps hint by default', () => {
+    const wrapper = mountPage()
+    expect(wrapper.find('.template-agents__form-hint').text()).toContain('環境サイズに応じて自動計算')
   })
 
   it('renders environment visualization summary when execution result has environment info', () => {
@@ -150,6 +159,12 @@ describe('TemplateAgentsPage', () => {
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
               ],
+              threat_grid: [
+                [0, 0.1, 0.2, 0.3],
+                [0.3, 0.2, 0.1, 0],
+                [0.4, 0.5, 0.6, 0.7],
+                [0.8, 0.9, 1, 0.4],
+              ],
               timestamp: '2025-01-01T00:00:00Z',
             },
             {
@@ -166,6 +181,12 @@ describe('TemplateAgentsPage', () => {
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
+              ],
+              threat_grid: [
+                [0.4, 0.2, 0.1, 0],
+                [0.5, 0.3, 0.2, 0.1],
+                [0.6, 0.4, 0.3, 0.2],
+                [0.7, 0.5, 0.4, 0.3],
               ],
               timestamp: '2025-01-01T00:00:01Z',
             },
@@ -191,5 +212,13 @@ describe('TemplateAgentsPage', () => {
     expect(wrapper.findComponent(EnvironmentVisualizationStub).exists()).toBe(true)
     expect(wrapper.find('.template-agents__route-list').text()).toContain('(1, 0)')
     expect(wrapper.text()).toContain('現在位置')
+
+    const viz = wrapper.findComponent(EnvironmentVisualizationStub)
+    expect(viz.props('threatGrid')).toEqual([
+      [0.4, 0.2, 0.1, 0],
+      [0.5, 0.3, 0.2, 0.1],
+      [0.6, 0.4, 0.3, 0.2],
+      [0.7, 0.5, 0.4, 0.3],
+    ])
   })
 })

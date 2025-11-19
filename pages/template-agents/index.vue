@@ -4,6 +4,7 @@ import { ref, computed, onMounted } from 'vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentType, TemplateAgentFrameData } from '~/types/api'
+import { normalizeGridMatrix } from '~/utils/gridHelpers'
 
 // Composable
 const {
@@ -23,14 +24,26 @@ const {
 const executionMode = ref<'single' | 'compare'>('single')
 
 // フォームデータ
-const formData = ref({
-  agentType: 'horizontal_scan' as TemplateAgentType,
-  compareAgentTypes: [] as TemplateAgentType[],
+interface TemplateAgentFormData {
+  agentType: TemplateAgentType
+  compareAgentTypes: TemplateAgentType[]
+  width: number
+  height: number
+  episodes: number
+  maxSteps: number
+  seed: number | null
+  useDynamicMaxSteps: boolean
+}
+
+const formData = ref<TemplateAgentFormData>({
+  agentType: 'horizontal_scan',
+  compareAgentTypes: [],
   width: 10,
   height: 10,
   episodes: 10,
   maxSteps: 1000,
-  seed: null as number | null,
+  seed: null,
+  useDynamicMaxSteps: true,
 })
 
 // 実行可能かどうか
@@ -58,9 +71,33 @@ onMounted(async () => {
   await fetchAgentTypes()
 })
 
+const dynamicMaxSteps = computed(() => {
+  const width = Math.max(1, formData.value.width)
+  const height = Math.max(1, formData.value.height)
+  return Math.max(1000, width * height * 4)
+})
+
+const dynamicMaxStepsDescription = computed(() => {
+  const steps = dynamicMaxSteps.value.toLocaleString('ja-JP')
+  return `${formData.value.width} × ${formData.value.height} グリッド → ${steps} ステップ`
+})
+
+const maxStepsHint = computed(() => {
+  if (formData.value.useDynamicMaxSteps) {
+    return `環境サイズに応じて自動計算: ${dynamicMaxStepsDescription.value}`
+  }
+  return 'カスタム上限を指定しています（10〜10,000ステップ）'
+})
+
+const selectedMaxSteps = computed<number | undefined>(() => {
+  return formData.value.useDynamicMaxSteps ? undefined : formData.value.maxSteps
+})
+
 // 実行ハンドラ
 const handleExecute = async () => {
   clearResults()
+
+  const payloadMaxSteps = selectedMaxSteps.value
 
   if (executionMode.value === 'single') {
     await executeAgent({
@@ -68,7 +105,7 @@ const handleExecute = async () => {
       width: formData.value.width,
       height: formData.value.height,
       episodes: formData.value.episodes,
-      max_steps: formData.value.maxSteps,
+      max_steps: payloadMaxSteps,
       seed: formData.value.seed,
       save_frames: true,
     })
@@ -78,7 +115,7 @@ const handleExecute = async () => {
       width: formData.value.width,
       height: formData.value.height,
       episodes: formData.value.episodes,
-      max_steps: formData.value.maxSteps,
+      max_steps: payloadMaxSteps,
       seed: formData.value.seed,
     })
   }
@@ -94,6 +131,7 @@ const handleReset = () => {
     episodes: 10,
     maxSteps: 1000,
     seed: null,
+    useDynamicMaxSteps: true,
   }
   clearResults()
 }
@@ -161,13 +199,24 @@ const createEmptyCoverageMap = (width: number, height: number): number[][] => {
   return Array.from({ length: height }, () => Array.from({ length: width }, () => 0))
 }
 
-const coverageMap = computed<(number[][] | boolean[][])>(() => {
+const coverageMap = computed<number[][]>(() => {
   if (latestFrame.value?.coverage_map?.length) {
-    return latestFrame.value.coverage_map
+    return normalizeGridMatrix(latestFrame.value.coverage_map)
   }
   const info = environmentInfo.value
   if (!info) return []
   return createEmptyCoverageMap(info.width, info.height)
+})
+
+const threatGrid = computed<number[][]>(() => {
+  if (latestFrame.value?.threat_grid?.length) {
+    return normalizeGridMatrix(latestFrame.value.threat_grid)
+  }
+  const grid = environmentInfo.value?.threat_grid
+  if (grid) {
+    return normalizeGridMatrix(grid)
+  }
+  return []
 })
 
 const robotPosition = computed<Position | null>(() => {
@@ -218,10 +267,7 @@ const routeWaypoints = computed<Position[]>(() => {
 
   const lastPoint = trajectory[trajectory.length - 1]
   const previewLastPoint = preview[preview.length - 1]
-  if (
-    lastPoint &&
-    (!previewLastPoint || previewLastPoint.x !== lastPoint.x || previewLastPoint.y !== lastPoint.y)
-  ) {
+  if (lastPoint && (!previewLastPoint || previewLastPoint.x !== lastPoint.x || previewLastPoint.y !== lastPoint.y)) {
     preview.push(lastPoint)
   }
 
@@ -234,16 +280,13 @@ const chargingStationPosition = computed<Position | null>(() => {
   return { x: station.x, y: station.y }
 })
 
-const countVisitedTiles = (grid: (number[][] | boolean[][])): number => {
+const countVisitedTiles = (grid: number[][]): number => {
   if (!grid?.length) return 0
   return grid.reduce((total, row) => {
     return (
       total +
       row.reduce((rowCount, cell) => {
-        if (typeof cell === 'number') {
-          return rowCount + (cell > 0 ? 1 : 0)
-        }
-        return rowCount + (cell ? 1 : 0)
+        return rowCount + (cell > 0 ? 1 : 0)
       }, 0)
     )
   }, 0)
@@ -286,7 +329,7 @@ const environmentVisualizationProps = computed(() => {
   return {
     gridWidth: info.width,
     gridHeight: info.height,
-    threatGrid: info.threat_grid ?? [],
+    threatGrid: threatGrid.value,
     coverageMap: coverageMap.value,
     robotPosition: robotPosition.value,
     robotOrientation: robotOrientation.value,
@@ -377,7 +420,21 @@ const formatCoordinate = (position: Position | null): string => {
         </el-form-item>
 
         <el-form-item label="最大ステップ数">
-          <el-input-number v-model="formData.maxSteps" :min="10" :max="10000" :step="100" />
+          <div class="template-agents__max-steps-controls">
+            <el-switch
+              v-model="formData.useDynamicMaxSteps"
+              active-text="動的計算"
+              inactive-text="カスタム"
+            />
+            <el-input-number
+              v-model="formData.maxSteps"
+              :min="10"
+              :max="10000"
+              :step="100"
+              :disabled="formData.useDynamicMaxSteps"
+            />
+          </div>
+          <p class="template-agents__form-hint">{{ maxStepsHint }}</p>
         </el-form-item>
 
         <el-form-item label="ランダムシード (オプション)">
@@ -402,12 +459,11 @@ const formatCoordinate = (position: Position | null): string => {
             <div>
               <div class="template-agents__env-title">環境情報</div>
               <p class="template-agents__env-subtitle">
-                {{ executeResult.agent_name }} / {{ executeResult.environment.width }} × {{ executeResult.environment.height }} グリッド
+                {{ executeResult.agent_name }} / {{ executeResult.environment.width }} ×
+                {{ executeResult.environment.height }} グリッド
               </p>
             </div>
-            <el-tag type="primary" effect="dark">
-              実行ID: {{ executeResult.execution_id }}
-            </el-tag>
+            <el-tag type="primary" effect="dark"> 実行ID: {{ executeResult.execution_id }} </el-tag>
           </div>
         </template>
 
@@ -456,9 +512,7 @@ const formatCoordinate = (position: Position | null): string => {
                 <div class="template-agents__env-stat">
                   <div class="template-agents__env-label">平均脅威度</div>
                   <div class="template-agents__env-value">
-                    {{
-                      environmentInfo ? calculateAverageThreat(environmentInfo.threat_grid).toFixed(3) : '0.000'
-                    }}
+                    {{ environmentInfo ? calculateAverageThreat(environmentInfo.threat_grid).toFixed(3) : '0.000' }}
                   </div>
                 </div>
                 <div class="template-agents__env-stat">
@@ -741,6 +795,19 @@ const formatCoordinate = (position: Position | null): string => {
 
   &__form {
     max-width: 600px;
+  }
+
+  &__max-steps-controls {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  &__form-hint {
+    color: var(--el-text-color-secondary, #6b6b6b);
+    font-size: 12px;
+    margin: 4px 0 0;
   }
 
   &__summary {

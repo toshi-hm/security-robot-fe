@@ -410,6 +410,7 @@ export interface TemplateAgentFrameData {
   battery_percentage: number
   is_charging: boolean
   coverage_map: number[][]
+  threat_grid?: number[][]
   timestamp: string
 }
 
