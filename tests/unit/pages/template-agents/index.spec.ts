@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { defineComponent, ref } from 'vue'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 
 import TemplateAgentsPage from '~/pages/template-agents/index.vue'
 
@@ -19,57 +20,176 @@ const ElButton = { name: 'ElButton', template: '<button class="el-button"><slot 
 const ElTable = { name: 'ElTable', template: '<table class="el-table"><slot /></table>' }
 const ElTableColumn = { name: 'ElTableColumn', template: '<td class="el-table-column"><slot /></td>' }
 const ElTag = { name: 'ElTag', template: '<span class="el-tag"><slot /></span>' }
+const ElEmpty = { name: 'ElEmpty', template: '<div class="el-empty"><slot /></div>' }
+
+const EnvironmentVisualizationStub = defineComponent({
+  name: 'EnvironmentVisualization',
+  props: {
+    gridWidth: { type: Number, required: false },
+    gridHeight: { type: Number, required: false },
+    threatGrid: { type: Array, required: false },
+    coverageMap: { type: Array, required: false },
+    robotPosition: { type: Object, required: false },
+    robotOrientation: { type: Number, required: false },
+    trajectory: { type: Array, required: false },
+    chargingStationPosition: { type: Object, required: false },
+  },
+  template: '<div class="environment-visualization-stub" />',
+})
+
+const baseStubs = {
+  ElCard,
+  ElAlert,
+  ElRadioGroup,
+  ElRadioButton,
+  ElForm,
+  ElFormItem,
+  ElSelect,
+  ElOption,
+  ElCheckboxGroup,
+  ElCheckbox,
+  ElInputNumber,
+  ElButton,
+  ElTable,
+  ElTableColumn,
+  ElTag,
+  ElEmpty,
+  EnvironmentVisualization: EnvironmentVisualizationStub,
+}
+
+const originalUseTemplateAgents = (global as any).useTemplateAgents
+
+const mountPage = () => {
+  return mount(TemplateAgentsPage, {
+    global: {
+      stubs: baseStubs,
+    },
+  })
+}
+
+afterEach(() => {
+  ;(global as any).useTemplateAgents = originalUseTemplateAgents
+})
 
 describe('TemplateAgentsPage', () => {
   it('should render page title correctly', () => {
-    const wrapper = mount(TemplateAgentsPage, {
-      global: {
-        stubs: {
-          ElCard,
-          ElAlert,
-          ElRadioGroup,
-          ElRadioButton,
-          ElForm,
-          ElFormItem,
-          ElSelect,
-          ElOption,
-          ElCheckboxGroup,
-          ElCheckbox,
-          ElInputNumber,
-          ElButton,
-          ElTable,
-          ElTableColumn,
-          ElTag,
-        },
-      },
-    })
-
+    const wrapper = mountPage()
     expect(wrapper.find('.template-agents__title').text()).toBe('テンプレートエージェント')
   })
 
   it('should render subtitle correctly', () => {
-    const wrapper = mount(TemplateAgentsPage, {
-      global: {
-        stubs: {
-          ElCard,
-          ElAlert,
-          ElRadioGroup,
-          ElRadioButton,
-          ElForm,
-          ElFormItem,
-          ElSelect,
-          ElOption,
-          ElCheckboxGroup,
-          ElCheckbox,
-          ElInputNumber,
-          ElButton,
-          ElTable,
-          ElTableColumn,
-          ElTag,
+    const wrapper = mountPage()
+    expect(wrapper.find('.template-agents__subtitle').text()).toContain('事前定義された巡回パターン')
+  })
+
+  it('renders environment visualization summary when execution result has environment info', () => {
+    const executeResult = ref({
+      agent_type: 'horizontal_scan',
+      agent_name: 'HorizontalScanAgent',
+      execution_id: 'templ-test',
+      environment: { width: 4, height: 4 },
+      episodes: 1,
+      average_reward: 120,
+      std_reward: 5,
+      average_coverage: 0.8,
+      average_episode_length: 120,
+      average_patrol_count: 40,
+      average_min_battery: 75,
+      total_battery_deaths: 0,
+      episode_metrics: [
+        {
+          episode: 1,
+          total_reward: 120,
+          episode_length: 120,
+          coverage_ratio: 0.8,
+          patrol_count: 12,
+          move_count: 60,
+          turn_count: 30,
+          min_battery: 70,
+          battery_deaths: 0,
+          charging_events: 2,
         },
+      ],
+      environment_info: {
+        width: 4,
+        height: 4,
+        obstacles: [
+          [false, false, false, false],
+          [false, true, false, false],
+          [false, false, false, false],
+          [false, false, true, false],
+        ],
+        threat_grid: [
+          [0, 0.1, 0.3, 0.2],
+          [0.2, 0.4, 0.1, 0],
+          [0.3, 0.5, 0.2, 0.1],
+          [0.1, 0, 0.2, 0.4],
+        ],
+        charging_station: { x: 0, y: 0 },
+        suspicious_objects: [{ x: 2, y: 1, type: 'package', threat_level: 0.6 }],
       },
+      episode_playbacks: [
+        {
+          episode: 1,
+          total_reward: 120,
+          final_coverage: 0.8,
+          episode_length: 2,
+          frames: [
+            {
+              timestep: 0,
+              robot_x: 0,
+              robot_y: 0,
+              robot_orientation: 0,
+              action: 0,
+              reward: 0.5,
+              battery_percentage: 100,
+              is_charging: false,
+              coverage_map: [
+                [1, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+              ],
+              timestamp: '2025-01-01T00:00:00Z',
+            },
+            {
+              timestep: 1,
+              robot_x: 1,
+              robot_y: 0,
+              robot_orientation: 1,
+              action: 0,
+              reward: 0.5,
+              battery_percentage: 99,
+              is_charging: false,
+              coverage_map: [
+                [1, 1, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+              ],
+              timestamp: '2025-01-01T00:00:01Z',
+            },
+          ],
+        },
+      ],
     })
 
-    expect(wrapper.find('.template-agents__subtitle').text()).toContain('事前定義された巡回パターン')
+    ;(global as any).useTemplateAgents = vi.fn(() => ({
+      agentTypes: ref([]),
+      executeResult,
+      compareResult: ref(null),
+      isLoading: ref(false),
+      error: ref(null),
+      fetchAgentTypes: vi.fn(),
+      executeAgent: vi.fn(),
+      compareAgents: vi.fn(),
+      clearError: vi.fn(),
+      clearResults: vi.fn(),
+    }))
+
+    const wrapper = mountPage()
+    expect(wrapper.findComponent(EnvironmentVisualizationStub).exists()).toBe(true)
+    expect(wrapper.find('.template-agents__route-list').text()).toContain('(1, 0)')
+    expect(wrapper.text()).toContain('現在位置')
   })
 })

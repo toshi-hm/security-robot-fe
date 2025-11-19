@@ -84,6 +84,7 @@ describe('useTemplateAgents', () => {
       const mockResponse: TemplateAgentExecuteResponse = {
         agent_type: 'horizontal_scan',
         agent_name: 'HorizontalScanAgent',
+        execution_id: 'templ-exec',
         environment: { width: 10, height: 10 },
         episodes: 10,
         average_reward: 100,
@@ -191,6 +192,7 @@ describe('useTemplateAgents', () => {
       const mockExecuteResponse: TemplateAgentExecuteResponse = {
         agent_type: 'horizontal_scan',
         agent_name: 'HorizontalScanAgent',
+        execution_id: 'templ-exec',
         environment: { width: 10, height: 10 },
         episodes: 10,
         average_reward: 100,

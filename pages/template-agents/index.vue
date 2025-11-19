@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-import type { TemplateAgentType } from '~/types/api'
+import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
+import type { Position } from '~/libs/domains/common/Position'
+import type { TemplateAgentType, TemplateAgentFrameData } from '~/types/api'
 
 // Composable
 const {
@@ -68,6 +70,7 @@ const handleExecute = async () => {
       episodes: formData.value.episodes,
       max_steps: formData.value.maxSteps,
       seed: formData.value.seed,
+      save_frames: true,
     })
   } else {
     await compareAgents({
@@ -138,6 +141,165 @@ const navigateToPlayback = (episode: number) => {
   // 現在は仮で警告を表示
   console.log(`Navigate to playback for episode ${episode}`)
   alert(`エピソード ${episode} のPlayback機能は、Backend API実装後に利用可能になります`)
+}
+
+const environmentInfo = computed(() => executeResult.value?.environment_info ?? null)
+const playbackFrames = computed<TemplateAgentFrameData[]>(() => {
+  const playbacks = executeResult.value?.episode_playbacks
+  if (!playbacks?.length) return []
+  return playbacks.flatMap((episode) => episode.frames ?? [])
+})
+
+const latestFrame = computed<TemplateAgentFrameData | null>(() => {
+  const frames = playbackFrames.value
+  if (!frames.length) return null
+  return frames[frames.length - 1] ?? null
+})
+
+const createEmptyCoverageMap = (width: number, height: number): number[][] => {
+  if (width <= 0 || height <= 0) return []
+  return Array.from({ length: height }, () => Array.from({ length: width }, () => 0))
+}
+
+const coverageMap = computed<(number[][] | boolean[][])>(() => {
+  if (latestFrame.value?.coverage_map?.length) {
+    return latestFrame.value.coverage_map
+  }
+  const info = environmentInfo.value
+  if (!info) return []
+  return createEmptyCoverageMap(info.width, info.height)
+})
+
+const robotPosition = computed<Position | null>(() => {
+  const frame = latestFrame.value
+  if (!frame) return null
+  return { x: frame.robot_x, y: frame.robot_y }
+})
+
+const robotOrientation = computed<number | null>(() => {
+  if (typeof latestFrame.value?.robot_orientation === 'number') {
+    return latestFrame.value.robot_orientation
+  }
+  return null
+})
+
+const robotTrajectory = computed<Position[]>(() => {
+  const frames = playbackFrames.value
+  if (!frames.length) return []
+
+  const trajectory: Position[] = []
+  frames.forEach((frame) => {
+    const previous = trajectory[trajectory.length - 1]
+    if (!previous || previous.x !== frame.robot_x || previous.y !== frame.robot_y) {
+      trajectory.push({ x: frame.robot_x, y: frame.robot_y })
+    }
+  })
+
+  return trajectory
+})
+
+const ROUTE_PREVIEW_LIMIT = 30
+const routeWaypoints = computed<Position[]>(() => {
+  const trajectory = robotTrajectory.value
+  if (!trajectory.length) return []
+
+  if (trajectory.length <= ROUTE_PREVIEW_LIMIT) {
+    return trajectory
+  }
+
+  const preview: Position[] = []
+  const interval = Math.ceil(trajectory.length / ROUTE_PREVIEW_LIMIT)
+  for (let index = 0; index < trajectory.length; index += interval) {
+    const point = trajectory[index]
+    if (point) {
+      preview.push(point)
+    }
+  }
+
+  const lastPoint = trajectory[trajectory.length - 1]
+  const previewLastPoint = preview[preview.length - 1]
+  if (
+    lastPoint &&
+    (!previewLastPoint || previewLastPoint.x !== lastPoint.x || previewLastPoint.y !== lastPoint.y)
+  ) {
+    preview.push(lastPoint)
+  }
+
+  return preview
+})
+
+const chargingStationPosition = computed<Position | null>(() => {
+  const station = environmentInfo.value?.charging_station
+  if (!station) return null
+  return { x: station.x, y: station.y }
+})
+
+const countVisitedTiles = (grid: (number[][] | boolean[][])): number => {
+  if (!grid?.length) return 0
+  return grid.reduce((total, row) => {
+    return (
+      total +
+      row.reduce((rowCount, cell) => {
+        if (typeof cell === 'number') {
+          return rowCount + (cell > 0 ? 1 : 0)
+        }
+        return rowCount + (cell ? 1 : 0)
+      }, 0)
+    )
+  }, 0)
+}
+
+const routeStats = computed(() => {
+  const info = environmentInfo.value
+  if (!info) {
+    return {
+      visitedTiles: 0,
+      totalTiles: 0,
+      visitedRatio: 0,
+      stepCount: playbackFrames.value.length,
+      pathLength: robotTrajectory.value.length,
+      start: null,
+      end: null,
+    }
+  }
+
+  const totalTiles = info.width * info.height
+  const visitedTiles = countVisitedTiles(coverageMap.value)
+  const start = robotTrajectory.value[0] ?? null
+  const end = robotTrajectory.value[robotTrajectory.value.length - 1] ?? null
+
+  return {
+    visitedTiles,
+    totalTiles,
+    visitedRatio: totalTiles ? (visitedTiles / totalTiles) * 100 : 0,
+    stepCount: playbackFrames.value.length,
+    pathLength: robotTrajectory.value.length,
+    start,
+    end,
+  }
+})
+
+const environmentVisualizationProps = computed(() => {
+  const info = environmentInfo.value
+  if (!info) return null
+
+  return {
+    gridWidth: info.width,
+    gridHeight: info.height,
+    threatGrid: info.threat_grid ?? [],
+    coverageMap: coverageMap.value,
+    robotPosition: robotPosition.value,
+    robotOrientation: robotOrientation.value,
+    trajectory: robotTrajectory.value,
+    chargingStationPosition: chargingStationPosition.value,
+  }
+})
+
+const suspiciousObjects = computed(() => environmentInfo.value?.suspicious_objects ?? [])
+
+const formatCoordinate = (position: Position | null): string => {
+  if (!position) return '-'
+  return `(${position.x}, ${position.y})`
 }
 </script>
 
@@ -232,14 +394,162 @@ const navigateToPlayback = (episode: number) => {
       </el-form>
     </el-card>
 
-    <!-- 単一実行結果 -->
+    <!-- 単一実行時の環境可視化 -->
     <template v-if="executionMode === 'single' && executeResult">
-      <el-card class="template-agents__result-card">
+      <el-card class="template-agents__environment-card">
         <template #header>
-          <span>実行結果 - {{ executeResult.agent_name }}</span>
+          <div class="template-agents__env-header">
+            <div>
+              <div class="template-agents__env-title">環境情報</div>
+              <p class="template-agents__env-subtitle">
+                {{ executeResult.agent_name }} / {{ executeResult.environment.width }} × {{ executeResult.environment.height }} グリッド
+              </p>
+            </div>
+            <el-tag type="primary" effect="dark">
+              実行ID: {{ executeResult.execution_id }}
+            </el-tag>
+          </div>
         </template>
 
-        <!-- サマリー統計 -->
+        <div v-if="environmentVisualizationProps" class="template-agents__environment-content">
+          <div class="template-agents__visualization-wrapper">
+            <EnvironmentVisualization
+              :grid-width="environmentVisualizationProps.gridWidth"
+              :grid-height="environmentVisualizationProps.gridHeight"
+              :threat-grid="environmentVisualizationProps.threatGrid"
+              :coverage-map="environmentVisualizationProps.coverageMap"
+              :robot-position="environmentVisualizationProps.robotPosition"
+              :robot-orientation="environmentVisualizationProps.robotOrientation"
+              :trajectory="environmentVisualizationProps.trajectory"
+              :charging-station-position="environmentVisualizationProps.chargingStationPosition"
+            />
+          </div>
+
+          <div class="template-agents__environment-details">
+            <div class="template-agents__env-section">
+              <div class="template-agents__env-section-title">静的情報</div>
+              <div class="template-agents__environment-grid">
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">グリッドサイズ</div>
+                  <div class="template-agents__env-value">
+                    {{ environmentInfo?.width ?? '-' }} × {{ environmentInfo?.height ?? '-' }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">障害物数</div>
+                  <div class="template-agents__env-value">
+                    {{ environmentInfo ? countObstacles(environmentInfo.obstacles) : '-' }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">充電ステーション</div>
+                  <div class="template-agents__env-value">
+                    {{ formatCoordinate(chargingStationPosition) }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">不審物数</div>
+                  <div class="template-agents__env-value">
+                    {{ suspiciousObjects.length }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">平均脅威度</div>
+                  <div class="template-agents__env-value">
+                    {{
+                      environmentInfo ? calculateAverageThreat(environmentInfo.threat_grid).toFixed(3) : '0.000'
+                    }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">最大脅威度</div>
+                  <div class="template-agents__env-value">
+                    {{ environmentInfo ? calculateMaxThreat(environmentInfo.threat_grid).toFixed(3) : '0.000' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="template-agents__env-section">
+              <div class="template-agents__env-section-title">巡回サマリー</div>
+              <div class="template-agents__environment-grid">
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">現在位置</div>
+                  <div class="template-agents__env-value">
+                    {{ formatCoordinate(robotPosition) }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">開始タイル</div>
+                  <div class="template-agents__env-value">
+                    {{ formatCoordinate(routeStats.start) }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">最新タイル</div>
+                  <div class="template-agents__env-value">
+                    {{ formatCoordinate(routeStats.end) }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">訪問セル</div>
+                  <div class="template-agents__env-value">
+                    {{ routeStats.visitedTiles }} / {{ routeStats.totalTiles }}
+                    <small>({{ routeStats.visitedRatio.toFixed(1) }}%)</small>
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">ステップ数</div>
+                  <div class="template-agents__env-value">
+                    {{ routeStats.stepCount }}
+                  </div>
+                </div>
+                <div class="template-agents__env-stat">
+                  <div class="template-agents__env-label">巡回タイル数</div>
+                  <div class="template-agents__env-value">
+                    {{ routeStats.pathLength }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="suspiciousObjects.length" class="template-agents__env-section">
+              <div class="template-agents__env-section-title">不審物一覧</div>
+              <ul class="template-agents__objects-list">
+                <li v-for="(object, index) in suspiciousObjects" :key="`suspicious-${index}`">
+                  ({{ object.x }}, {{ object.y }}) - {{ object.type }} / 脅威度 {{ object.threat_level.toFixed(2) }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="template-agents__environment-empty">
+          <el-empty description="環境情報が付属していません" />
+        </div>
+
+        <div v-if="routeWaypoints.length" class="template-agents__route-preview">
+          <div class="template-agents__env-section-title">巡回ルート ({{ routeStats.pathLength }} タイル)</div>
+          <div class="template-agents__route-list">
+            <span
+              v-for="(waypoint, index) in routeWaypoints"
+              :key="`route-${waypoint.x}-${waypoint.y}-${index}`"
+              class="template-agents__waypoint"
+            >
+              {{ index + 1 }}. ({{ waypoint.x }}, {{ waypoint.y }})
+            </span>
+          </div>
+        </div>
+      </el-card>
+
+      <el-card class="template-agents__episodes-card">
+        <template #header>
+          <div class="template-agents__episodes-header">
+            <span>エピソードメトリクス</span>
+            <el-tag size="small" type="info">{{ executeResult.agent_name }}</el-tag>
+          </div>
+        </template>
+
         <div class="template-agents__summary">
           <div class="template-agents__stat">
             <div class="template-agents__stat-label">平均報酬</div>
@@ -263,7 +573,6 @@ const navigateToPlayback = (episode: number) => {
           </div>
         </div>
 
-        <!-- エピソード詳細テーブル -->
         <el-table :data="episodeMetricsTableData" stripe class="template-agents__table">
           <el-table-column prop="episode" label="エピソード" width="100" />
           <el-table-column prop="total_reward" label="報酬" width="100">
@@ -338,66 +647,6 @@ const navigateToPlayback = (episode: number) => {
           </el-table-column>
           <el-table-column prop="total_battery_deaths" label="バッテリー切れ" width="140" />
         </el-table>
-      </el-card>
-    </template>
-
-    <!-- 環境情報表示 (Future: Backend実装後に表示) -->
-    <template v-if="executeResult && executeResult.environment_info">
-      <el-card class="template-agents__environment-card">
-        <template #header>
-          <span>環境情報</span>
-        </template>
-
-        <div class="template-agents__environment-grid">
-          <!-- グリッドサイズ -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">グリッドサイズ</div>
-            <div class="template-agents__env-value">
-              {{ executeResult.environment_info.width }} × {{ executeResult.environment_info.height }}
-            </div>
-          </div>
-
-          <!-- 障害物数 -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">障害物数</div>
-            <div class="template-agents__env-value">
-              {{ countObstacles(executeResult.environment_info.obstacles) }}
-            </div>
-          </div>
-
-          <!-- 充電ステーション -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">充電ステーション</div>
-            <div class="template-agents__env-value">
-              ({{ executeResult.environment_info.charging_station.x }},
-              {{ executeResult.environment_info.charging_station.y }})
-            </div>
-          </div>
-
-          <!-- 不審物数 -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">不審物数</div>
-            <div class="template-agents__env-value">
-              {{ executeResult.environment_info.suspicious_objects.length }}
-            </div>
-          </div>
-
-          <!-- 脅威度統計 -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">平均脅威度</div>
-            <div class="template-agents__env-value">
-              {{ calculateAverageThreat(executeResult.environment_info.threat_grid).toFixed(3) }}
-            </div>
-          </div>
-
-          <!-- 最大脅威度 -->
-          <div class="template-agents__env-stat">
-            <div class="template-agents__env-label">最大脅威度</div>
-            <div class="template-agents__env-value">
-              {{ calculateMaxThreat(executeResult.environment_info.threat_grid).toFixed(3) }}
-            </div>
-          </div>
-        </div>
       </el-card>
     </template>
 
@@ -556,6 +805,59 @@ const navigateToPlayback = (episode: number) => {
     margin-bottom: 24px;
   }
 
+  &__env-header {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  &__env-title {
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  &__env-subtitle {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 14px;
+    margin: 4px 0 0;
+  }
+
+  &__environment-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  &__visualization-wrapper {
+    flex: 1 1 480px;
+    min-width: 360px;
+  }
+
+  &__environment-details {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 300px;
+  }
+
+  &__env-section {
+    background: var(--md-sys-color-surface-container, #f3edf7);
+    border: 1px solid var(--md-sys-color-outline-variant, #c9c5d0);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  &__env-section-title {
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
   &__environment-grid {
     display: grid;
     gap: 16px;
@@ -579,6 +881,53 @@ const navigateToPlayback = (episode: number) => {
     color: var(--md-sys-color-on-surface, #1c1b1f);
     font-size: 18px;
     font-weight: 600;
+  }
+
+  &__objects-list {
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    font-size: 13px;
+    list-style: disc;
+    margin: 0;
+    padding-left: 20px;
+
+    li + li {
+      margin-top: 4px;
+    }
+  }
+
+  &__environment-empty {
+    padding: 24px 0;
+  }
+
+  &__route-preview {
+    margin-top: 24px;
+  }
+
+  &__route-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__waypoint {
+    background: var(--md-sys-color-surface-variant, #e7e0ec);
+    border: 1px solid var(--md-sys-color-outline-variant, #c9c5d0);
+    border-radius: 999px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  &__episodes-card {
+    margin-bottom: 24px;
+  }
+
+  &__episodes-header {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
   }
 
   // Playbackボタンスタイル

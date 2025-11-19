@@ -3,6 +3,7 @@
 このファイルは最新のセッションログを記録します。作業前に `report/summary/` と `report/PROGRESS.md` を確認してください。
 
 ## 📑 目次
+- [2025-11-19 セッション057 - テンプレートエージェント環境タイル可視化強化](#2025-11-19-セッション057---テンプレートエージェント環境タイル可視化強化)
 - [2025-11-18 セッション056 - テンプレートエージェントページ実装](#2025-11-18-セッション056---テンプレートエージェントページ実装)
 - [2025-11-12 セッション054 - バッテリー表示の小数点制御最適化](#2025-11-12-セッション054---バッテリー表示の小数点制御最適化)
 - [2025-11-13 セッション055 - 環境変数読み込み修正（useRuntimeConfig対応）](#2025-11-13-セッション055---環境変数読み込み修正useruntimeconfig対応)
@@ -16,6 +17,49 @@
 - [2025-11-07 セッション045 - Training一覧への共通コンポーネント適用](#2025-11-07-セッション045---training一覧への共通コンポーネント適用)
 - [2025-11-07 セッション044 - Dashboard/Playbackの共通コンポーネント適用](#2025-11-07-セッション044---dashboardplaybackの共通コンポーネント適用)
 - [2025-11-07 セッション043 - コンポーネント分割方針策定](#2025-11-07-セッション043---コンポーネント分割方針策定)
+
+## 2025-11-19 セッション057 - テンプレートエージェント環境タイル可視化強化
+
+### セッション情報
+- **開始時刻**: 2025-11-19 (記録なし)
+- **終了時刻**: 2025-11-19 (記録なし)
+- **所要時間**: 約1時間20分
+- **対象Phase**: Phase 56 フォローアップ (Template Agents UI)
+- **担当者**: AI実装アシスタント
+- **ブランチ**: feature/template-agent-visual
+
+---
+
+### 📋 実施したタスク
+- 既存の「実行結果 - HorizontalScanAgent」カードを削除し、環境情報モジュールへ統合
+- EnvironmentVisualizationコンポーネントをTemplate Agentsページへ組み込み、巡回ルート・現在地・訪問セル比率を可視化
+- TemplateAgent API型定義をBackend実装と同期（execution_id/save_frames）し、単一実行時にsave_framesを強制有効化
+- ページ・Composable単体テスト、グローバルスタブを新構造へ合わせて更新
+
+### 🔧 実装の詳細
+1. **pages/template-agents/index.vue**
+   - EnvironmentVisualizationを読み込み、環境カード内にズーム可能なタイルマップを描画
+   - フレームデータからロボット軌跡/カバレッジ/現在タイルを算出し、巡回チップとして表示
+   - サマリーカードを環境カードへ統合し、実行ID・訪問セル割合・開始/終了タイルなどを同居
+   - 単一実行リクエスト時に`save_frames: true`を付与し、Playbackデータを必ず取得
+2. **types/api.ts**
+   - `TemplateAgentExecuteRequest`へ`save_frames`/`execution_id`を追記、`TemplateAgentExecuteResponse`へ`execution_id`を必須化
+3. **tests/unit/pages/template-agents/index.spec.ts**
+   - EnvironmentVisualization用のスタブを追加し、環境情報/巡回ルートのDOM反映を検証するケースを新設
+4. **tests/unit/composables/useTemplateAgents.spec.ts**
+   - モックレスポンスへ`execution_id`を追加し、型定義変更に追従
+5. **report/PROGRESS.md / DIARY04.md**
+   - Phase 56の成果として環境可視化拡張を追記し、本セッションのログを残した
+
+### 🧪 テスト
+- `pnpm vitest run --coverage --pool=threads`
+  - すべてのテストが成功（Pass 540）
+  - カバレッジ基準（85%以上）を維持
+
+### 📝 メモ・フォローアップ
+- Template Agent用WebSocket（template_agent_progress）を利用したリアルタイム描画は未着手。Backendの進捗配信が整い次第、EnvironmentVisualizationへのライブ反映を追加予定
+- 巡回ルートチップは最大30座標に制限。必要に応じてページング/ズーム同期などのUI改善を検討
+
 ## 2025-11-18 セッション056 - テンプレートエージェントページ実装
 
 ### セッション情報

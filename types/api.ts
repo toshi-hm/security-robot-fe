@@ -302,6 +302,8 @@ export interface TemplateAgentExecuteRequest {
   episodes?: number
   max_steps?: number
   seed?: number | null
+  save_frames?: boolean
+  execution_id?: string | null
 }
 
 /**
@@ -328,6 +330,7 @@ export interface TemplateAgentEpisodeMetrics {
 export interface TemplateAgentExecuteResponse {
   agent_type: TemplateAgentType
   agent_name: string
+  execution_id: string
   environment: {
     width: number
     height: number

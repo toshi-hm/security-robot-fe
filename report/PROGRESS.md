@@ -636,6 +636,10 @@
     - 比較テーブル（ランキング、パフォーマンスギャップ）
     - エピソード詳細テーブル
   - Material Design 3 カラースキーム適用
+- [x] テンプレートエージェント環境可視化拡張
+  - 「実行結果 - HorizontalScanAgent」カードを廃止し、環境モジュールへ集約
+  - EnvironmentVisualizationコンポーネントを統合し、巡回ルート・現在地・タイル訪問率を可視化
+  - save_framesを強制有効化してPlaybackフレームを取得し、軌跡チップと充電ステーション情報を表示
 - [x] ナビゲーション統合 (layouts/default.vue)
   - サイドバーに「Template Agents」メニュー項目追加
 - [x] テスト実装（17テスト追加）
