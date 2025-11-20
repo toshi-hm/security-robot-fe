@@ -268,7 +268,7 @@ watch(
     robotTrajectory.value = []
     appendTrajectory(frames, 0)
   },
-  { immediate: true, deep: false },
+  { immediate: true, deep: false }
 )
 
 watch(
@@ -287,7 +287,7 @@ watch(
     if (length === processedFrameCount.value) return
 
     appendTrajectory(frames, processedFrameCount.value)
-  },
+  }
 )
 
 const routeWaypoints = computed<Position[]>(() => {
