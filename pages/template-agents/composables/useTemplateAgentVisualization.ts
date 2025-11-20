@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 
 import { ROUTE_PREVIEW_LIMIT } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
@@ -249,6 +249,17 @@ export const useTemplateAgentVisualization = (
   })
 
   const suspiciousObjects = computed(() => environmentInfo.value?.suspicious_objects ?? [])
+
+  const clearCache = () => {
+    cachedExecutionId = null
+    cachedPlaybacksRef = null
+    cachedPlaybackFrameCount = 0
+    cachedPlaybackFrames = []
+    robotTrajectory.value = []
+    processedFrameCount.value = 0
+  }
+
+  onBeforeUnmount(clearCache)
 
   return {
     environmentInfo,
