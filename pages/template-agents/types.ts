@@ -1,12 +1,7 @@
-import type { ComputedRef, ShallowRef } from 'vue'
-
 import type { Position } from '~/libs/domains/common/Position'
-import type {
-  TemplateAgentEnvironmentInfo,
-  TemplateAgentExecuteResponse,
-  TemplateAgentFrameData,
-  TemplateAgentType,
-} from '~/types/api'
+import type { TemplateAgentEnvironmentInfo, TemplateAgentFrameData, TemplateAgentType } from '~/types/api'
+
+import type { ComputedRef, ShallowRef } from 'vue'
 
 export type TemplateAgentExecutionMode = 'single' | 'compare'
 
@@ -42,8 +37,7 @@ export interface TemplateAgentEnvironmentVisualizationProps {
   chargingStationPosition: Position | null
 }
 
-export type TemplateAgentVisualizationSuspiciousObjects =
-  TemplateAgentEnvironmentInfo['suspicious_objects']
+export type TemplateAgentVisualizationSuspiciousObjects = TemplateAgentEnvironmentInfo['suspicious_objects']
 
 export interface TemplateAgentVisualizationState {
   environmentInfo: ComputedRef<TemplateAgentEnvironmentInfo | null>

@@ -6,6 +6,7 @@ import {
   TEMPLATE_AGENT_SEED_MIN,
 } from '~/configs/constants'
 import type { TemplateAgentType } from '~/types/api'
+
 import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '../types'
 
 const props = defineProps<{
@@ -85,9 +86,7 @@ const handleReset = () => emit('reset')
           >
             <el-checkbox v-for="type in agentTypes" :key="type.type" :value="type.type" :label="type.type">
               <span>{{ type.name }}</span>
-              <span class="template-agents__option-subtitle">
-                ({{ type.description }})
-              </span>
+              <span class="template-agents__option-subtitle"> ({{ type.description }}) </span>
             </el-checkbox>
           </el-checkbox-group>
           <p v-if="!compareSelectionValid" class="template-agents__form-hint">

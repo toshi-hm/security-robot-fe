@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TemplateAgentCompareResponse } from '~/types/api'
 
-const props = defineProps<{
+defineProps<{
   compareResult: TemplateAgentCompareResponse
   comparisonResultsTableData: TemplateAgentCompareResponse['results']
 }>()

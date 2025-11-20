@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TemplateAgentExecuteResponse, TemplateAgentEpisodeMetrics } from '~/types/api'
 
-const props = defineProps<{
+defineProps<{
   executeResult: TemplateAgentExecuteResponse
   episodeMetricsTableData: TemplateAgentEpisodeMetrics[]
 }>()

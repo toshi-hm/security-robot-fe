@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { defineComponent, ref } from 'vue'
 
 import TemplateAgentsPage from '~/pages/template-agents/index.vue'
-import type { TemplateAgentExecuteResponse } from '~/types/api'
 import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '~/pages/template-agents/types'
+import type { TemplateAgentExecuteResponse } from '~/types/api'
 
 // Element Plus stubs
 const ElCard = { name: 'ElCard', template: '<div class="el-card"><slot name="header" /><slot /></div>' }

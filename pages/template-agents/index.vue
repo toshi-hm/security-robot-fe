@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
+import { useTemplateAgents } from '~/composables/useTemplateAgents'
+
 import TemplateAgentComparison from './components/TemplateAgentComparison.vue'
 import TemplateAgentEnvironment from './components/TemplateAgentEnvironment.vue'
 import TemplateAgentForm from './components/TemplateAgentForm.vue'
 import TemplateAgentResults from './components/TemplateAgentResults.vue'
 import { useTemplateAgentVisualization } from './composables/useTemplateAgentVisualization'
+
 import type { TemplateAgentExecutionMode, TemplateAgentFormData } from './types'
-import { useTemplateAgents } from '~/composables/useTemplateAgents'
 
 const {
   agentTypes,

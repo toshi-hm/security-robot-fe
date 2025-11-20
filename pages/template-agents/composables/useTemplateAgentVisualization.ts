@@ -3,12 +3,13 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { ROUTE_PREVIEW_LIMIT } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentExecuteResponse, TemplateAgentFrameData } from '~/types/api'
+import { normalizeGridMatrix } from '~/utils/gridHelpers'
+
 import type {
   TemplateAgentEnvironmentVisualizationProps,
   TemplateAgentRouteStats,
   TemplateAgentVisualizationState,
 } from '../types'
-import { normalizeGridMatrix } from '~/utils/gridHelpers'
 
 export const useTemplateAgentVisualization = (
   executeResult: Readonly<{ value: TemplateAgentExecuteResponse | null }>
