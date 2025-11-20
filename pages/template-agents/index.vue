@@ -98,6 +98,7 @@ const handleExecute = async () => {
   clearResults()
 
   const payloadMaxSteps = selectedMaxSteps.value
+  const requestSeed = formData.value.seed === null ? undefined : formData.value.seed
 
   if (executionMode.value === 'single') {
     await executeAgent({
@@ -106,7 +107,7 @@ const handleExecute = async () => {
       height: formData.value.height,
       episodes: formData.value.episodes,
       max_steps: payloadMaxSteps,
-      seed: formData.value.seed,
+      seed: requestSeed,
       save_frames: true,
     })
   } else {
@@ -116,7 +117,7 @@ const handleExecute = async () => {
       height: formData.value.height,
       episodes: formData.value.episodes,
       max_steps: payloadMaxSteps,
-      seed: formData.value.seed,
+      seed: requestSeed,
     })
   }
 }
