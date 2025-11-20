@@ -4,7 +4,7 @@ import { defineComponent, ref } from 'vue'
 
 import TemplateAgentsPage from '~/pages/template-agents/index.vue'
 import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '~/pages/template-agents/types'
-import type { TemplateAgentExecuteResponse } from '~/types/api'
+import type { TemplateAgentExecuteResponse, TemplateAgentType } from '~/types/api'
 
 // Element Plus stubs
 const ElCard = { name: 'ElCard', template: '<div class="el-card"><slot name="header" /><slot /></div>' }
@@ -139,8 +139,8 @@ describe('TemplateAgentsPage', () => {
   })
 
   it('renders environment visualization summary when execution result has environment info', () => {
-    const executeResult = ref({
-      agent_type: 'horizontal_scan',
+    const executeResult = ref<TemplateAgentExecuteResponse>({
+      agent_type: 'horizontal_scan' as TemplateAgentType,
       agent_name: 'HorizontalScanAgent',
       execution_id: 'templ-test',
       environment: { width: 4, height: 4 },

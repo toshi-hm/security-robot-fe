@@ -55,6 +55,45 @@ const comparisonResultsTableData = computed(() => {
   return [...compareResult.value.results]
 })
 
+const mutableAgentTypes = computed(() => {
+  return agentTypes.value.map((type) => ({ ...type }))
+})
+
+const mutableExecuteResult = computed(() => {
+  if (!executeResult.value) return null
+  const result = executeResult.value
+  return {
+    ...result,
+    episode_metrics: [...result.episode_metrics],
+    episode_playbacks: result.episode_playbacks
+      ? result.episode_playbacks.map((playback) => ({
+          ...playback,
+          frames: playback.frames.map((frame) => ({
+            ...frame,
+            coverage_map: frame.coverage_map.map((row) => [...row]),
+            threat_grid: frame.threat_grid ? frame.threat_grid.map((row) => [...row]) : undefined,
+          })),
+        }))
+      : undefined,
+    environment_info: result.environment_info
+      ? {
+          ...result.environment_info,
+          threat_grid: result.environment_info.threat_grid.map((row) => [...row]),
+          obstacles: result.environment_info.obstacles.map((row) => [...row]),
+          suspicious_objects: [...result.environment_info.suspicious_objects],
+        }
+      : undefined,
+  }
+})
+
+const mutableCompareResult = computed(() => {
+  if (!compareResult.value) return null
+  return {
+    ...compareResult.value,
+    results: [...compareResult.value.results],
+  }
+})
+
 onMounted(async () => {
   await fetchAgentTypes()
 })
@@ -123,7 +162,7 @@ const handleReset = () => {
   clearResults()
 }
 
-const visualization = useTemplateAgentVisualization(executeResult)
+const visualization = useTemplateAgentVisualization(mutableExecuteResult)
 const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoints, suspiciousObjects } = visualization
 </script>
 
@@ -147,7 +186,7 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
     <TemplateAgentForm
       :execution-mode="executionMode"
       :form-data="formData"
-      :agent-types="agentTypes"
+      :agent-types="mutableAgentTypes"
       :compare-selection-valid="compareSelectionValid"
       :can-execute="canExecute"
       :max-steps-hint="maxStepsHint"
@@ -159,8 +198,8 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
     />
 
     <TemplateAgentEnvironment
-      v-if="executionMode === 'single' && executeResult"
-      :execute-result="executeResult"
+      v-if="executionMode === 'single' && mutableExecuteResult"
+      :execute-result="mutableExecuteResult"
       :environment-info="environmentInfo"
       :environment-visualization-props="environmentVisualizationProps"
       :route-stats="routeStats"
@@ -169,14 +208,14 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
     />
 
     <TemplateAgentResults
-      v-if="executionMode === 'single' && executeResult"
-      :execute-result="executeResult"
+      v-if="executionMode === 'single' && mutableExecuteResult"
+      :execute-result="mutableExecuteResult"
       :episode-metrics-table-data="episodeMetricsTableData"
     />
 
     <TemplateAgentComparison
-      v-if="executionMode === 'compare' && compareResult"
-      :compare-result="compareResult"
+      v-if="executionMode === 'compare' && mutableCompareResult"
+      :compare-result="mutableCompareResult"
       :comparison-results-table-data="comparisonResultsTableData"
     />
   </div>

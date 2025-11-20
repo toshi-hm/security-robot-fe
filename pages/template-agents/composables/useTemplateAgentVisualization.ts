@@ -112,6 +112,7 @@ export const useTemplateAgentVisualization = (
 
     for (let index = startIndex; index < frames.length; index += 1) {
       const frame = frames[index]
+      if (!frame) continue
       const previous = updated[updated.length - 1]
       if (!previous || previous.x !== frame.robot_x || previous.y !== frame.robot_y) {
         if (!mutated) {

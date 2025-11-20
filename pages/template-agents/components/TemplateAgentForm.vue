@@ -51,7 +51,7 @@ const handleReset = () => emit('reset')
       <el-radio-group
         :model-value="executionMode"
         class="template-agents__mode-group"
-        @update:model-value="updateExecutionMode"
+        @update:model-value="(value) => value && updateExecutionMode(value as TemplateAgentExecutionMode)"
       >
         <el-radio-button value="single">単一実行</el-radio-button>
         <el-radio-button value="compare">比較実行</el-radio-button>
@@ -82,7 +82,7 @@ const handleReset = () => emit('reset')
         <el-form-item v-else label="比較対象エージェント">
           <el-checkbox-group
             :model-value="formData.compareAgentTypes"
-            @update:model-value="(value: TemplateAgentType[]) => updateFormField('compareAgentTypes', value)"
+            @update:model-value="(value) => updateFormField('compareAgentTypes', value as TemplateAgentType[])"
           >
             <el-checkbox v-for="type in agentTypes" :key="type.type" :value="type.type" :label="type.type">
               <span>{{ type.name }}</span>
@@ -100,7 +100,7 @@ const handleReset = () => emit('reset')
             :min="TEMPLATE_AGENT_GRID_MIN"
             :max="TEMPLATE_AGENT_GRID_MAX"
             :step="1"
-            @update:model-value="(value: number) => updateFormField('width', value)"
+            @update:model-value="(value) => value !== undefined && updateFormField('width', value)"
           />
         </el-form-item>
 
@@ -110,7 +110,7 @@ const handleReset = () => emit('reset')
             :min="TEMPLATE_AGENT_GRID_MIN"
             :max="TEMPLATE_AGENT_GRID_MAX"
             :step="1"
-            @update:model-value="(value: number) => updateFormField('height', value)"
+            @update:model-value="(value) => value !== undefined && updateFormField('height', value)"
           />
         </el-form-item>
 
@@ -120,7 +120,7 @@ const handleReset = () => emit('reset')
             :min="1"
             :max="100"
             :step="1"
-            @update:model-value="(value: number) => updateFormField('episodes', value)"
+            @update:model-value="(value) => value !== undefined && updateFormField('episodes', value)"
           />
         </el-form-item>
 
@@ -130,7 +130,7 @@ const handleReset = () => emit('reset')
               :model-value="formData.useDynamicMaxSteps"
               active-text="動的計算"
               inactive-text="カスタム"
-              @update:model-value="(value: boolean) => updateFormField('useDynamicMaxSteps', value)"
+              @update:model-value="(value) => updateFormField('useDynamicMaxSteps', Boolean(value))"
             />
             <el-input-number
               :model-value="formData.maxSteps"
@@ -138,7 +138,7 @@ const handleReset = () => emit('reset')
               :max="10000"
               :step="100"
               :disabled="formData.useDynamicMaxSteps"
-              @update:model-value="(value: number) => updateFormField('maxSteps', value)"
+              @update:model-value="(value) => value !== undefined && updateFormField('maxSteps', value)"
             />
           </div>
           <p class="template-agents__form-hint">{{ maxStepsHint }}</p>
@@ -151,7 +151,7 @@ const handleReset = () => emit('reset')
             :max="TEMPLATE_AGENT_SEED_MAX"
             :step="1"
             placeholder="未設定（ランダム）"
-            @update:model-value="(value: number | null) => updateFormField('seed', value)"
+            @update:model-value="(value) => updateFormField('seed', value ?? null)"
           />
         </el-form-item>
 
