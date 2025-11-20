@@ -7,6 +7,7 @@ import {
   TEMPLATE_AGENT_GRID_MIN,
   TEMPLATE_AGENT_SEED_MAX,
   TEMPLATE_AGENT_SEED_MIN,
+  ROUTE_PREVIEW_LIMIT,
 } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentType, TemplateAgentFrameData, TemplateAgentExecuteResponse } from '~/types/api'
@@ -145,13 +146,42 @@ const handleReset = () => {
 }
 
 const environmentInfo = computed(() => executeResult.value?.environment_info ?? null)
+
+let cachedExecutionId: string | null = null
+let cachedPlaybacksRef: TemplateAgentExecuteResponse['episode_playbacks'] | null = null
+let cachedPlaybackFrameCount = 0
+let cachedPlaybackFrames: TemplateAgentFrameData[] = []
+
 const playbackFrames = computed<TemplateAgentFrameData[]>(() => {
   const result = executeResult.value as TemplateAgentExecuteResponse | null
   const playbacks = result?.episode_playbacks ?? []
+  const executionId = result?.execution_id ?? null
 
-  if (!playbacks.length) return []
+  if (!playbacks.length) {
+    cachedExecutionId = null
+    cachedPlaybacksRef = null
+    cachedPlaybackFrameCount = 0
+    cachedPlaybackFrames = []
+    return cachedPlaybackFrames
+  }
 
-  return playbacks.flatMap((episode) => episode.frames ?? [])
+  const frameCount = playbacks.reduce((total, episode) => total + (episode.frames?.length ?? 0), 0)
+
+  if (
+    executionId === cachedExecutionId &&
+    cachedPlaybacksRef === playbacks &&
+    cachedPlaybackFrameCount === frameCount &&
+    cachedPlaybackFrames.length
+  ) {
+    return cachedPlaybackFrames
+  }
+
+  cachedPlaybackFrames = playbacks.flatMap((episode) => episode.frames ?? [])
+  cachedExecutionId = executionId
+  cachedPlaybacksRef = playbacks
+  cachedPlaybackFrameCount = frameCount
+
+  return cachedPlaybackFrames
 })
 
 const latestFrame = computed<TemplateAgentFrameData | null>(() => {
@@ -260,7 +290,6 @@ watch(
   },
 )
 
-const ROUTE_PREVIEW_LIMIT = 30
 const routeWaypoints = computed<Position[]>(() => {
   const trajectory = robotTrajectory.value
   if (!trajectory.length) return []
