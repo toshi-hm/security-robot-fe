@@ -4,7 +4,13 @@ import { ref, computed, onMounted } from 'vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentType, TemplateAgentFrameData } from '~/types/api'
-import { normalizeGridMatrix } from '~/utils/gridHelpers'
+import {
+  TEMPLATE_AGENT_GRID_MAX,
+  TEMPLATE_AGENT_GRID_MIN,
+  TEMPLATE_AGENT_SEED_MAX,
+  TEMPLATE_AGENT_SEED_MIN,
+} from '~/configs/constants'
+import { calculateAverageThreat, calculateMaxThreat, countObstacles, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 // Composable
 const {
@@ -136,51 +142,6 @@ const handleReset = () => {
     useDynamicMaxSteps: true,
   }
   clearResults()
-}
-
-// ヘルパー関数 (Future: Backend実装後に使用)
-
-/**
- * 障害物の総数をカウント
- * readonly配列に対応
- */
-const countObstacles = (obstacles: readonly (readonly boolean[])[]): number => {
-  return obstacles.reduce((count, row) => {
-    return count + row.filter((cell) => cell).length
-  }, 0)
-}
-
-/**
- * 脅威度グリッドの平均値を計算
- * readonly配列に対応
- */
-const calculateAverageThreat = (threatGrid: readonly (readonly number[])[]): number => {
-  const total = threatGrid.reduce((sum, row) => {
-    return sum + row.reduce((rowSum, cell) => rowSum + cell, 0)
-  }, 0)
-  const cells = threatGrid.length * (threatGrid[0]?.length || 0)
-  return cells > 0 ? total / cells : 0
-}
-
-/**
- * 脅威度グリッドの最大値を取得
- * readonly配列に対応
- */
-const calculateMaxThreat = (threatGrid: readonly (readonly number[])[]): number => {
-  return threatGrid.reduce((max, row) => {
-    const rowMax = Math.max(...row)
-    return Math.max(max, rowMax)
-  }, 0)
-}
-
-/**
- * Playbackページへ遷移 (Future: 専用Playbackページ実装時に使用)
- */
-const navigateToPlayback = (episode: number) => {
-  // TODO: 将来実装
-  // 現在は仮で警告を表示
-  console.log(`Navigate to playback for episode ${episode}`)
-  alert(`エピソード ${episode} のPlayback機能は、Backend API実装後に利用可能になります`)
 }
 
 const environmentInfo = computed(() => executeResult.value?.environment_info ?? null)
@@ -412,11 +373,21 @@ const formatCoordinate = (position: Position | null): string => {
 
         <!-- グリッドサイズ -->
         <el-form-item label="グリッド幅">
-          <el-input-number v-model="formData.width" :min="3" :max="100" :step="1" />
+          <el-input-number
+            v-model="formData.width"
+            :min="TEMPLATE_AGENT_GRID_MIN"
+            :max="TEMPLATE_AGENT_GRID_MAX"
+            :step="1"
+          />
         </el-form-item>
 
         <el-form-item label="グリッド高さ">
-          <el-input-number v-model="formData.height" :min="3" :max="100" :step="1" />
+          <el-input-number
+            v-model="formData.height"
+            :min="TEMPLATE_AGENT_GRID_MIN"
+            :max="TEMPLATE_AGENT_GRID_MAX"
+            :step="1"
+          />
         </el-form-item>
 
         <!-- 実行パラメータ -->
@@ -443,7 +414,13 @@ const formatCoordinate = (position: Position | null): string => {
         </el-form-item>
 
         <el-form-item label="ランダムシード (オプション)">
-          <el-input-number v-model="formData.seed" :min="0" :max="999999" :step="1" placeholder="未設定（ランダム）" />
+          <el-input-number
+            v-model="formData.seed"
+            :min="TEMPLATE_AGENT_SEED_MIN"
+            :max="TEMPLATE_AGENT_SEED_MAX"
+            :step="1"
+            placeholder="未設定（ランダム）"
+          />
         </el-form-item>
 
         <!-- 実行ボタン -->
@@ -718,24 +695,22 @@ const formatCoordinate = (position: Position | null): string => {
 
         <div class="template-agents__playback-info">
           <el-alert type="info" :closable="false" show-icon>
-            <template #title>各エピソードの実行をPlaybackで再生できます</template>
+            <template #title>Playback UI は準備中です。エピソード概要のみ表示します。</template>
           </el-alert>
         </div>
 
         <div class="template-agents__playback-grid">
-          <el-button
+          <div
             v-for="playback in executeResult.episode_playbacks"
             :key="playback.episode"
-            type="primary"
             class="template-agents__playback-button"
-            @click="navigateToPlayback(playback.episode)"
           >
             <span class="template-agents__playback-button-text">
               エピソード {{ playback.episode }}
               <br />
-              <small>({{ playback.frames.length }} フレーム, 報酬: {{ playback.total_reward.toFixed(2) }})</small>
+              <small>フレーム数: {{ playback.frames.length }} / 報酬: {{ playback.total_reward.toFixed(2) }}</small>
             </span>
-          </el-button>
+          </div>
         </div>
       </el-card>
     </template>
