@@ -91,6 +91,15 @@ describe('TemplateAgentsPage', () => {
     expect(wrapper.find('.template-agents__form-hint').text()).toContain('環境サイズに応じて自動計算')
   })
 
+  it('requires at least two agents for comparison', async () => {
+    const wrapper = mountPage()
+    ;(wrapper.vm as any).executionMode = 'compare'
+    await wrapper.vm.$nextTick()
+    const hints = wrapper.findAll('.template-agents__form-hint')
+    const compareHint = hints.find((hint) => hint.text().includes('比較モード'))
+    expect(compareHint?.text()).toContain('2つ以上のエージェント')
+  })
+
   it('renders environment visualization summary when execution result has environment info', () => {
     const executeResult = ref({
       agent_type: 'horizontal_scan',

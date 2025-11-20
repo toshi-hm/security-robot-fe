@@ -47,12 +47,13 @@ const formData = ref<TemplateAgentFormData>({
 })
 
 // 実行可能かどうか
+const compareSelectionValid = computed(() => formData.value.compareAgentTypes.length >= 2)
+
 const canExecute = computed(() => {
   if (executionMode.value === 'single') {
     return formData.value.agentType !== null
-  } else {
-    return formData.value.compareAgentTypes.length >= 1
   }
+  return compareSelectionValid.value
 })
 
 // el-table用データ (readonly配列を通常配列に変換)
@@ -404,6 +405,9 @@ const formatCoordinate = (position: Position | null): string => {
               </span>
             </el-checkbox>
           </el-checkbox-group>
+          <p v-if="!compareSelectionValid" class="template-agents__form-hint">
+            比較モードでは2つ以上のエージェントを選択してください
+          </p>
         </el-form-item>
 
         <!-- グリッドサイズ -->
