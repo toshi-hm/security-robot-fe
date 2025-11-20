@@ -396,7 +396,7 @@ const formatCoordinate = (position: Position | null): string => {
         <!-- エージェントタイプ選択 (比較モード) -->
         <el-form-item v-if="executionMode === 'compare'" label="比較対象エージェント">
           <el-checkbox-group v-model="formData.compareAgentTypes">
-            <el-checkbox v-for="type in agentTypes" :key="type.type" :value="type.type" :label="type.name">
+            <el-checkbox v-for="type in agentTypes" :key="type.type" :value="type.type" :label="type.type">
               <span>{{ type.name }}</span>
               <span style="color: var(--el-text-color-secondary); font-size: 12px; margin-left: 4px">
                 ({{ type.description }})
