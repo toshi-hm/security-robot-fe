@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, shallowRef, watch } from 'vue'
 
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import {
@@ -198,20 +198,67 @@ const robotOrientation = computed<number | null>(() => {
   return null
 })
 
-const robotTrajectory = computed<Position[]>(() => {
-  const frames = playbackFrames.value
-  if (!frames.length) return []
+const robotTrajectory = shallowRef<Position[]>([])
+const processedFrameCount = ref(0)
 
-  const trajectory: Position[] = []
-  frames.forEach((frame) => {
-    const previous = trajectory[trajectory.length - 1]
+const appendTrajectory = (frames: TemplateAgentFrameData[], startIndex: number) => {
+  if (!frames.length) {
+    robotTrajectory.value = []
+    processedFrameCount.value = 0
+    return
+  }
+
+  let updated = robotTrajectory.value
+  let mutated = false
+
+  for (let index = startIndex; index < frames.length; index += 1) {
+    const frame = frames[index]
+    const previous = updated[updated.length - 1]
     if (!previous || previous.x !== frame.robot_x || previous.y !== frame.robot_y) {
-      trajectory.push({ x: frame.robot_x, y: frame.robot_y })
+      if (!mutated) {
+        updated = [...updated]
+        mutated = true
+      }
+      updated.push({ x: frame.robot_x, y: frame.robot_y })
     }
-  })
+  }
 
-  return trajectory
-})
+  if (mutated || startIndex === 0) {
+    robotTrajectory.value = updated
+  }
+
+  processedFrameCount.value = frames.length
+}
+
+watch(
+  () => playbackFrames.value,
+  (frames) => {
+    // 新しい実行結果が来たらキャッシュをリセットして再構築
+    processedFrameCount.value = 0
+    robotTrajectory.value = []
+    appendTrajectory(frames, 0)
+  },
+  { immediate: true, deep: false },
+)
+
+watch(
+  () => playbackFrames.value.length,
+  (length, previousLength) => {
+    const frames = playbackFrames.value
+
+    // 巻き戻し（クリア）検知: 長さが減ったら全再計算
+    if (length < previousLength) {
+      processedFrameCount.value = 0
+      robotTrajectory.value = []
+      appendTrajectory(frames, 0)
+      return
+    }
+
+    if (length === processedFrameCount.value) return
+
+    appendTrajectory(frames, processedFrameCount.value)
+  },
+)
 
 const ROUTE_PREVIEW_LIMIT = 30
 const routeWaypoints = computed<Position[]>(() => {
