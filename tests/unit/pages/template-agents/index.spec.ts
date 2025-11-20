@@ -1,8 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { defineComponent, ref } from 'vue'
 
 import TemplateAgentsPage from '~/pages/template-agents/index.vue'
+import type { TemplateAgentExecuteResponse } from '~/types/api'
+import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '~/pages/template-agents/types'
 
 // Element Plus stubs
 const ElCard = { name: 'ElCard', template: '<div class="el-card"><slot name="header" /><slot /></div>' }
@@ -61,7 +63,43 @@ const baseStubs = {
   EnvironmentVisualization: EnvironmentVisualizationStub,
 }
 
-const originalUseTemplateAgents = (global as any).useTemplateAgents
+const useTemplateAgentsMock = vi.fn()
+
+vi.mock('~/composables/useTemplateAgents', () => ({
+  useTemplateAgents: () => useTemplateAgentsMock(),
+}))
+
+const createState = (
+  overrides?: Partial<{
+    executionMode: TemplateAgentExecutionMode
+    formData: TemplateAgentFormData
+    executeResult: TemplateAgentExecuteResponse | null
+  }>
+) => ({
+  agentTypes: ref([]),
+  executeResult: ref(overrides?.executeResult ?? null),
+  compareResult: ref(null),
+  isLoading: ref(false),
+  error: ref(null),
+  fetchAgentTypes: vi.fn(),
+  executeAgent: vi.fn(),
+  compareAgents: vi.fn(),
+  clearError: vi.fn(),
+  clearResults: vi.fn(),
+  executionMode: ref(overrides?.executionMode ?? 'single'),
+  formData: ref(
+    overrides?.formData ?? {
+      agentType: 'horizontal_scan',
+      compareAgentTypes: [],
+      width: 10,
+      height: 10,
+      episodes: 10,
+      maxSteps: 1000,
+      seed: null,
+      useDynamicMaxSteps: true,
+    }
+  ),
+})
 
 const mountPage = () => {
   return mount(TemplateAgentsPage, {
@@ -71,8 +109,8 @@ const mountPage = () => {
   })
 }
 
-afterEach(() => {
-  ;(global as any).useTemplateAgents = originalUseTemplateAgents
+beforeEach(() => {
+  useTemplateAgentsMock.mockReturnValue(createState())
 })
 
 describe('TemplateAgentsPage', () => {
@@ -204,18 +242,7 @@ describe('TemplateAgentsPage', () => {
       ],
     })
 
-    ;(global as any).useTemplateAgents = vi.fn(() => ({
-      agentTypes: ref([]),
-      executeResult,
-      compareResult: ref(null),
-      isLoading: ref(false),
-      error: ref(null),
-      fetchAgentTypes: vi.fn(),
-      executeAgent: vi.fn(),
-      compareAgents: vi.fn(),
-      clearError: vi.fn(),
-      clearResults: vi.fn(),
-    }))
+    useTemplateAgentsMock.mockReturnValue(createState({ executeResult: executeResult.value }))
 
     const wrapper = mountPage()
     expect(wrapper.findComponent(EnvironmentVisualizationStub).exists()).toBe(true)
