@@ -33,17 +33,7 @@ describe('normalizeGridMatrix', () => {
   })
 
   it('handles sparse rows gracefully', () => {
-    expect(
-      normalizeGridMatrix([
-        { 0: 1 },
-        null as unknown as number[],
-        [undefined, 2],
-      ])
-    ).toEqual([
-      [1],
-      [],
-      [0, 2],
-    ])
+    expect(normalizeGridMatrix([{ 0: 1 }, null as unknown as number[], [undefined, 2]])).toEqual([[1], [], [0, 2]])
   })
 })
 
@@ -89,11 +79,6 @@ describe('calculateMaxThreat', () => {
 
   it('returns 0 for empty or sparse grids', () => {
     expect(calculateMaxThreat([])).toBe(0)
-    expect(
-      calculateMaxThreat([
-        [],
-        [],
-      ])
-    ).toBe(0)
+    expect(calculateMaxThreat([[], []])).toBe(0)
   })
 })

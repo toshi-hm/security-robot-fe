@@ -4,9 +4,9 @@ import type {
   PlaybackSessionSummaryDTO,
   EnvironmentStateResponseDTO,
 } from '~/types/api'
+import { normalizeGridMatrix } from '~/utils/gridHelpers'
 
 import { API_ENDPOINTS } from '../../../configs/api'
-import { normalizeGridMatrix } from '~/utils/gridHelpers'
 
 import type { PlaybackRepository } from './PlaybackRepository'
 import type { PlaybackFrame } from '../../domains/playback/PlaybackFrame'

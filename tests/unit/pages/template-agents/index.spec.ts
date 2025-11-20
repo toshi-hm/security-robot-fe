@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent, ref } from 'vue'
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { defineComponent, ref } from 'vue'
 
 import TemplateAgentsPage from '~/pages/template-agents/index.vue'
 
