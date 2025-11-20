@@ -2,14 +2,14 @@
 import { ref, computed, onMounted } from 'vue'
 
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
-import type { Position } from '~/libs/domains/common/Position'
-import type { TemplateAgentType, TemplateAgentFrameData } from '~/types/api'
 import {
   TEMPLATE_AGENT_GRID_MAX,
   TEMPLATE_AGENT_GRID_MIN,
   TEMPLATE_AGENT_SEED_MAX,
   TEMPLATE_AGENT_SEED_MIN,
 } from '~/configs/constants'
+import type { Position } from '~/libs/domains/common/Position'
+import type { TemplateAgentType, TemplateAgentFrameData, TemplateAgentExecuteResponse } from '~/types/api'
 import { calculateAverageThreat, calculateMaxThreat, countObstacles, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 // Composable
@@ -146,8 +146,11 @@ const handleReset = () => {
 
 const environmentInfo = computed(() => executeResult.value?.environment_info ?? null)
 const playbackFrames = computed<TemplateAgentFrameData[]>(() => {
-  const playbacks = executeResult.value?.episode_playbacks
-  if (!playbacks?.length) return []
+  const result = executeResult.value as TemplateAgentExecuteResponse | null
+  const playbacks = result?.episode_playbacks ?? []
+
+  if (!playbacks.length) return []
+
   return playbacks.flatMap((episode) => episode.frames ?? [])
 })
 
@@ -397,11 +400,7 @@ const formatCoordinate = (position: Position | null): string => {
 
         <el-form-item label="最大ステップ数">
           <div class="template-agents__max-steps-controls">
-            <el-switch
-              v-model="formData.useDynamicMaxSteps"
-              active-text="動的計算"
-              inactive-text="カスタム"
-            />
+            <el-switch v-model="formData.useDynamicMaxSteps" active-text="動的計算" inactive-text="カスタム" />
             <el-input-number
               v-model="formData.maxSteps"
               :min="10"

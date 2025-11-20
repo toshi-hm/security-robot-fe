@@ -60,6 +60,7 @@ describe('TemplateAgentRepositoryImpl', () => {
       const mockResponse: TemplateAgentExecuteResponse = {
         agent_type: 'horizontal_scan',
         agent_name: 'HorizontalScanAgent',
+        execution_id: 'exec-1',
         environment: { width: 10, height: 10 },
         episodes: 10,
         average_reward: 100,

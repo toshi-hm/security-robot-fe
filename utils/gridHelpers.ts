@@ -1,11 +1,13 @@
 /**
  * 許容されるグリッド入力
  */
+type GridRow = Array<unknown> | ReadonlyArray<unknown> | Record<string | number, unknown>
+
 export type GridLike =
-  | number[][]
-  | boolean[][]
+  | Array<GridRow>
+  | ReadonlyArray<GridRow>
   | Record<string | number, unknown>
-  | Array<Record<string | number, unknown>>
+  | ReadonlyArray<Record<string | number, unknown>>
   | null
   | undefined
 
