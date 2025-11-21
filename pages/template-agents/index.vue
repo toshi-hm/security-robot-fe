@@ -183,6 +183,15 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
       @close="clearError"
     />
 
+    <el-progress
+      v-if="isLoading"
+      :percentage="50"
+      :indeterminate="true"
+      :text-inside="true"
+      status="primary"
+      class="template-agents__progress"
+    />
+
     <TemplateAgentForm
       :execution-mode="executionMode"
       :form-data="formData"
@@ -246,6 +255,11 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
 
   &__alert {
     margin-bottom: 16px;
+  }
+
+  &__progress {
+    margin-bottom: 16px;
+    max-width: 480px;
   }
 }
 </style>
