@@ -133,31 +133,28 @@ export const useTemplateAgentVisualization = (
   }
 
   watch(
-    () => playbackFrames.value,
-    (frames) => {
-      processedFrameCount.value = 0
-      robotTrajectory.value = []
-      appendTrajectory(frames, 0)
-    },
-    { immediate: true, deep: false }
-  )
-
-  watch(
-    () => playbackFrames.value.length,
-    (length, previousLength) => {
-      const frames = playbackFrames.value
-
-      if (length < previousLength) {
+    () => ({ frames: playbackFrames.value, length: playbackFrames.value.length }),
+    (current, previous) => {
+      const frames = current.frames
+      if (!previous || frames !== previous.frames) {
         processedFrameCount.value = 0
         robotTrajectory.value = []
         appendTrajectory(frames, 0)
         return
       }
 
-      if (length === processedFrameCount.value) return
+      if (current.length < previous.length) {
+        processedFrameCount.value = 0
+        robotTrajectory.value = []
+        appendTrajectory(frames, 0)
+        return
+      }
 
-      appendTrajectory(frames, processedFrameCount.value)
-    }
+      if (current.length !== processedFrameCount.value) {
+        appendTrajectory(frames, processedFrameCount.value)
+      }
+    },
+    { immediate: true, deep: false }
   )
 
   const routeWaypoints = computed<Position[]>(() => {
