@@ -49,6 +49,14 @@ export const normalizeGridMatrix = (grid: GridLike): number[][] => {
 }
 
 /**
+ * すでに number[][] へ正規化済みかを判定する
+ */
+export const isAlreadyNormalized = (grid: GridLike): grid is number[][] => {
+  if (!Array.isArray(grid) || grid.length === 0) return false
+  return grid.every((row) => Array.isArray(row) && row.every((cell) => typeof cell === 'number'))
+}
+
+/**
  * 障害物の総数をカウントする
  */
 export const countObstacles = (obstacles: ReadonlyArray<ReadonlyArray<boolean>>): number => {

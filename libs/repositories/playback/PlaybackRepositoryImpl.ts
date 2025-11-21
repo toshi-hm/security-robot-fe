@@ -4,7 +4,7 @@ import type {
   PlaybackSessionSummaryDTO,
   EnvironmentStateResponseDTO,
 } from '~/types/api'
-import { normalizeGridMatrix } from '~/utils/gridHelpers'
+import { isAlreadyNormalized, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 import { API_ENDPOINTS } from '../../../configs/api'
 
@@ -61,8 +61,12 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
   private normalizeEnvironmentState(state: EnvironmentStateResponseDTO): EnvironmentStateResponseDTO {
     return {
       ...state,
-      threat_grid: normalizeGridMatrix(state.threat_grid),
-      coverage_map: state.coverage_map ? normalizeGridMatrix(state.coverage_map) : null,
+      threat_grid: isAlreadyNormalized(state.threat_grid) ? state.threat_grid : normalizeGridMatrix(state.threat_grid),
+      coverage_map: state.coverage_map
+        ? isAlreadyNormalized(state.coverage_map)
+          ? state.coverage_map
+          : normalizeGridMatrix(state.coverage_map)
+        : null,
     }
   }
 

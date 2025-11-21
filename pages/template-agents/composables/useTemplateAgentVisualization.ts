@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { ROUTE_PREVIEW_LIMIT } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentExecuteResponse, TemplateAgentFrameData } from '~/types/api'
-import { normalizeGridMatrix } from '~/utils/gridHelpers'
+import { isAlreadyNormalized, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 import type {
   TemplateAgentEnvironmentVisualizationProps,
@@ -66,7 +66,8 @@ export const useTemplateAgentVisualization = (
 
   const coverageMap = computed<number[][]>(() => {
     if (latestFrame.value?.coverage_map?.length) {
-      return normalizeGridMatrix(latestFrame.value.coverage_map)
+      const coverage = latestFrame.value.coverage_map
+      return isAlreadyNormalized(coverage) ? coverage : normalizeGridMatrix(coverage)
     }
     const info = environmentInfo.value
     if (!info) return []
@@ -75,11 +76,12 @@ export const useTemplateAgentVisualization = (
 
   const threatGrid = computed<number[][]>(() => {
     if (latestFrame.value?.threat_grid?.length) {
-      return normalizeGridMatrix(latestFrame.value.threat_grid)
+      const grid = latestFrame.value.threat_grid
+      return isAlreadyNormalized(grid) ? grid : normalizeGridMatrix(grid)
     }
     const grid = environmentInfo.value?.threat_grid
     if (grid) {
-      return normalizeGridMatrix(grid)
+      return isAlreadyNormalized(grid) ? grid : normalizeGridMatrix(grid)
     }
     return []
   })
