@@ -34,6 +34,7 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => mockEnvironments,
         fetchState: async () => ({}) as any,
+        createSession: async () => ({}),
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -48,6 +49,7 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as any,
+        createSession: async () => ({}),
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -80,6 +82,7 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => mockState as any,
+        createSession: async () => ({}),
       }
 
       const { currentState, fetchState } = useEnvironment(mockRepository)
@@ -128,6 +131,7 @@ describe('useEnvironment', () => {
           callCount++
           return (callCount === 1 ? mockState1 : mockState2) as any
         },
+        createSession: async () => ({}),
       }
 
       const { currentState, fetchState } = useEnvironment(mockRepository)
@@ -141,11 +145,67 @@ describe('useEnvironment', () => {
     })
   })
 
+  describe('createSession', () => {
+    it('creates a session with given config', async () => {
+      const mockConfig = {
+        name: 'Test Session',
+        algorithm: 'ppo',
+        environmentType: 'standard',
+      }
+
+      const mockSessionResult = {
+        id: 123,
+        name: 'Test Session',
+        status: 'created',
+      }
+
+      const mockRepository: EnvironmentRepository = {
+        listEnvironments: async () => [],
+        fetchState: async () => ({}) as any,
+        createSession: async (config: any) => {
+          expect(config).toEqual(mockConfig)
+          return mockSessionResult
+        },
+      }
+
+      const { createSession } = useEnvironment(mockRepository)
+
+      const result = await createSession(mockConfig)
+
+      expect(result).toEqual(mockSessionResult)
+    })
+
+    it('passes config to repository correctly', async () => {
+      let receivedConfig: any = null
+
+      const mockRepository: EnvironmentRepository = {
+        listEnvironments: async () => [],
+        fetchState: async () => ({}) as any,
+        createSession: async (config: any) => {
+          receivedConfig = config
+          return { id: 1 }
+        },
+      }
+
+      const { createSession } = useEnvironment(mockRepository)
+
+      const testConfig = {
+        name: 'Session',
+        totalTimesteps: 10000,
+      }
+
+      await createSession(testConfig)
+
+      expect(receivedConfig).toEqual(testConfig)
+    })
+  })
+
   describe('initial state', () => {
     it('has empty environments array initially', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as any,
+        createSession: async () => ({}),
       }
 
       const { environments } = useEnvironment(mockRepository)
@@ -157,6 +217,7 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as any,
+        createSession: async () => ({}),
       }
 
       const { currentState } = useEnvironment(mockRepository)
