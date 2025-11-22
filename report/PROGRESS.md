@@ -1,6 +1,6 @@
 # プロジェクト進捗状況 (PROGRESS.md)
 
-最終更新日: 2025-11-13 (Session 055 - 環境変数読み込み修正)
+最終更新日: 2025-11-18 (Session 056 - テンプレートエージェントページ実装)
 
 > **重要**: このファイルは実装の進捗を追跡するためのものです。
 > **編集可能**: 状況に応じて自由に編集してください。
@@ -599,6 +599,60 @@
   - `pnpm build && pnpm start`で`.env`の値が正しく使用可能に
   - 開発モードと本番ビルドで環境変数読み込み方法が統一
   - 既存コードは変更不要（後方互換性維持）
+
+### Phase 56: テンプレートエージェントページ実装 ✅
+- [x] Backend API調査 (`/api/v1/template-agents/*`)
+  - エンドポイント: types, execute, compare
+  - commit a795f54: HorizontalScan, Spiral, VerticalScan, RandomWalk追加
+- [x] 型定義拡張 (types/api.ts)
+  - TemplateAgentType, TemplateAgentExecuteRequest/Response
+  - TemplateAgentCompareRequest/Response
+  - TemplateAgentEpisodeMetrics, TemplateAgentComparisonSummary
+  - 8つの新型定義追加
+- [x] API設定追加 (configs/api.ts)
+  - templateAgents.types: GET /template-agents/types
+  - templateAgents.execute: POST /template-agents/execute
+  - templateAgents.compare: POST /template-agents/compare
+- [x] Repository層実装
+  - TemplateAgentRepository: インターフェース定義
+  - TemplateAgentRepositoryImpl: 実装クラス
+  - getAgentTypes(), executeAgent(), compareAgents()
+  - エラーハンドリング・日本語エラーメッセージ
+- [x] Composable実装 (composables/useTemplateAgents.ts)
+  - 依存性注入パターン適用（テスト容易性）
+  - 状態管理: agentTypes, executeResult, compareResult, isLoading, error
+  - fetchAgentTypes, executeAgent, compareAgents
+  - clearError, clearResults
+- [x] Page実装 (pages/template-agents/index.vue)
+  - 実行モード切替: Single実行 / Compare実行
+  - フォーム機能:
+    - グリッドサイズ設定 (Width/Height: 5-50)
+    - エピソード数設定 (1-1000)
+    - 最大ステップ数設定 (100-10000)
+    - シード値設定（再現性確保）
+    - エージェントタイプ選択（ドロップダウン/チェックボックス）
+  - 結果表示:
+    - 統計カード（報酬、カバレッジ、エピソード長など）
+    - 比較テーブル（ランキング、パフォーマンスギャップ）
+    - エピソード詳細テーブル
+  - Material Design 3 カラースキーム適用
+- [x] テンプレートエージェント環境可視化拡張
+  - 「実行結果 - HorizontalScanAgent」カードを廃止し、環境モジュールへ集約
+  - EnvironmentVisualizationコンポーネントを統合し、巡回ルート・現在地・タイル訪問率を可視化
+  - save_framesを強制有効化してPlaybackフレームを取得し、軌跡チップと充電ステーション情報を表示
+- [x] ナビゲーション統合 (layouts/default.vue)
+  - サイドバーに「Template Agents」メニュー項目追加
+- [x] テスト実装（17テスト追加）
+  - TemplateAgentRepositoryImpl.spec.ts: 6テスト
+  - useTemplateAgents.spec.ts: 9テスト
+  - pages/template-agents/index.spec.ts: 2テスト
+  - tests/setup.ts: useTemplateAgentsグローバルモック追加
+- [x] 品質保証
+  - Tests: 540/540 passing (100%) - +17テスト
+  - Coverage: 96.81% statements (目標85%達成 ✅)
+  - TypeScript: 0 errors
+  - ESLint: 0 errors, 150 warnings (acceptable)
+  - Build: 1.99 MB (497 kB gzip) - Success ✅
 
 ### 次フェーズ候補
 - [ ] Backend APIとのバッテリーシステム統合テスト

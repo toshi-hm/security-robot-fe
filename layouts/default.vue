@@ -10,6 +10,7 @@ import AppSidebar from '~/components/common/AppSidebar.vue'
         <el-menu-item index="/">Dashboard</el-menu-item>
         <el-menu-item index="/training">Training</el-menu-item>
         <el-menu-item index="/playback">Playback</el-menu-item>
+        <el-menu-item index="/template-agents">Template Agents</el-menu-item>
         <el-menu-item index="/models">Models</el-menu-item>
         <el-menu-item index="/settings">Settings</el-menu-item>
       </el-menu>

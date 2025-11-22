@@ -2,7 +2,9 @@ import type {
   PaginatedPlaybackSessionsResponse,
   PaginatedPlaybackFramesResponse,
   PlaybackSessionSummaryDTO,
+  EnvironmentStateResponseDTO,
 } from '~/types/api'
+import { isAlreadyNormalized, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 import { API_ENDPOINTS } from '../../../configs/api'
 
@@ -56,6 +58,18 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
     }
   }
 
+  private normalizeEnvironmentState(state: EnvironmentStateResponseDTO): EnvironmentStateResponseDTO {
+    return {
+      ...state,
+      threat_grid: isAlreadyNormalized(state.threat_grid) ? state.threat_grid : normalizeGridMatrix(state.threat_grid),
+      coverage_map: state.coverage_map
+        ? isAlreadyNormalized(state.coverage_map)
+          ? state.coverage_map
+          : normalizeGridMatrix(state.coverage_map)
+        : null,
+    }
+  }
+
   async listSessions(): Promise<PlaybackSession[]> {
     try {
       // Backend: GET /api/v1/playback/sessions
@@ -91,11 +105,14 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
       })
 
       // Convert environment state response to PlaybackFrame format
-      return response.frames.map((frame) => ({
-        timestamp: frame.created_at || new Date().toISOString(),
-        environmentState: frame, // Use EnvironmentStateResponseDTO directly
-        reward: frame.reward_received || 0,
-      }))
+      return response.frames.map((frame) => {
+        const environmentState = this.normalizeEnvironmentState(frame)
+        return {
+          timestamp: environmentState.created_at || new Date().toISOString(),
+          environmentState,
+          reward: environmentState.reward_received || 0,
+        }
+      })
     } catch (error) {
       console.error(`Failed to fetch playback frames for session ${sessionId}:`, error)
 

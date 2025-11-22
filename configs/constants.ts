@@ -15,3 +15,10 @@ export type SessionStatus = keyof typeof SESSION_STATUS_MAP
 
 // Patrol radius used for visualization (instructions Section 3.2: radius=2)
 export const DEFAULT_PATROL_RADIUS = 2
+
+// Template Agents input制約
+export const TEMPLATE_AGENT_GRID_MIN = 3
+export const TEMPLATE_AGENT_GRID_MAX = 100
+export const TEMPLATE_AGENT_SEED_MIN = 0
+export const TEMPLATE_AGENT_SEED_MAX = 999999
+export const ROUTE_PREVIEW_LIMIT = 30

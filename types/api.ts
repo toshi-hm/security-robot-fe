@@ -270,3 +270,199 @@ export interface ApiError {
     status?: number
   }
 }
+
+// ============================================
+// Template Agents API Types (Session 056)
+// ============================================
+
+/**
+ * Template Agent Type Enum
+ * Backend: TemplateAgentType
+ */
+export type TemplateAgentType = 'horizontal_scan' | 'vertical_scan' | 'spiral' | 'random_walk'
+
+/**
+ * Template Agent Type Definition
+ * Backend: GET /template-agents/types response
+ */
+export interface TemplateAgentTypeDefinition {
+  type: TemplateAgentType
+  name: string
+  description: string
+}
+
+/**
+ * Template Agent Execute Request
+ * Backend: TemplateAgentExecuteRequest
+ */
+export interface TemplateAgentExecuteRequest {
+  agent_type: TemplateAgentType
+  width?: number
+  height?: number
+  episodes?: number
+  max_steps?: number
+  seed?: number | null
+  save_frames?: boolean
+  execution_id?: string | null
+}
+
+/**
+ * Template Agent Episode Metrics
+ * Backend: TemplateAgentEpisodeMetrics
+ */
+export interface TemplateAgentEpisodeMetrics {
+  episode: number
+  total_reward: number
+  episode_length: number
+  coverage_ratio: number
+  patrol_count: number
+  move_count: number
+  turn_count: number
+  min_battery: number
+  battery_deaths: number
+  charging_events: number
+}
+
+/**
+ * Template Agent Execute Response
+ * Backend: TemplateAgentExecuteResponse
+ */
+export interface TemplateAgentExecuteResponse {
+  agent_type: TemplateAgentType
+  agent_name: string
+  execution_id: string
+  environment: {
+    width: number
+    height: number
+  }
+  episodes: number
+  average_reward: number
+  std_reward: number
+  average_coverage: number
+  average_episode_length: number
+  average_patrol_count: number
+  average_min_battery: number
+  total_battery_deaths: number
+  episode_metrics: TemplateAgentEpisodeMetrics[]
+  // Future: Playback & Environment info (Backend implementation pending)
+  environment_info?: TemplateAgentEnvironmentInfo
+  episode_playbacks?: TemplateAgentEpisodePlayback[]
+}
+
+/**
+ * Template Agent Compare Request
+ * Backend: TemplateAgentCompareRequest
+ */
+export interface TemplateAgentCompareRequest {
+  agent_types: TemplateAgentType[]
+  width?: number
+  height?: number
+  episodes?: number
+  max_steps?: number
+  seed?: number | null
+}
+
+/**
+ * Template Agent Comparison Summary
+ * Backend: TemplateAgentComparisonSummary
+ */
+export interface TemplateAgentComparisonSummary {
+  agent_type: TemplateAgentType
+  agent_name: string
+  rank: number
+  average_reward: number
+  std_reward: number
+  average_coverage: number
+  average_episode_length: number
+  average_patrol_count: number
+  average_min_battery: number
+  total_battery_deaths: number
+}
+
+/**
+ * Template Agent Compare Response
+ * Backend: TemplateAgentCompareResponse
+ */
+export interface TemplateAgentCompareResponse {
+  environment: {
+    width: number
+    height: number
+  }
+  episodes: number
+  max_steps: number
+  results: TemplateAgentComparisonSummary[]
+  best_agent: string
+  worst_agent: string
+  performance_gap: number
+}
+
+/**
+ * Template Agent Frame Data (for Playback)
+ * Backend: TemplateAgentFrameData (Future implementation)
+ */
+export interface TemplateAgentFrameData {
+  timestep: number
+  robot_x: number
+  robot_y: number
+  robot_orientation: number // 0=North, 1=East, 2=South, 3=West
+  action: number // 0=move, 1=turn_left, 2=turn_right, 3=patrol
+  reward: number
+  battery_percentage: number
+  is_charging: boolean
+  coverage_map: number[][]
+  threat_grid?: number[][]
+  timestamp: string
+}
+
+/**
+ * Template Agent Episode Playback
+ * Backend: TemplateAgentEpisodePlayback (Future implementation)
+ */
+export interface TemplateAgentEpisodePlayback {
+  episode: number
+  frames: TemplateAgentFrameData[]
+  total_reward: number
+  final_coverage: number
+  episode_length: number
+}
+
+/**
+ * Template Agent Environment Info
+ * Backend: TemplateAgentEnvironmentInfo (Future implementation)
+ */
+export interface TemplateAgentEnvironmentInfo {
+  width: number
+  height: number
+  threat_grid: number[][]
+  obstacles: boolean[][]
+  charging_station: {
+    x: number
+    y: number
+  }
+  suspicious_objects: Array<{
+    x: number
+    y: number
+    type: string
+    threat_level: number
+  }>
+}
+
+/**
+ * Template Agent Progress Message (WebSocket)
+ * Backend: Future WebSocket implementation
+ */
+export interface TemplateAgentProgressMessage extends BaseWebSocketMessage {
+  type: 'execution_started' | 'episode_started' | 'step_update' | 'episode_completed' | 'execution_completed'
+  execution_id?: string
+  episode?: number
+  step?: number
+  total_episodes?: number
+  total_steps_per_episode?: number
+  current_reward?: number
+  current_coverage?: number
+  battery_percentage?: number
+  total_reward?: number
+  coverage?: number
+  episode_length?: number
+  result_url?: string
+}

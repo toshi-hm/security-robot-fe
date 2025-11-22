@@ -44,3 +44,15 @@ import { ref } from 'vue'
   clearData: vi.fn(),
   getChart: vi.fn(),
 }))
+;(global as any).useTemplateAgents = vi.fn(() => ({
+  agentTypes: ref([]),
+  executeResult: ref(null),
+  compareResult: ref(null),
+  isLoading: ref(false),
+  error: ref(null),
+  fetchAgentTypes: vi.fn(),
+  executeAgent: vi.fn(),
+  compareAgents: vi.fn(),
+  clearError: vi.fn(),
+  clearResults: vi.fn(),
+}))
