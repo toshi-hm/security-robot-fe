@@ -73,7 +73,9 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
     } catch (error) {
       console.error('Failed to fetch template agent types:', error)
       const message = createDetailedErrorMessage(error, 'テンプレートエージェントのタイプ一覧の取得に失敗しました')
-      throw new Error(message, { cause: error })
+      const err = new Error(message)
+      ;(err as any).cause = error
+      throw err
     }
   }
 
@@ -90,7 +92,9 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
     } catch (error) {
       console.error('Failed to execute template agent:', error)
       const message = createDetailedErrorMessage(error, 'テンプレートエージェントの実行に失敗しました')
-      throw new Error(message, { cause: error })
+      const err = new Error(message)
+      ;(err as any).cause = error
+      throw err
     }
   }
 
@@ -107,7 +111,9 @@ export class TemplateAgentRepositoryImpl implements TemplateAgentRepository {
     } catch (error) {
       console.error('Failed to compare template agents:', error)
       const message = createDetailedErrorMessage(error, 'テンプレートエージェントの比較に失敗しました')
-      throw new Error(message, { cause: error })
+      const err = new Error(message)
+      ;(err as any).cause = error
+      throw err
     }
   }
 }

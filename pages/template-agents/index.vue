@@ -188,7 +188,6 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
       :percentage="50"
       :indeterminate="true"
       :text-inside="true"
-      status="primary"
       class="template-agents__progress"
     />
 
