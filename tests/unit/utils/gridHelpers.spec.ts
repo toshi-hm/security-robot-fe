@@ -9,12 +9,7 @@ describe('normalizeGridMatrix', () => {
   })
 
   it('converts nested arrays to numbers', () => {
-    expect(
-      normalizeGridMatrix([
-        [0, 0.5, '1'],
-        [true, false, 2],
-      ])
-    ).toEqual([
+    expect(normalizeGridMatrix([[0, 0.5, '1'], [true, false, 2] as any])).toEqual([
       [0, 0.5, 1],
       [1, 0, 2],
     ])
@@ -26,14 +21,18 @@ describe('normalizeGridMatrix', () => {
       1: { 0: 0.3, 1: 0.4 },
     }
 
-    expect(normalizeGridMatrix(input)).toEqual([
+    expect(normalizeGridMatrix(input as any)).toEqual([
       [0.1, 0.2],
       [0.3, 0.4],
     ])
   })
 
   it('handles sparse rows gracefully', () => {
-    expect(normalizeGridMatrix([{ 0: 1 }, null as unknown as number[], [undefined, 2]])).toEqual([[1], [], [0, 2]])
+    expect(normalizeGridMatrix([{ 0: 1 }, null as unknown as number[], [undefined, 2]] as any)).toEqual([
+      [1],
+      [],
+      [0, 2],
+    ])
   })
 })
 

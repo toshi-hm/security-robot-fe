@@ -1,15 +1,9 @@
 /**
  * 許容されるグリッド入力
  */
-type GridRow = Array<unknown> | ReadonlyArray<unknown> | Record<string | number, unknown>
+type GridRow = number[] | readonly number[]
 
-export type GridLike =
-  | Array<GridRow>
-  | ReadonlyArray<GridRow>
-  | Record<string | number, unknown>
-  | ReadonlyArray<Record<string | number, unknown>>
-  | null
-  | undefined
+export type GridLike = GridRow[] | readonly GridRow[] | null | undefined
 
 const toNumber = (value: unknown): number => {
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -34,7 +28,7 @@ const normalizeRow = (row: unknown): number[] => {
 /**
  * APIから返却されるさまざまな形式のグリッドを number[][] に正規化する
  */
-export const normalizeGridMatrix = (grid: GridLike): number[][] => {
+export const normalizeGridMatrix = <T extends GridLike>(grid: T): number[][] => {
   if (!grid) return []
 
   if (Array.isArray(grid)) {
@@ -42,7 +36,7 @@ export const normalizeGridMatrix = (grid: GridLike): number[][] => {
   }
 
   if (typeof grid === 'object') {
-    return Object.values(grid as Record<string, unknown>).map((row) => normalizeRow(row))
+    return Object.values(grid as unknown as Record<string, unknown>).map((row) => normalizeRow(row))
   }
 
   return []

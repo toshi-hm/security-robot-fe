@@ -2,6 +2,17 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { useTemplateAgents } from '~/composables/useTemplateAgents'
+import {
+  TEMPLATE_AGENT_GRID_MIN,
+  TEMPLATE_AGENT_GRID_MAX,
+  TEMPLATE_AGENT_SEED_MIN,
+  TEMPLATE_AGENT_SEED_MAX,
+} from '~/configs/constants'
+import type {
+  TemplateAgentEpisodeMetrics,
+  TemplateAgentEpisodePlayback,
+  TemplateAgentEnvironmentInfo,
+} from '~/types/api'
 
 import TemplateAgentComparison from './components/TemplateAgentComparison.vue'
 import TemplateAgentEnvironment from './components/TemplateAgentEnvironment.vue'
@@ -23,6 +34,8 @@ const {
   clearError,
   clearResults,
 } = useTemplateAgents()
+
+const validationError = ref<string | null>(null)
 
 const executionMode = ref<TemplateAgentExecutionMode>('single')
 const formData = ref<TemplateAgentFormData>({
@@ -62,27 +75,13 @@ const mutableAgentTypes = computed(() => {
 const mutableExecuteResult = computed(() => {
   if (!executeResult.value) return null
   const result = executeResult.value
+
+  // パフォーマンス最適化: 必要な場合のみコピーを作成し、不変データは参照を維持
   return {
     ...result,
-    episode_metrics: [...result.episode_metrics],
-    episode_playbacks: result.episode_playbacks
-      ? result.episode_playbacks.map((playback) => ({
-          ...playback,
-          frames: playback.frames.map((frame) => ({
-            ...frame,
-            coverage_map: frame.coverage_map.map((row) => [...row]),
-            threat_grid: frame.threat_grid ? frame.threat_grid.map((row) => [...row]) : undefined,
-          })),
-        }))
-      : undefined,
-    environment_info: result.environment_info
-      ? {
-          ...result.environment_info,
-          threat_grid: result.environment_info.threat_grid.map((row) => [...row]),
-          obstacles: result.environment_info.obstacles.map((row) => [...row]),
-          suspicious_objects: [...result.environment_info.suspicious_objects],
-        }
-      : undefined,
+    episode_metrics: [...result.episode_metrics] as TemplateAgentEpisodeMetrics[],
+    episode_playbacks: result.episode_playbacks as TemplateAgentEpisodePlayback[] | undefined,
+    environment_info: result.environment_info as TemplateAgentEnvironmentInfo | undefined,
   }
 })
 
@@ -120,7 +119,37 @@ const selectedMaxSteps = computed<number | undefined>(() => {
   return formData.value.useDynamicMaxSteps ? undefined : formData.value.maxSteps
 })
 
+const validateFormData = (): boolean => {
+  validationError.value = null
+
+  // グリッドサイズ検証
+  if (formData.value.width < TEMPLATE_AGENT_GRID_MIN || formData.value.width > TEMPLATE_AGENT_GRID_MAX) {
+    validationError.value = `幅は${TEMPLATE_AGENT_GRID_MIN}〜${TEMPLATE_AGENT_GRID_MAX}の範囲で指定してください`
+    return false
+  }
+
+  if (formData.value.height < TEMPLATE_AGENT_GRID_MIN || formData.value.height > TEMPLATE_AGENT_GRID_MAX) {
+    validationError.value = `高さは${TEMPLATE_AGENT_GRID_MIN}〜${TEMPLATE_AGENT_GRID_MAX}の範囲で指定してください`
+    return false
+  }
+
+  // シード値検証
+  if (formData.value.seed !== null && formData.value.seed !== undefined) {
+    if (
+      !Number.isInteger(formData.value.seed) ||
+      formData.value.seed < TEMPLATE_AGENT_SEED_MIN ||
+      formData.value.seed > TEMPLATE_AGENT_SEED_MAX
+    ) {
+      validationError.value = `シード値は${TEMPLATE_AGENT_SEED_MIN}〜${TEMPLATE_AGENT_SEED_MAX}の整数で指定してください`
+      return false
+    }
+  }
+
+  return true
+}
+
 const handleExecute = async () => {
+  if (!validateFormData()) return
   clearResults()
 
   const payloadMaxSteps = selectedMaxSteps.value
@@ -160,6 +189,12 @@ const handleReset = () => {
     useDynamicMaxSteps: true,
   }
   clearResults()
+  validationError.value = null
+}
+
+const clearAllErrors = () => {
+  clearError()
+  validationError.value = null
 }
 
 const visualization = useTemplateAgentVisualization(mutableExecuteResult)
@@ -174,13 +209,13 @@ const { environmentInfo, environmentVisualizationProps, routeStats, routeWaypoin
     </div>
 
     <el-alert
-      v-if="error"
+      v-if="error || validationError"
       type="error"
-      :title="error"
+      :title="error || validationError || ''"
       :closable="true"
       show-icon
       class="template-agents__alert"
-      @close="clearError"
+      @close="clearAllErrors"
     />
 
     <el-progress
