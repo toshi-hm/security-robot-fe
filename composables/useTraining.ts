@@ -39,9 +39,13 @@ const createDummySession = (config: TrainingConfig): TrainingSession => {
     config.coverageWeight,
     config.explorationWeight,
     config.diversityWeight,
-    null,
-    null,
     now,
+    now,
+    config.learningRate ?? null,
+    config.batchSize ?? null,
+    (config.mapConfig ?? null) as Record<string, unknown> | null,
+    null,
+    null,
     now,
     null
   )
