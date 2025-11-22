@@ -37,9 +37,13 @@ export class TrainingSessionEntity {
       dto.coverage_weight,
       dto.exploration_weight,
       dto.diversity_weight,
+      dto.created_at ? new Date(dto.created_at) : new Date(),
+      new Date(), // updatedAt
+      null, // learningRate
+      null, // batchSize
+      null, // mapConfig
       dto.model_path,
       dto.config ?? null,
-      dto.created_at ? new Date(dto.created_at) : undefined,
       dto.started_at ? new Date(dto.started_at) : undefined,
       dto.completed_at ? new Date(dto.completed_at) : null
     )
