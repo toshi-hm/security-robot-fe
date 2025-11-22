@@ -220,6 +220,14 @@ export interface PaginatedPlaybackSessionsResponse {
 /**
  * Environment State Response型 (for playback frames)
  * Backend: EnvironmentStateResponse
+ *
+ * Note: Backend API returns grid data in {levels: [...]} format:
+ * - threat_grid: {levels: number[][]}
+ * - coverage_map: {levels: number[][]} | null
+ * - obstacles: {levels: boolean[][]} | null
+ *
+ * PlaybackRepositoryImpl.normalizeEnvironmentState() extracts the levels
+ * and normalizes them to array format, so this type represents the normalized data.
  */
 export interface EnvironmentStateResponseDTO {
   id: number
@@ -229,8 +237,9 @@ export interface EnvironmentStateResponseDTO {
   robot_x: number
   robot_y: number
   robot_orientation: number
-  threat_grid: number[][]
-  coverage_map: number[][] | null
+  threat_grid: number[][] // Backend: {levels: number[][]}, normalized to number[][]
+  coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
+  obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null
   suspicious_objects: Array<{
     id: number
     x: number
