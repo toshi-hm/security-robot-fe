@@ -44,10 +44,14 @@ describe('TrainingSession', () => {
       overrides.coverageWeight ?? 1,
       overrides.explorationWeight ?? 2,
       overrides.diversityWeight ?? 3,
+      overrides.createdAt ?? new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T00:00:00Z'), // updatedAt
+      null, // learningRate
+      null, // batchSize
+      null, // mapConfig
       overrides.modelPath ?? null,
       overrides.config ?? null,
-      overrides.createdAt ?? new Date('2024-01-01T00:00:00Z'),
-      overrides.startedAt ?? new Date('2024-01-02T00:00:00Z'),
+      overrides.startedAt,
       overrides.completedAt ?? null
     )
   }

@@ -22,10 +22,15 @@ export const useEnvironment = (repository: EnvironmentRepository = new Environme
     currentState.value = await repository.fetchState(environmentId)
   }
 
+  const createSession = async (config: any) => {
+    return await repository.createSession(config)
+  }
+
   return {
     environments,
     currentState,
     fetchEnvironments,
     fetchState,
+    createSession,
   }
 }

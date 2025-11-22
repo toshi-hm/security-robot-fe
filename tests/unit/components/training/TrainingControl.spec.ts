@@ -51,15 +51,21 @@ const mountComponent = (options = {}) => {
         },
         'el-input': {
           name: 'ElInput',
-          template: '<input class="el-input" />',
+          template:
+            '<input class="el-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          props: ['modelValue', 'placeholder'],
         },
         'el-input-number': {
           name: 'ElInputNumber',
-          template: '<input type="number" class="el-input-number" />',
+          template:
+            '<input type="number" class="el-input-number" :value="modelValue" @input="$emit(\'update:modelValue\', parseFloat($event.target.value))" />',
+          props: ['modelValue', 'min', 'max', 'step', 'precision'],
         },
         'el-select': {
           name: 'ElSelect',
-          template: '<select class="el-select"><slot /></select>',
+          template:
+            '<select class="el-select" :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><slot /></select>',
+          props: ['modelValue'],
         },
         'el-option': {
           name: 'ElOption',
@@ -268,6 +274,11 @@ describe('TrainingControl.vue', () => {
       learningRate: 0.0003,
       batchSize: 64,
       numWorkers: 1,
+      // Random Map Settings
+      mapConfig: {
+        mapType: 'random',
+        count: 10,
+      },
     })
   })
 
@@ -333,31 +344,96 @@ describe('TrainingControl.vue', () => {
 
     // Show the form first
     await wrapper.find('.el-button').trigger('click')
-
-    // Trigger v-model updates by setting values on trainingConfig
-    // This will cause Vue to call the onUpdate:modelValue handlers
-    vm.trainingConfig.name = 'My Test Session'
-    vm.trainingConfig.algorithm = 'a3c'
-    vm.trainingConfig.environmentType = 'enhanced'
-    vm.trainingConfig.totalTimesteps = 50000
-    vm.trainingConfig.envWidth = 10
-    vm.trainingConfig.envHeight = 12
-    vm.trainingConfig.coverageWeight = 2.0
-    vm.trainingConfig.explorationWeight = 4.0
-    vm.trainingConfig.diversityWeight = 3.0
-
     await wrapper.vm.$nextTick()
 
-    // Verify the values were set
-    expect(vm.trainingConfig.name).toBe('My Test Session')
-    expect(vm.trainingConfig.algorithm).toBe('a3c')
-    expect(vm.trainingConfig.environmentType).toBe('enhanced')
-    expect(vm.trainingConfig.totalTimesteps).toBe(50000)
-    expect(vm.trainingConfig.envWidth).toBe(10)
-    expect(vm.trainingConfig.envHeight).toBe(12)
-    expect(vm.trainingConfig.coverageWeight).toBe(2.0)
-    expect(vm.trainingConfig.explorationWeight).toBe(4.0)
-    expect(vm.trainingConfig.diversityWeight).toBe(3.0)
+    // Find and interact with input elements to trigger v-model updates
+    const inputs = wrapper.findAll('.el-input')
+    if (inputs.length > 0) {
+      await inputs[0]!.setValue('My Test Session')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.name).toBe('My Test Session')
+    }
+
+    // Find and interact with select elements
+    const selects = wrapper.findAll('.el-select')
+    if (selects.length > 0) {
+      await selects[0]!.setValue('a3c')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.algorithm).toBe('a3c')
+    }
+
+    if (selects.length > 1) {
+      await selects[1]!.setValue('enhanced')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.environmentType).toBe('enhanced')
+    }
+
+    // Find and interact with number inputs
+    const numberInputs = wrapper.findAll('.el-input-number')
+    if (numberInputs.length > 0) {
+      await numberInputs[0]!.setValue('50000')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.totalTimesteps).toBe(50000)
+    }
+
+    // Test additional number inputs for environment dimensions
+    if (numberInputs.length > 1) {
+      await numberInputs[1]!.setValue('10')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.envWidth).toBe(10)
+    }
+
+    if (numberInputs.length > 2) {
+      await numberInputs[2]!.setValue('12')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.envHeight).toBe(12)
+    }
+  })
+
+  it('handles map type selection through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Find map type select (should be the 3rd select element)
+    const selects = wrapper.findAll('.el-select')
+    if (selects.length > 2) {
+      await selects[2]!.setValue('maze')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.mapType).toBe('maze')
+
+      await selects[2]!.setValue('cave')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.mapType).toBe('cave')
+
+      await selects[2]!.setValue('room')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.mapType).toBe('room')
+    }
+  })
+
+  it('handles reward weight inputs through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    const numberInputs = wrapper.findAll('.el-input-number')
+
+    // Find coverage weight input (approximate index based on form structure)
+    const coverageIndex = numberInputs.findIndex((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '1.5' || val === String(vm.trainingConfig.coverageWeight)
+    })
+
+    if (coverageIndex >= 0) {
+      await numberInputs[coverageIndex]!.setValue('2.5')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.coverageWeight).toBe(2.5)
+    }
   })
 
   it('renders Advanced Settings collapse component', async () => {
@@ -386,18 +462,187 @@ describe('TrainingControl.vue', () => {
 
     // Show the form first
     await wrapper.find('.el-button').trigger('click')
-
-    // Update Advanced Settings values
-    vm.trainingConfig.learningRate = 0.001
-    vm.trainingConfig.batchSize = 128
-    vm.trainingConfig.numWorkers = 4
-
     await wrapper.vm.$nextTick()
 
-    // Verify the values were set
-    expect(vm.trainingConfig.learningRate).toBe(0.001)
-    expect(vm.trainingConfig.batchSize).toBe(128)
-    expect(vm.trainingConfig.numWorkers).toBe(4)
+    // Open the Advanced Settings collapse
+    const collapseItem = wrapper.findComponent({ name: 'ElCollapseItem' })
+    if (collapseItem.exists()) {
+      await collapseItem.trigger('click')
+      await wrapper.vm.$nextTick()
+    }
+
+    // Get all number inputs
+    const numberInputs = wrapper.findAll('.el-input-number')
+
+    // Advanced Settings inputs are at the end (after timesteps, width, height, seed, count, coverage, exploration, diversity)
+    // Learning rate (default: 0.0003)
+    const learningRateInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '0.0003' || val === String(vm.trainingConfig.learningRate)
+    })
+    if (learningRateInput) {
+      await learningRateInput.setValue('0.001')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.learningRate).toBe(0.001)
+    }
+
+    // Batch size (default: 64)
+    const batchSizeInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '64' || val === String(vm.trainingConfig.batchSize)
+    })
+    if (batchSizeInput) {
+      await batchSizeInput.setValue('128')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.batchSize).toBe(128)
+    }
+
+    // Number of workers (default: 1)
+    const numWorkersInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return (
+        val === '1' &&
+        input !== numberInputs.find((i) => i === learningRateInput) &&
+        input !== numberInputs.find((i) => i === batchSizeInput)
+      )
+    })
+    if (numWorkersInput) {
+      await numWorkersInput.setValue('4')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.numWorkers).toBe(4)
+    }
+  })
+
+  it('updates environment size through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    const numberInputs = wrapper.findAll('.el-input-number')
+
+    // Environment width and height are the 2nd and 3rd number inputs (indices 1 and 2)
+    // after total timesteps
+    if (numberInputs.length > 1) {
+      await numberInputs[1]!.setValue('15')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.envWidth).toBe(15)
+    }
+
+    if (numberInputs.length > 2) {
+      await numberInputs[2]!.setValue('20')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.envHeight).toBe(20)
+    }
+  })
+
+  it('updates reward weights through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    const numberInputs = wrapper.findAll('.el-input-number')
+
+    // Coverage weight (default: 1.5)
+    const coverageWeightInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '1.5' || val === String(vm.trainingConfig.coverageWeight)
+    })
+    if (coverageWeightInput) {
+      await coverageWeightInput.setValue('2.5')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.coverageWeight).toBe(2.5)
+    }
+
+    // Exploration weight (default: 3.0)
+    const explorationWeightInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '3' || val === '3.0' || val === String(vm.trainingConfig.explorationWeight)
+    })
+    if (explorationWeightInput) {
+      await explorationWeightInput.setValue('4.5')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.explorationWeight).toBe(4.5)
+    }
+
+    // Diversity weight (default: 2.0)
+    const diversityWeightInput = numberInputs.find((input) => {
+      const val = input.element.getAttribute('value')
+      return val === '2' || val === '2.0' || val === String(vm.trainingConfig.diversityWeight)
+    })
+    if (diversityWeightInput) {
+      await diversityWeightInput.setValue('3.5')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.diversityWeight).toBe(3.5)
+    }
+  })
+
+  it('updates map configuration through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Find map type select (3rd select: algorithm, environmentType, mapType)
+    const selects = wrapper.findAll('.el-select')
+    if (selects.length > 2) {
+      await selects[2]!.setValue('maze')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.mapType).toBe('maze')
+    }
+
+    // Find seed input number
+    const numberInputs = wrapper.findAll('.el-input-number')
+    // Seed is the 4th input-number (after timesteps, width, height)
+    if (numberInputs.length > 3) {
+      await numberInputs[3]!.setValue('12345')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.seed).toBe(12345)
+    }
+
+    // Set map type back to random to show count field
+    if (selects.length > 2) {
+      await selects[2]!.setValue('random')
+      await wrapper.vm.$nextTick()
+    }
+
+    // Find count input (should appear after changing to random)
+    // Count is the 5th input-number (after timesteps, width, height, seed)
+    const updatedNumberInputs = wrapper.findAll('.el-input-number')
+    if (updatedNumberInputs.length > 4) {
+      await updatedNumberInputs[4]!.setValue('20')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.count).toBe(20)
+    }
+  })
+
+  it('updates cave map probability through v-model', async () => {
+    const wrapper = mountComponent()
+    const vm = wrapper.vm as any
+
+    await wrapper.find('.el-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Find map type select (3rd select: algorithm, environmentType, mapType)
+    const selects = wrapper.findAll('.el-select')
+    if (selects.length > 2) {
+      await selects[2]!.setValue('cave')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.mapType).toBe('cave')
+    }
+
+    // Find initialWallProbability input (appears only when mapType is 'cave')
+    // It should be the 5th input-number (after timesteps, width, height, seed)
+    const numberInputs = wrapper.findAll('.el-input-number')
+    if (numberInputs.length > 4) {
+      await numberInputs[4]!.setValue('0.6')
+      await wrapper.vm.$nextTick()
+      expect(vm.trainingConfig.mapConfig!.initialWallProbability).toBe(0.6)
+    }
   })
 
   describe('getErrorMessage function', () => {

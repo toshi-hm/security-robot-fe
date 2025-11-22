@@ -32,4 +32,18 @@ export class EnvironmentRepositoryImpl implements EnvironmentRepository {
       throw error
     }
   }
+
+  async createSession(config: any): Promise<any> {
+    try {
+      // Backend: POST /api/v1/environment/sessions
+      const response = await $fetch<{ data: any }>(API_ENDPOINTS.environment.sessions, {
+        method: 'POST',
+        body: config,
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to create environment session:', error)
+      throw error
+    }
+  }
 }

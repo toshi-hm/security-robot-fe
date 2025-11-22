@@ -46,9 +46,13 @@ describe('useTraining', () => {
       1,
       2,
       3,
-      null,
-      null,
       new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T01:00:00Z'),
+      null,
+      null,
+      null,
+      null,
+      null,
       new Date('2024-01-01T01:00:00Z'),
       null
     )
@@ -126,9 +130,13 @@ describe('useTraining', () => {
       1,
       2,
       3,
-      null,
-      null,
       new Date('2024-01-02T00:00:00Z'),
+      new Date('2024-01-02T00:00:00Z'),
+      null,
+      null,
+      null,
+      null,
+      null,
       new Date('2024-01-02T00:00:00Z'),
       null
     )
@@ -212,9 +220,13 @@ describe('useTraining', () => {
       1,
       2,
       3,
-      null,
-      null,
       new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T01:00:00Z'),
+      null,
+      null,
+      null,
+      null,
+      null,
       new Date('2024-01-01T01:00:00Z'),
       new Date('2024-01-01T02:00:00Z')
     )
@@ -242,9 +254,13 @@ describe('useTraining', () => {
       1,
       2,
       3,
-      null,
-      null,
       new Date('2024-01-01T00:00:00Z'),
+      new Date('2024-01-01T01:00:00Z'),
+      null,
+      null,
+      null,
+      null,
+      null,
       new Date('2024-01-01T01:00:00Z'),
       new Date('2024-01-01T02:00:00Z')
     )
