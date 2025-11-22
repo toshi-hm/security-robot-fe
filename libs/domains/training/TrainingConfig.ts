@@ -20,7 +20,27 @@ export const TRAINING_CONSTRAINTS = {
     max: 16,
     step: 1,
   },
+  mapConfig: {
+    count: {
+      min: 1,
+      max: 50,
+    },
+    initialWallProbability: {
+      min: 0.0,
+      max: 1.0,
+      step: 0.01,
+    },
+  },
 } as const
+
+export type MapType = 'random' | 'maze' | 'room' | 'cave'
+
+export interface MapConfig {
+  mapType: MapType
+  seed?: number
+  count?: number // for random
+  initialWallProbability?: number // for cave
+}
 
 export interface TrainingConfig {
   name: string
@@ -32,6 +52,8 @@ export interface TrainingConfig {
   coverageWeight: number
   explorationWeight: number
   diversityWeight: number
+  // Map Configuration
+  mapConfig?: MapConfig
   // Additional training parameters (Backend required)
   learningRate?: number
   batchSize?: number
@@ -48,6 +70,10 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   coverageWeight: 1.5,
   explorationWeight: 3.0,
   diversityWeight: 2.0,
+  mapConfig: {
+    mapType: 'random',
+    count: 10,
+  },
   learningRate: 0.0003,
   batchSize: 64,
   numWorkers: 1,
@@ -56,6 +82,10 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
 export const createTrainingConfig = (overrides: Partial<TrainingConfig> = {}): TrainingConfig => ({
   ...DEFAULT_TRAINING_CONFIG,
   ...overrides,
+  mapConfig: {
+    ...DEFAULT_TRAINING_CONFIG.mapConfig,
+    ...(overrides.mapConfig || {}),
+  } as MapConfig,
 })
 
 export const validateTrainingConfig = (config: TrainingConfig): void => {
@@ -86,6 +116,35 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
       throw new Error(`${label} must be between 0 and 10`)
     }
   })
+
+  // Map Config Validation
+  if (config.mapConfig) {
+    if (config.mapConfig.mapType === 'random') {
+      if (config.mapConfig.count === undefined || config.mapConfig.count === null) {
+        throw new Error('Obstacle count is required for random map type')
+      }
+      if (
+        config.mapConfig.count < TRAINING_CONSTRAINTS.mapConfig.count.min ||
+        config.mapConfig.count > TRAINING_CONSTRAINTS.mapConfig.count.max
+      ) {
+        throw new Error(
+          `Obstacle count must be between ${TRAINING_CONSTRAINTS.mapConfig.count.min} and ${TRAINING_CONSTRAINTS.mapConfig.count.max}`
+        )
+      }
+    }
+
+    if (config.mapConfig.mapType === 'cave') {
+      if (
+        config.mapConfig.initialWallProbability !== undefined &&
+        (config.mapConfig.initialWallProbability < TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.min ||
+          config.mapConfig.initialWallProbability > TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.max)
+      ) {
+        throw new Error(
+          `Initial wall probability must be between ${TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.min} and ${TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.max}`
+        )
+      }
+    }
+  }
 
   // 追加パラメータのバリデーション
   if (config.learningRate !== undefined) {

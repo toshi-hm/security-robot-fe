@@ -25,11 +25,15 @@ export class TrainingSession {
     public readonly coverageWeight: number,
     public readonly explorationWeight: number,
     public readonly diversityWeight: number,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date,
+    public readonly learningRate: number | null = null,
+    public readonly batchSize: number | null = null,
+    public readonly mapConfig: Record<string, unknown> | null = null,
     public readonly modelPath?: string | null,
     public readonly config?: Record<string, unknown> | null,
-    public readonly createdAt?: Date,
     public readonly startedAt?: Date,
-    public readonly completedAt?: Date | null
+    public readonly completedAt: Date | null = null
   ) {
     this.validateTimesteps()
     this.validateEnvironmentSize()
