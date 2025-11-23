@@ -6,8 +6,7 @@ import {
   TEMPLATE_AGENT_SEED_MIN,
 } from '~/configs/constants'
 import type { TemplateAgentType } from '~/types/api'
-
-import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '../types'
+import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '~/types/template-agent-page'
 
 const props = defineProps<{
   executionMode: TemplateAgentExecutionMode

@@ -2,13 +2,12 @@
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentEnvironmentInfo, TemplateAgentExecuteResponse } from '~/types/api'
-import { calculateAverageThreat, calculateMaxThreat, countObstacles } from '~/utils/gridHelpers'
-
 import type {
   TemplateAgentEnvironmentVisualizationProps,
   TemplateAgentRouteStats,
   TemplateAgentVisualizationSuspiciousObjects,
-} from '../types'
+} from '~/types/template-agent-page'
+import { calculateAverageThreat, calculateMaxThreat, countObstacles } from '~/utils/gridHelpers'
 
 defineProps<{
   executeResult: TemplateAgentExecuteResponse
