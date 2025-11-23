@@ -1,6 +1,8 @@
 import { ref } from 'vue'
 
 import type { EnvironmentDefinition } from '~/libs/domains/environment/Environment'
+import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
+import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import type { EnvironmentStateEntity } from '~/libs/entities/environment/EnvironmentStateEntity'
 import type { EnvironmentRepository } from '~/libs/repositories/environment/EnvironmentRepository'
 import { EnvironmentRepositoryImpl } from '~/libs/repositories/environment/EnvironmentRepositoryImpl'
@@ -22,7 +24,7 @@ export const useEnvironment = (repository: EnvironmentRepository = new Environme
     currentState.value = await repository.fetchState(environmentId)
   }
 
-  const createSession = async (config: any) => {
+  const createSession = async (config: TrainingConfig): Promise<TrainingSession> => {
     return await repository.createSession(config)
   }
 

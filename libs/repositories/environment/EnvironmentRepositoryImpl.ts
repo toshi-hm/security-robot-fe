@@ -1,7 +1,12 @@
+import type { TrainingSessionCreateRequest } from '~/types/api'
+
 import { API_ENDPOINTS } from '../../../configs/api'
+import { TrainingSessionEntity, type TrainingSessionDTO } from '../../entities/training/TrainingSessionEntity'
 
 import type { EnvironmentRepository } from './EnvironmentRepository'
 import type { EnvironmentDefinition } from '../../domains/environment/Environment'
+import type { TrainingConfig } from '../../domains/training/TrainingConfig'
+import type { TrainingSession } from '../../domains/training/TrainingSession'
 import type { EnvironmentStateEntity } from '../../entities/environment/EnvironmentStateEntity'
 
 /**
@@ -33,14 +38,31 @@ export class EnvironmentRepositoryImpl implements EnvironmentRepository {
     }
   }
 
-  async createSession(config: any): Promise<any> {
+  async createSession(config: TrainingConfig): Promise<TrainingSession> {
     try {
       // Backend: POST /api/v1/environment/sessions
-      const response = await $fetch<{ data: any }>(API_ENDPOINTS.environment.sessions, {
+      // Note: Assuming this endpoint accepts TrainingSessionCreateRequest structure
+      // similar to TrainingRepository.create
+      const apiRequest: TrainingSessionCreateRequest = {
+        name: config.name,
+        algorithm: config.algorithm,
+        environment_type: config.environmentType,
+        total_timesteps: config.totalTimesteps,
+        env_width: config.envWidth,
+        env_height: config.envHeight,
+        coverage_weight: config.coverageWeight,
+        exploration_weight: config.explorationWeight,
+        diversity_weight: config.diversityWeight,
+        learning_rate: config.learningRate ?? 0.0003,
+        batch_size: config.batchSize ?? 64,
+        num_workers: config.numWorkers ?? 1,
+      }
+
+      const response = await $fetch<{ data: TrainingSessionDTO }>(API_ENDPOINTS.environment.sessions, {
         method: 'POST',
-        body: config,
+        body: apiRequest,
       })
-      return response.data
+      return TrainingSessionEntity.toDomain(response.data)
     } catch (error) {
       console.error('Failed to create environment session:', error)
       throw error
