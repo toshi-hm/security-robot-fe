@@ -1,3 +1,5 @@
+import type { MapConfig } from './TrainingConfig'
+
 export type TrainingAlgorithm = 'ppo' | 'a3c'
 export type TrainingEnvironmentType = 'standard' | 'enhanced'
 export type TrainingStatus = 'created' | 'queued' | 'running' | 'paused' | 'completed' | 'failed'
@@ -29,7 +31,7 @@ export class TrainingSession {
     public readonly updatedAt: Date,
     public readonly learningRate: number | null = null,
     public readonly batchSize: number | null = null,
-    public readonly mapConfig: Record<string, unknown> | null = null,
+    public readonly mapConfig: MapConfig | null = null,
     public readonly modelPath?: string | null,
     public readonly config?: Record<string, unknown> | null,
     public readonly startedAt?: Date,

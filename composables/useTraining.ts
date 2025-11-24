@@ -43,7 +43,7 @@ const createDummySession = (config: TrainingConfig): TrainingSession => {
     now,
     config.learningRate ?? null,
     config.batchSize ?? null,
-    (config.mapConfig ?? null) as Record<string, unknown> | null,
+    config.mapConfig ?? null,
     null,
     null,
     now,
@@ -64,18 +64,20 @@ export const useTraining = () => {
     // 既存のシミュレーションをクリア
     if (metricsSimulationInterval.value) {
       clearInterval(metricsSimulationInterval.value)
+      metricsSimulationInterval.value = null
     }
 
     let currentStep = 0
     const stepIncrement = Math.floor(session.totalTimesteps / 100) // 100回で完了
 
-    metricsSimulationInterval.value = setInterval(() => {
+    const interval = setInterval(() => {
       currentStep += stepIncrement
 
       if (currentStep >= session.totalTimesteps) {
         currentStep = session.totalTimesteps
-        if (metricsSimulationInterval.value) {
-          clearInterval(metricsSimulationInterval.value)
+        if (metricsSimulationInterval.value === interval) {
+          clearInterval(interval)
+          metricsSimulationInterval.value = null
         }
       }
 
@@ -100,6 +102,8 @@ export const useTraining = () => {
       // WebSocketの代わりにログを出力（実際はWebSocketで送信する想定）
       console.log('Simulated metrics:', dummyMetrics)
     }, 2000) // 2秒ごとにメトリクスを生成
+
+    metricsSimulationInterval.value = interval
   }
 
   const sessions = ref<TrainingSession[]>([])
