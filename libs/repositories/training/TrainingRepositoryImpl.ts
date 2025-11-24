@@ -146,6 +146,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
   async create(config: TrainingConfig): Promise<TrainingSession> {
     try {
       // Convert camelCase to snake_case for backend API
+      // Note: map_config must be placed inside config.map_config
       const apiRequest: TrainingSessionCreateRequest = {
         name: config.name,
         algorithm: config.algorithm,
@@ -159,6 +160,16 @@ export class TrainingRepositoryImpl implements TrainingRepository {
         learning_rate: config.learningRate ?? 0.0003,
         batch_size: config.batchSize ?? 64,
         num_workers: config.numWorkers ?? 1,
+        config: config.mapConfig
+          ? {
+              map_config: {
+                map_type: config.mapConfig.mapType,
+                seed: config.mapConfig.seed,
+                count: config.mapConfig.count,
+                initial_wall_probability: config.mapConfig.initialWallProbability,
+              },
+            }
+          : undefined,
       }
 
       // Backend: POST /api/v1/training/start

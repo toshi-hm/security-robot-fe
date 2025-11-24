@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
 import { useEnvironment } from '~/composables/useEnvironment'
-import type { TrainingConfig } from '~/libs/domains/training/TrainingConfig'
-import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import type { EnvironmentStateEntity } from '~/libs/entities/environment/EnvironmentStateEntity'
 import type { EnvironmentRepository } from '~/libs/repositories/environment/EnvironmentRepository'
 
@@ -37,7 +35,6 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => mockEnvironments,
         fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -52,7 +49,6 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -85,7 +81,6 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => mockState as unknown as EnvironmentStateEntity,
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { currentState, fetchState } = useEnvironment(mockRepository)
@@ -134,7 +129,6 @@ describe('useEnvironment', () => {
           callCount++
           return (callCount === 1 ? mockState1 : mockState2) as unknown as EnvironmentStateEntity
         },
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { currentState, fetchState } = useEnvironment(mockRepository)
@@ -148,67 +142,11 @@ describe('useEnvironment', () => {
     })
   })
 
-  describe('createSession', () => {
-    it('creates a session with given config', async () => {
-      const mockConfig = {
-        name: 'Test Session',
-        algorithm: 'ppo',
-        environmentType: 'standard',
-      }
-
-      const mockSessionResult = {
-        id: 123,
-        name: 'Test Session',
-        status: 'created',
-      }
-
-      const mockRepository: EnvironmentRepository = {
-        listEnvironments: async () => [],
-        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async (config: TrainingConfig) => {
-          expect(config).toEqual(mockConfig)
-          return mockSessionResult as unknown as TrainingSession
-        },
-      }
-
-      const { createSession } = useEnvironment(mockRepository)
-
-      const result = await createSession(mockConfig as unknown as TrainingConfig)
-
-      expect(result).toEqual(mockSessionResult)
-    })
-
-    it('passes config to repository correctly', async () => {
-      let receivedConfig: TrainingConfig | null = null
-
-      const mockRepository: EnvironmentRepository = {
-        listEnvironments: async () => [],
-        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async (config: TrainingConfig) => {
-          receivedConfig = config
-          return { id: 1 } as unknown as TrainingSession
-        },
-      }
-
-      const { createSession } = useEnvironment(mockRepository)
-
-      const testConfig = {
-        name: 'Session',
-        totalTimesteps: 10000,
-      }
-
-      await createSession(testConfig as unknown as TrainingConfig)
-
-      expect(receivedConfig).toEqual(testConfig)
-    })
-  })
-
   describe('initial state', () => {
     it('has empty environments array initially', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { environments } = useEnvironment(mockRepository)
@@ -220,7 +158,6 @@ describe('useEnvironment', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
         fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
-        createSession: async () => ({}) as unknown as TrainingSession,
       }
 
       const { currentState } = useEnvironment(mockRepository)

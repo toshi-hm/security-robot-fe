@@ -1,4 +1,18 @@
+import type { MapType } from '~/libs/domains/training/TrainingConfig'
 import { TrainingSession } from '~/libs/domains/training/TrainingSession'
+
+/**
+ * Training Session Config型
+ * Backend の config フィールドに渡す設定
+ */
+export interface TrainingSessionConfigDTO {
+  map_config?: {
+    map_type: string
+    seed?: number
+    count?: number
+    initial_wall_probability?: number
+  }
+}
 
 export interface TrainingSessionDTO {
   id: number
@@ -14,8 +28,11 @@ export interface TrainingSessionDTO {
   coverage_weight: number
   exploration_weight: number
   diversity_weight: number
+  learning_rate?: number
+  batch_size?: number
+  num_workers?: number
   model_path?: string | null
-  config?: Record<string, unknown> | null
+  config?: TrainingSessionConfigDTO | null
   created_at?: string | null
   started_at?: string | null
   completed_at?: string | null
@@ -23,6 +40,16 @@ export interface TrainingSessionDTO {
 
 export class TrainingSessionEntity {
   static toDomain(dto: TrainingSessionDTO): TrainingSession {
+    // Extract map_config from config.map_config
+    const mapConfig = dto.config?.map_config
+      ? {
+          mapType: dto.config.map_config.map_type as MapType,
+          seed: dto.config.map_config.seed,
+          count: dto.config.map_config.count,
+          initialWallProbability: dto.config.map_config.initial_wall_probability,
+        }
+      : null
+
     return new TrainingSession(
       dto.id,
       dto.name,
@@ -39,11 +66,11 @@ export class TrainingSessionEntity {
       dto.diversity_weight,
       dto.created_at ? new Date(dto.created_at) : new Date(),
       new Date(), // updatedAt
-      null, // learningRate
-      null, // batchSize
-      null, // mapConfig
+      dto.learning_rate ?? null,
+      dto.batch_size ?? null,
+      mapConfig,
       dto.model_path,
-      dto.config ?? null,
+      (dto.config as Record<string, unknown>) ?? null,
       dto.started_at ? new Date(dto.started_at) : undefined,
       dto.completed_at ? new Date(dto.completed_at) : null
     )
