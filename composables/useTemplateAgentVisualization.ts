@@ -141,17 +141,6 @@ export const useTemplateAgentVisualization = (
         appendTrajectory(frames, 0)
         return
       }
-
-      if (current.length < previous.length) {
-        processedFrameCount.value = 0
-        robotTrajectory.value = []
-        appendTrajectory(frames, 0)
-        return
-      }
-
-      if (current.length !== processedFrameCount.value) {
-        appendTrajectory(frames, processedFrameCount.value)
-      }
     },
     { immediate: true, deep: false }
   )
