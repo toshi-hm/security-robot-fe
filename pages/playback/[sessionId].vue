@@ -115,7 +115,7 @@ const gridWidth = computed(() => {
     return 8 // Default fallback
   }
   // threat_grid is [y][x], so width is the length of the first row
-  const firstRow = threatGrid[0]
+  const firstRow = threatGrid?.[0]
   return Array.isArray(firstRow) ? firstRow.length : 8
 })
 

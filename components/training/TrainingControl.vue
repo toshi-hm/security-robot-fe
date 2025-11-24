@@ -2,7 +2,7 @@
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 
-import { TRAINING_CONSTRAINTS, type TrainingConfig } from '~/libs/domains/training/TrainingConfig'
+import { TRAINING_CONSTRAINTS, type TrainingConfig, type MapType } from '~/libs/domains/training/TrainingConfig'
 
 const { createSession, isLoading, error } = useTraining()
 const router = useRouter()
@@ -22,8 +22,10 @@ const trainingConfig = ref<TrainingConfig>({
   diversityWeight: 2.0,
   // Map Configuration
   mapConfig: {
-    mapType: 'random',
+    mapType: 'random' as MapType,
     count: 10,
+    seed: undefined,
+    initialWallProbability: undefined,
   },
   // Advanced Settings (optional)
   learningRate: 0.0003,
@@ -265,97 +267,99 @@ const cancelForm = () => {
 
         <el-divider content-position="left">マップ設定</el-divider>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item>
-              <template #label>
-                <span class="training-control__label">
-                  マップタイプ
-                  <el-tooltip :content="parameterTooltips.mapType" placement="top">
-                    <el-icon class="training-control__help-icon">
-                      <QuestionFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </span>
-              </template>
-              <el-select v-model="trainingConfig.mapConfig!.mapType" style="width: 100%">
-                <el-option label="Random (ランダム配置)" value="random" />
-                <el-option label="Maze (迷路)" value="maze" />
-                <el-option label="Room (部屋構造)" value="room" />
-                <el-option label="Cave (洞窟風)" value="cave" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item>
-              <template #label>
-                <span class="training-control__label">
-                  シード値 (オプション)
-                  <el-tooltip :content="parameterTooltips.seed" placement="top">
-                    <el-icon class="training-control__help-icon">
-                      <QuestionFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </span>
-              </template>
-              <el-input-number
-                v-model="trainingConfig.mapConfig!.seed"
-                :min="0"
-                :max="999999"
-                placeholder="ランダム"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <div v-if="trainingConfig.mapConfig">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    マップタイプ
+                    <el-tooltip :content="parameterTooltips.mapType" placement="top">
+                      <el-icon class="training-control__help-icon">
+                        <QuestionFilled />
+                      </el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-select v-model="trainingConfig.mapConfig.mapType" style="width: 100%">
+                  <el-option label="Random (ランダム配置)" value="random" />
+                  <el-option label="Maze (迷路)" value="maze" />
+                  <el-option label="Room (部屋構造)" value="room" />
+                  <el-option label="Cave (洞窟風)" value="cave" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    シード値 (オプション)
+                    <el-tooltip :content="parameterTooltips.seed" placement="top">
+                      <el-icon class="training-control__help-icon">
+                        <QuestionFilled />
+                      </el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-input-number
+                  v-model="trainingConfig.mapConfig.seed"
+                  :min="0"
+                  :max="999999"
+                  placeholder="ランダム"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row v-if="trainingConfig.mapConfig!.mapType === 'random'" :gutter="20">
-          <el-col :span="12">
-            <el-form-item>
-              <template #label>
-                <span class="training-control__label">
-                  障害物数
-                  <el-tooltip :content="parameterTooltips.count" placement="top">
-                    <el-icon class="training-control__help-icon">
-                      <QuestionFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </span>
-              </template>
-              <el-input-number
-                v-model="trainingConfig.mapConfig!.count"
-                :min="TRAINING_CONSTRAINTS.mapConfig.count.min"
-                :max="TRAINING_CONSTRAINTS.mapConfig.count.max"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-row v-if="trainingConfig.mapConfig.mapType === 'random'" :gutter="20">
+            <el-col :span="12">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    障害物数
+                    <el-tooltip :content="parameterTooltips.count" placement="top">
+                      <el-icon class="training-control__help-icon">
+                        <QuestionFilled />
+                      </el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-input-number
+                  v-model="trainingConfig.mapConfig.count"
+                  :min="TRAINING_CONSTRAINTS.mapConfig.count.min"
+                  :max="TRAINING_CONSTRAINTS.mapConfig.count.max"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row v-if="trainingConfig.mapConfig!.mapType === 'cave'" :gutter="20">
-          <el-col :span="12">
-            <el-form-item>
-              <template #label>
-                <span class="training-control__label">
-                  初期壁生成確率
-                  <el-tooltip :content="parameterTooltips.initialWallProbability" placement="top">
-                    <el-icon class="training-control__help-icon">
-                      <QuestionFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </span>
-              </template>
-              <el-input-number
-                v-model="trainingConfig.mapConfig!.initialWallProbability"
-                :min="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.min"
-                :max="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.max"
-                :step="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.step"
-                :precision="2"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-row v-if="trainingConfig.mapConfig.mapType === 'cave'" :gutter="20">
+            <el-col :span="12">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    初期壁生成確率
+                    <el-tooltip :content="parameterTooltips.initialWallProbability" placement="top">
+                      <el-icon class="training-control__help-icon">
+                        <QuestionFilled />
+                      </el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-input-number
+                  v-model="trainingConfig.mapConfig.initialWallProbability"
+                  :min="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.min"
+                  :max="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.max"
+                  :step="TRAINING_CONSTRAINTS.mapConfig.initialWallProbability.step"
+                  :precision="2"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
 
         <el-divider content-position="left">報酬の重み</el-divider>
 

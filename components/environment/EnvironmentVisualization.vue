@@ -163,13 +163,13 @@ const drawEnvironment = () => {
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
       } else {
         // Draw threat level background (heatmap)
-        const threatLevel = props.threatGrid[y]?.[x] ?? 0
+        const threatLevel = props.threatGrid?.[y]?.[x] ?? 0
         const heatColor = getThreatColor(threatLevel)
         ctx.fillStyle = heatColor
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
 
         // Draw coverage overlay (visited cells)
-        const cellValue = props.coverageMap[y]?.[x]
+        const cellValue = props.coverageMap?.[y]?.[x]
         const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
         if (isVisited) {
           ctx.fillStyle = visitedCellColor // Green overlay for visited
