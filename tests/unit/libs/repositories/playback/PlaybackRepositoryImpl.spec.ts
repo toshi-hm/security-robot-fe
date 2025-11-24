@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_ENDPOINTS } from '~/configs/api'
 import { PlaybackRepositoryImpl } from '~/libs/repositories/playback/PlaybackRepositoryImpl'
-import type { EnvironmentStateResponseDTO } from '~/types/api'
 
 describe('PlaybackRepositoryImpl', () => {
   const repository = new PlaybackRepositoryImpl()
