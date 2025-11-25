@@ -35,7 +35,7 @@ export class TrainingSession {
     public readonly modelPath?: string | null,
     public readonly config?: Record<string, unknown> | null,
     public readonly startedAt?: Date,
-    public readonly completedAt: Date | null = null
+    public readonly completedAt?: Date | null
   ) {
     this.validateTimesteps()
     this.validateEnvironmentSize()
