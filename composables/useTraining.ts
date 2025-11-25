@@ -55,16 +55,16 @@ export const useTraining = () => {
   const repository = new TrainingRepositoryImpl()
 
   // シミュレーションメトリクスのインターバル（インスタンスごとに独立）
-  const metricsSimulationInterval = ref<NodeJS.Timeout | null>(null)
+  const metricsSimulationIntervals = ref<Map<number, NodeJS.Timeout>>(new Map())
 
   /**
    * ダミーメトリクスを生成してシミュレート
    */
   const startSimulatedMetrics = (session: TrainingSession) => {
     // 既存のシミュレーションをクリア
-    if (metricsSimulationInterval.value) {
-      clearInterval(metricsSimulationInterval.value)
-      metricsSimulationInterval.value = null
+    if (metricsSimulationIntervals.value.has(session.id)) {
+      clearInterval(metricsSimulationIntervals.value.get(session.id)!)
+      metricsSimulationIntervals.value.delete(session.id)
     }
 
     let currentStep = 0
@@ -75,9 +75,9 @@ export const useTraining = () => {
 
       if (currentStep >= session.totalTimesteps) {
         currentStep = session.totalTimesteps
-        if (metricsSimulationInterval.value === interval) {
+        if (metricsSimulationIntervals.value.get(session.id) === interval) {
           clearInterval(interval)
-          metricsSimulationInterval.value = null
+          metricsSimulationIntervals.value.delete(session.id)
         }
       }
 
@@ -103,7 +103,7 @@ export const useTraining = () => {
       console.log('Simulated metrics:', dummyMetrics)
     }, 2000) // 2秒ごとにメトリクスを生成
 
-    metricsSimulationInterval.value = interval
+    metricsSimulationIntervals.value.set(session.id, interval)
   }
 
   const sessions = ref<TrainingSession[]>([])
@@ -267,10 +267,8 @@ export const useTraining = () => {
   onBeforeUnmount(() => {
     stopAllPolling()
     // シミュレーションモードのメトリクスインターバルもクリア
-    if (metricsSimulationInterval.value) {
-      clearInterval(metricsSimulationInterval.value)
-      metricsSimulationInterval.value = null
-    }
+    metricsSimulationIntervals.value.forEach((interval) => clearInterval(interval))
+    metricsSimulationIntervals.value.clear()
   })
 
   return {
