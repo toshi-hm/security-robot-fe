@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { useEnvironment } from '~/composables/useEnvironment'
+import type { EnvironmentStateEntity } from '~/libs/entities/environment/EnvironmentStateEntity'
 import type { EnvironmentRepository } from '~/libs/repositories/environment/EnvironmentRepository'
 
 describe('useEnvironment', () => {
@@ -33,7 +34,7 @@ describe('useEnvironment', () => {
 
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => mockEnvironments,
-        fetchState: async () => ({}) as any,
+        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -47,7 +48,7 @@ describe('useEnvironment', () => {
     it('handles empty environment list', async () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
-        fetchState: async () => ({}) as any,
+        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
       }
 
       const { environments, fetchEnvironments } = useEnvironment(mockRepository)
@@ -79,7 +80,7 @@ describe('useEnvironment', () => {
 
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
-        fetchState: async () => mockState as any,
+        fetchState: async () => mockState as unknown as EnvironmentStateEntity,
       }
 
       const { currentState, fetchState } = useEnvironment(mockRepository)
@@ -126,7 +127,7 @@ describe('useEnvironment', () => {
         listEnvironments: async () => [],
         fetchState: async () => {
           callCount++
-          return (callCount === 1 ? mockState1 : mockState2) as any
+          return (callCount === 1 ? mockState1 : mockState2) as unknown as EnvironmentStateEntity
         },
       }
 
@@ -145,7 +146,7 @@ describe('useEnvironment', () => {
     it('has empty environments array initially', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
-        fetchState: async () => ({}) as any,
+        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
       }
 
       const { environments } = useEnvironment(mockRepository)
@@ -156,7 +157,7 @@ describe('useEnvironment', () => {
     it('has null currentState initially', () => {
       const mockRepository: EnvironmentRepository = {
         listEnvironments: async () => [],
-        fetchState: async () => ({}) as any,
+        fetchState: async () => ({}) as unknown as EnvironmentStateEntity,
       }
 
       const { currentState } = useEnvironment(mockRepository)

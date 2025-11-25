@@ -8,6 +8,9 @@ import { EnvironmentRepositoryImpl } from '~/libs/repositories/environment/Envir
 /**
  * Environment管理Composable
  *
+ * 環境定義の取得と環境状態の取得を提供します。
+ * トレーニングセッションの作成は useTraining コンポーザブルを使用してください。
+ *
  * @param repository - EnvironmentRepository (依存性注入、テスト時にモック可能)
  */
 export const useEnvironment = (repository: EnvironmentRepository = new EnvironmentRepositoryImpl()) => {

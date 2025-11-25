@@ -5,4 +5,5 @@ export interface EnvironmentStateEntity {
   definition: EnvironmentDefinition
   robot: RobotState
   activeThreatLevel: number
+  obstacles?: boolean[][]
 }

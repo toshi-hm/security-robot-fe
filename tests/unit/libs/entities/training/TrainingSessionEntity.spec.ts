@@ -19,7 +19,12 @@ describe('TrainingSessionEntity', () => {
     exploration_weight: 2,
     diversity_weight: 3,
     model_path: '/models/model.pt',
-    config: { seed: 1 },
+    config: {
+      map_config: {
+        map_type: 'random',
+        seed: 1,
+      },
+    },
     created_at: '2024-01-01T00:00:00Z',
     started_at: '2024-01-01T01:00:00Z',
     completed_at: null,

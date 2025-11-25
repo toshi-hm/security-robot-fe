@@ -108,6 +108,28 @@ const chargingStationPosition = computed<Position | null>(() => {
   return getChargingStationPosition(env)
 })
 
+// Grid dimensions computed from threat_grid
+const gridWidth = computed(() => {
+  const threatGrid = currentFrame.value?.environmentState?.threat_grid
+  if (!threatGrid || !Array.isArray(threatGrid) || threatGrid.length === 0) {
+    return 8 // Default fallback
+  }
+  // threat_grid is [y][x], so width is the length of the first row
+  const firstRow = threatGrid?.[0]
+  return Array.isArray(firstRow) ? firstRow.length : 8
+})
+
+const gridHeight = computed(() => {
+  const threatGrid = currentFrame.value?.environmentState?.threat_grid
+  if (!threatGrid || !Array.isArray(threatGrid)) {
+    return 8 // Default fallback
+  }
+
+  // threat_grid is [y][x], so height is the number of rows
+  const height = threatGrid.length
+  return height
+})
+
 let playbackInterval: ReturnType<typeof setInterval> | null = null
 const handleResize = () => {
   if (typeof window === 'undefined') return
@@ -274,8 +296,8 @@ const formatOrientation = (orientation?: number | null): string => {
             <h3>環境状態</h3>
             <EnvironmentVisualization
               v-if="currentFrame?.environmentState"
-              :grid-width="currentFrame.environmentState.threat_grid?.[0]?.length ?? 8"
-              :grid-height="currentFrame.environmentState.threat_grid?.length ?? 8"
+              :grid-width="gridWidth"
+              :grid-height="gridHeight"
               :robot-position="
                 {
                   x: currentFrame.environmentState.robot_x ?? 0,
@@ -285,6 +307,7 @@ const formatOrientation = (orientation?: number | null): string => {
               :robot-orientation="currentFrame.environmentState.robot_orientation ?? null"
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
+              :obstacles="currentFrame.environmentState.obstacles ?? null"
               :trajectory="robotTrajectory"
               :patrol-radius="PATROL_RADIUS"
               :charging-station-position="chargingStationPosition"

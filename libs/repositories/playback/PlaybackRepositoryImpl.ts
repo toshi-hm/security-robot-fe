@@ -59,15 +59,55 @@ export class PlaybackRepositoryImpl implements PlaybackRepository {
   }
 
   private normalizeEnvironmentState(state: EnvironmentStateResponseDTO): EnvironmentStateResponseDTO {
-    return {
-      ...state,
-      threat_grid: isAlreadyNormalized(state.threat_grid) ? state.threat_grid : normalizeGridMatrix(state.threat_grid),
-      coverage_map: state.coverage_map
-        ? isAlreadyNormalized(state.coverage_map)
-          ? state.coverage_map
-          : normalizeGridMatrix(state.coverage_map)
-        : null,
+    // APIから返されるthreat_gridとcoverage_mapは {levels: number[][]} という形式の場合がある
+    // levelsプロパティを抽出して正規化する
+    const extractLevels = (grid: any): number[][] | null => {
+      if (!grid) return null
+
+      // {levels: [...]} 形式の場合
+      if (grid && typeof grid === 'object' && 'levels' in grid && Array.isArray(grid.levels)) {
+        return grid.levels
+      }
+
+      // すでに配列の場合
+      if (Array.isArray(grid)) {
+        return grid
+      }
+
+      return null
     }
+
+    // obstaclesも同様に抽出 (boolean[][])
+    const extractBooleanLevels = (grid: any): boolean[][] | null => {
+      if (!grid) return null
+
+      // {levels: [...]} 形式の場合
+      if (grid && typeof grid === 'object' && 'levels' in grid && Array.isArray(grid.levels)) {
+        return grid.levels
+      }
+
+      // すでに配列の場合
+      if (Array.isArray(grid)) {
+        return grid
+      }
+
+      return null
+    }
+
+    const rawThreatGrid = extractLevels(state.threat_grid)
+    const rawCoverageMap = extractLevels(state.coverage_map)
+    const rawObstacles = extractBooleanLevels(state.obstacles)
+
+    const normalized = {
+      ...state,
+      threat_grid:
+        rawThreatGrid && isAlreadyNormalized(rawThreatGrid) ? rawThreatGrid : normalizeGridMatrix(rawThreatGrid),
+      coverage_map:
+        rawCoverageMap && isAlreadyNormalized(rawCoverageMap) ? rawCoverageMap : normalizeGridMatrix(rawCoverageMap),
+      obstacles: rawObstacles, // boolean配列はそのまま使用
+    }
+
+    return normalized
   }
 
   async listSessions(): Promise<PlaybackSession[]> {

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { useTemplateAgents } from '~/composables/useTemplateAgents'
+import { useTemplateAgentVisualization } from '~/composables/useTemplateAgentVisualization'
 import {
   TEMPLATE_AGENT_GRID_MIN,
   TEMPLATE_AGENT_GRID_MAX,
@@ -13,14 +14,12 @@ import type {
   TemplateAgentEpisodePlayback,
   TemplateAgentEnvironmentInfo,
 } from '~/types/api'
+import type { TemplateAgentExecutionMode, TemplateAgentFormData } from '~/types/template-agent-page'
 
 import TemplateAgentComparison from './components/TemplateAgentComparison.vue'
 import TemplateAgentEnvironment from './components/TemplateAgentEnvironment.vue'
 import TemplateAgentForm from './components/TemplateAgentForm.vue'
 import TemplateAgentResults from './components/TemplateAgentResults.vue'
-import { useTemplateAgentVisualization } from './composables/useTemplateAgentVisualization'
-
-import type { TemplateAgentExecutionMode, TemplateAgentFormData } from './types'
 
 const {
   agentTypes,

@@ -89,6 +89,7 @@ export const useApiEndpoints = () => {
     // Environment API
     environment: {
       definitions: `${API_BASE_URL}/api/v1/environment/definitions`, // GET - list all environments
+      sessions: `${API_BASE_URL}/api/v1/environment/sessions`, // POST - create new session
       state: (environmentId: string) => `${API_BASE_URL}/api/v1/environment/definitions/${environmentId}/state`, // GET
     },
 

@@ -11,6 +11,7 @@ interface Props {
   robotOrientation?: number | null
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
+  obstacles?: boolean[][] | null // 障害物マップ
   trajectory?: Position[]
   patrolRadius?: number
   chargingStationPosition?: Position | null // バッテリーシステム (Session 050)
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   robotPosition: null,
   coverageMap: () => [],
   threatGrid: () => [],
+  obstacles: null,
   trajectory: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
@@ -152,18 +154,27 @@ const drawEnvironment = () => {
       const cellX = x * cellSize
       const cellY = y * cellSize
 
-      // Draw threat level background (heatmap)
-      const threatLevel = props.threatGrid[y]?.[x] ?? 0
-      const heatColor = getThreatColor(threatLevel)
-      ctx.fillStyle = heatColor
-      ctx.fillRect(cellX, cellY, cellSize, cellSize)
+      // Check if this cell is an obstacle
+      const isObstacle = props.obstacles?.[y]?.[x] ?? false
 
-      // Draw coverage overlay (visited cells)
-      const cellValue = props.coverageMap[y]?.[x]
-      const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
-      if (isVisited) {
-        ctx.fillStyle = visitedCellColor // Green overlay for visited
+      if (isObstacle) {
+        // Draw obstacle as dark gray/black cell
+        ctx.fillStyle = '#2c3e50' // Dark gray for obstacles
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
+      } else {
+        // Draw threat level background (heatmap)
+        const threatLevel = props.threatGrid?.[y]?.[x] ?? 0
+        const heatColor = getThreatColor(threatLevel)
+        ctx.fillStyle = heatColor
+        ctx.fillRect(cellX, cellY, cellSize, cellSize)
+
+        // Draw coverage overlay (visited cells)
+        const cellValue = props.coverageMap?.[y]?.[x]
+        const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
+        if (isVisited) {
+          ctx.fillStyle = visitedCellColor // Green overlay for visited
+          ctx.fillRect(cellX, cellY, cellSize, cellSize)
+        }
       }
 
       // Draw grid lines
@@ -380,6 +391,7 @@ watch(
     props.robotOrientation,
     props.coverageMap,
     props.threatGrid,
+    props.obstacles,
     props.gridWidth,
     props.gridHeight,
     props.trajectory,
@@ -475,6 +487,8 @@ onMounted(() => {
     border: 2px solid var(--color-border-canvas);
     border-radius: 4px;
     cursor: grab;
+    display: block;
+    max-height: 100%;
     max-width: 100%;
 
     &:active {

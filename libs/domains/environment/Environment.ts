@@ -36,7 +36,8 @@ export class Environment {
     public readonly robotOrientation: number, // 0=北, 1=東, 2=南, 3=西
     public readonly threatGrid: number[][], // [y][x] = 0.0-1.0
     public readonly coverageMap: boolean[][], // [y][x] = visited
-    public readonly suspiciousObjects: SuspiciousObject[]
+    public readonly suspiciousObjects: SuspiciousObject[],
+    public readonly obstacles: boolean[][] = [] // [y][x] = isObstacle
   ) {
     this.validateRobotPosition()
     this.validateGridDimensions()
@@ -91,6 +92,16 @@ export class Environment {
       return false
     }
     return this.coverageMap[y]?.[x] ?? false
+  }
+
+  /**
+   * 指定座標が障害物か
+   */
+  isObstacle(x: number, y: number): boolean {
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+      return true // 範囲外は障害物扱い
+    }
+    return this.obstacles[y]?.[x] ?? false
   }
 
   private validateRobotPosition(): void {

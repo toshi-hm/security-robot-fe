@@ -4,11 +4,33 @@ export interface ApiResponse<T> {
 }
 
 /**
+ * Map Configuration型
+ * ランダムマップ生成時の設定
+ */
+export interface MapConfig {
+  map_type: string
+  seed?: number
+  count?: number
+  initial_wall_probability?: number
+}
+
+/**
+ * Training Session Config型
+ * Backend の config フィールドに渡す設定
+ */
+export interface TrainingSessionConfig {
+  map_config?: MapConfig
+}
+
+/**
  * Training Session作成リクエスト型
  * Backend API schema (TrainingSessionCreate) との契約を明示
  *
  * Note: learning_rate, batch_size, num_workers は optional
  * （TrainingConfig との型整合性を確保）
+ *
+ * map_config は config.map_config として送信する必要があります
+ * Backend: config は dict | None で、map_config 専用フィールドはありません
  */
 export interface TrainingSessionCreateRequest {
   name: string
@@ -23,11 +45,14 @@ export interface TrainingSessionCreateRequest {
   learning_rate?: number
   batch_size?: number
   num_workers?: number
+  config?: TrainingSessionConfig
 }
 
 /**
  * Training Session Response型
  * Backend: TrainingSessionResponse
+ *
+ * Note: map_config は config.map_config として返されます
  */
 export interface TrainingSessionDTO {
   id: number
@@ -48,7 +73,7 @@ export interface TrainingSessionDTO {
   num_workers: number
   model_path: string | null
   log_path: string | null
-  config: Record<string, unknown> | null
+  config: TrainingSessionConfig | null
   created_at: string
   updated_at: string
   started_at: string | null
@@ -220,6 +245,14 @@ export interface PaginatedPlaybackSessionsResponse {
 /**
  * Environment State Response型 (for playback frames)
  * Backend: EnvironmentStateResponse
+ *
+ * Note: Backend API returns grid data in {levels: [...]} format:
+ * - threat_grid: {levels: number[][]}
+ * - coverage_map: {levels: number[][]} | null
+ * - obstacles: {levels: boolean[][]} | null
+ *
+ * PlaybackRepositoryImpl.normalizeEnvironmentState() extracts the levels
+ * and normalizes them to array format, so this type represents the normalized data.
  */
 export interface EnvironmentStateResponseDTO {
   id: number
@@ -229,8 +262,9 @@ export interface EnvironmentStateResponseDTO {
   robot_x: number
   robot_y: number
   robot_orientation: number
-  threat_grid: number[][]
-  coverage_map: number[][] | null
+  threat_grid: number[][] // Backend: {levels: number[][]}, normalized to number[][]
+  coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
+  obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null
   suspicious_objects: Array<{
     id: number
     x: number

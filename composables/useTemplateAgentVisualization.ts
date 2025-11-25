@@ -3,13 +3,12 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { ROUTE_PREVIEW_LIMIT } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { TemplateAgentExecuteResponse, TemplateAgentFrameData } from '~/types/api'
-import { isAlreadyNormalized, normalizeGridMatrix } from '~/utils/gridHelpers'
-
 import type {
   TemplateAgentEnvironmentVisualizationProps,
   TemplateAgentRouteStats,
   TemplateAgentVisualizationState,
-} from '../types'
+} from '~/types/template-agent-page'
+import { isAlreadyNormalized, normalizeGridMatrix } from '~/utils/gridHelpers'
 
 export const useTemplateAgentVisualization = (
   executeResult: Readonly<{ value: TemplateAgentExecuteResponse | null }>
@@ -141,17 +140,6 @@ export const useTemplateAgentVisualization = (
         robotTrajectory.value = []
         appendTrajectory(frames, 0)
         return
-      }
-
-      if (current.length < previous.length) {
-        processedFrameCount.value = 0
-        robotTrajectory.value = []
-        appendTrajectory(frames, 0)
-        return
-      }
-
-      if (current.length !== processedFrameCount.value) {
-        appendTrajectory(frames, processedFrameCount.value)
       }
     },
     { immediate: true, deep: false }
