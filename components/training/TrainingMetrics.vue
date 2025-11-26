@@ -65,6 +65,7 @@ const rewardChartConfig: ChartConfiguration = {
 }
 
 const rewardChart = useChart(rewardChartConfig)
+const rewardCanvas = rewardChart.canvas
 
 // Loss Chart
 const lossChartConfig: ChartConfiguration = {
@@ -113,6 +114,7 @@ const lossChartConfig: ChartConfiguration = {
 }
 
 const lossChart = useChart(lossChartConfig)
+const lossCanvas = lossChart.canvas
 
 // Coverage Chart
 const coverageChartConfig: ChartConfiguration = {
@@ -163,6 +165,7 @@ const coverageChartConfig: ChartConfiguration = {
 }
 
 const coverageChart = useChart(coverageChartConfig)
+const coverageCanvas = coverageChart.canvas
 
 // Exploration Chart
 const explorationChartConfig: ChartConfiguration = {
@@ -211,6 +214,7 @@ const explorationChartConfig: ChartConfiguration = {
 }
 
 const explorationChart = useChart(explorationChartConfig)
+const explorationCanvas = explorationChart.canvas
 
 // Watch for realtime metrics changes
 watch(
@@ -317,7 +321,7 @@ const summaryStats = computed(() => ({
             <span>Reward Chart</span>
           </template>
           <div class="chart-container">
-            <canvas ref="rewardChart.canvas" />
+            <canvas ref="rewardCanvas" />
           </div>
         </el-card>
       </el-col>
@@ -327,7 +331,7 @@ const summaryStats = computed(() => ({
             <span>Loss Chart</span>
           </template>
           <div class="chart-container">
-            <canvas ref="lossChart.canvas" />
+            <canvas ref="lossCanvas" />
           </div>
         </el-card>
       </el-col>
@@ -340,7 +344,7 @@ const summaryStats = computed(() => ({
             <span>Coverage Chart</span>
           </template>
           <div class="chart-container">
-            <canvas ref="coverageChart.canvas" />
+            <canvas ref="coverageCanvas" />
           </div>
         </el-card>
       </el-col>
@@ -350,7 +354,7 @@ const summaryStats = computed(() => ({
             <span>Exploration Chart</span>
           </template>
           <div class="chart-container">
-            <canvas ref="explorationChart.canvas" />
+            <canvas ref="explorationCanvas" />
           </div>
         </el-card>
       </el-col>
