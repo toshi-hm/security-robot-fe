@@ -58,6 +58,7 @@ export interface TrainingConfig {
   learningRate?: number
   batchSize?: number
   numWorkers?: number
+  numRobots?: number // Multi-Agent Support
 }
 
 export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
@@ -77,6 +78,7 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   learningRate: 0.0003,
   batchSize: 64,
   numWorkers: 1,
+  numRobots: 1,
 }
 
 export const createTrainingConfig = (overrides: Partial<TrainingConfig> = {}): TrainingConfig => ({
@@ -177,6 +179,12 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
       throw new Error(
         `Number of workers must be between ${TRAINING_CONSTRAINTS.numWorkers.min} and ${TRAINING_CONSTRAINTS.numWorkers.max}`
       )
+    }
+  }
+
+  if (config.numRobots !== undefined) {
+    if (config.numRobots < 1 || config.numRobots > 10) {
+      throw new Error('Number of robots must be between 1 and 10')
     }
   }
 }
