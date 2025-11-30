@@ -31,6 +31,7 @@ const trainingConfig = ref<TrainingConfig>({
   learningRate: 0.0003,
   batchSize: 64,
   numWorkers: 1,
+  numRobots: 1,
 })
 
 const rules = {
@@ -512,6 +513,24 @@ const cancelForm = () => {
                     :step="TRAINING_CONSTRAINTS.numWorkers.step"
                     style="width: 100%"
                   />
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item>
+                  <template #label>
+                    <span class="training-control__label">
+                      ロボット数
+                      <el-tooltip content="環境に配置するロボットの数（マルチエージェント学習）" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-input-number v-model="trainingConfig.numRobots" :min="1" :max="10" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

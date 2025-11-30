@@ -305,6 +305,17 @@ const formatOrientation = (orientation?: number | null): string => {
                 } satisfies Position
               "
               :robot-orientation="currentFrame.environmentState.robot_orientation ?? null"
+              :robots="
+                (currentFrame.environmentState.robots ?? []).map((r) => ({
+                  id: r.id,
+                  x: r.x,
+                  y: r.y,
+                  orientation: r.orientation,
+                  batteryPercentage: r.battery_percentage,
+                  isCharging: r.is_charging,
+                  actionTaken: r.action_taken ?? undefined,
+                }))
+              "
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
               :obstacles="currentFrame.environmentState.obstacles ?? null"
@@ -317,26 +328,47 @@ const formatOrientation = (orientation?: number | null): string => {
 
           <div class="playback-detail__robot">
             <h3>ロボット位置</h3>
-            <RobotPositionDisplay
-              v-if="currentFrame?.environmentState"
-              :position="
-                {
-                  row: currentFrame.environmentState.robot_y ?? 0,
-                  col: currentFrame.environmentState.robot_x ?? 0,
-                } satisfies GridPosition
-              "
-              :orientation="currentFrame.environmentState.robot_orientation ?? null"
-            />
-            <el-empty v-else description="ロボットデータがありません" />
-          </div>
 
-          <div class="playback-detail__battery">
-            <h3>バッテリー状態</h3>
-            <BatteryDisplay
-              :battery-percentage="batteryPercentage"
-              :is-charging="isCharging"
-              :distance-to-station="distanceToStation"
-            />
+            <!-- Multi-robot display -->
+            <div
+              v-if="currentFrame?.environmentState?.robots && currentFrame.environmentState.robots.length > 0"
+              class="robots-list"
+            >
+              <div v-for="(robot, index) in currentFrame.environmentState.robots" :key="index" class="robot-item">
+                <h4>Robot {{ robot.id ?? index }}</h4>
+                <RobotPositionDisplay
+                  :position="{ row: Math.round(robot.y), col: Math.round(robot.x) }"
+                  :orientation="robot.orientation"
+                />
+                <BatteryDisplay
+                  :battery-percentage="robot.battery_percentage"
+                  :is-charging="robot.is_charging"
+                  :distance-to-station="distanceToStation"
+                  style="margin-top: 10px"
+                />
+                <el-divider v-if="index < currentFrame.environmentState.robots.length - 1" />
+              </div>
+            </div>
+
+            <!-- Legacy fallback -->
+            <div v-else-if="currentFrame?.environmentState">
+              <RobotPositionDisplay
+                :position="
+                  {
+                    row: currentFrame.environmentState.robot_y ?? 0,
+                    col: currentFrame.environmentState.robot_x ?? 0,
+                  } satisfies GridPosition
+                "
+                :orientation="currentFrame.environmentState.robot_orientation ?? null"
+              />
+              <BatteryDisplay
+                :battery-percentage="batteryPercentage"
+                :is-charging="isCharging"
+                :distance-to-station="distanceToStation"
+                style="margin-top: 15px"
+              />
+            </div>
+            <el-empty v-else description="ロボットデータがありません" />
           </div>
         </div>
       </div>
@@ -462,11 +494,25 @@ const formatOrientation = (orientation?: number | null): string => {
     background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-tertiary);
     border-radius: 12px;
+    overflow-y: auto; // Allow scrolling for multiple robots
     padding: 20px;
 
     h3 {
       color: var(--md-on-tertiary-container);
     }
+  }
+}
+
+.robots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robot-item {
+  h4 {
+    color: var(--color-text-primary);
+    margin: 0 0 10px;
   }
 }
 </style>
