@@ -20,12 +20,21 @@ describe('Environment', () => {
     const threatGrid = overrides.threatGrid ?? Array.from({ length: height }, () => Array(width).fill(0.0))
     const coverageMap = overrides.coverageMap ?? Array.from({ length: height }, () => Array(width).fill(false))
 
+    const robots = [
+      {
+        id: 0,
+        x: overrides.robotX ?? 0,
+        y: overrides.robotY ?? 0,
+        orientation: overrides.robotOrientation ?? 0,
+        batteryPercentage: 100,
+        isCharging: false,
+      },
+    ]
+
     return new Environment(
       width,
       height,
-      overrides.robotX ?? 0,
-      overrides.robotY ?? 0,
-      overrides.robotOrientation ?? 0,
+      robots,
       threatGrid,
       coverageMap,
       overrides.suspiciousObjects ?? []
@@ -44,18 +53,18 @@ describe('Environment', () => {
 
     it('validates robot position is within bounds', () => {
       expect(() => createEnvironment({ width: 8, height: 8, robotX: 10, robotY: 5 })).toThrow(
-        'Robot X position 10 out of bounds'
+        'Robot 0 X position 10 out of bounds'
       )
     })
 
     it('validates robot Y position is within bounds', () => {
       expect(() => createEnvironment({ width: 8, height: 8, robotX: 5, robotY: 10 })).toThrow(
-        'Robot Y position 10 out of bounds'
+        'Robot 0 Y position 10 out of bounds'
       )
     })
 
     it('validates robot orientation range', () => {
-      expect(() => createEnvironment({ robotOrientation: 5 })).toThrow('Invalid robot orientation 5')
+      expect(() => createEnvironment({ robotOrientation: 5 })).toThrow('Invalid robot 0 orientation 5')
     })
 
     it('validates threat grid dimensions', () => {

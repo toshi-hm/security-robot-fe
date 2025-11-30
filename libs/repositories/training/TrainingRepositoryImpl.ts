@@ -160,6 +160,7 @@ export class TrainingRepositoryImpl implements TrainingRepository {
         learning_rate: config.learningRate ?? 0.0003,
         batch_size: config.batchSize ?? 64,
         num_workers: config.numWorkers ?? 1,
+        num_robots: config.numRobots ?? 1, // Multi-Agent Support
         config: config.mapConfig
           ? {
               map_config: {

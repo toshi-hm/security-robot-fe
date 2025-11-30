@@ -80,9 +80,12 @@ describe('EnvironmentRepositoryImpl', () => {
           height: 10,
         },
         robot: {
-          position: { row: 5, col: 5 },
-          batteryLevel: 100,
-          sensorReadings: [],
+          id: 0,
+          x: 5,
+          y: 5,
+          orientation: 0,
+          batteryPercentage: 100,
+          isCharging: false,
         },
         activeThreatLevel: 0.6,
       }
@@ -94,7 +97,7 @@ describe('EnvironmentRepositoryImpl', () => {
       expect(fetchMock).toHaveBeenCalledWith(API_ENDPOINTS.environment.state('env-1'))
       expect(result).toEqual(mockState)
       expect(result.definition.id).toBe('env-1')
-      expect(result.robot.position.col).toBe(5)
+      expect(result.robot.x).toBe(5)
       expect(result.activeThreatLevel).toBe(0.6)
     })
 
@@ -121,9 +124,12 @@ describe('EnvironmentRepositoryImpl', () => {
           height: 20,
         },
         robot: {
-          position: { row: 10, col: 10 },
-          batteryLevel: 50,
-          sensorReadings: [],
+          id: 0,
+          x: 10,
+          y: 10,
+          orientation: 0,
+          batteryPercentage: 50,
+          isCharging: false,
         },
         activeThreatLevel: 0.9,
       }
@@ -133,7 +139,7 @@ describe('EnvironmentRepositoryImpl', () => {
       const result = await repository.fetchState('env-complex')
 
       expect(result.definition.width).toBe(20)
-      expect(result.robot.batteryLevel).toBe(50)
+      expect(result.robot.batteryPercentage).toBe(50)
     })
   })
 })

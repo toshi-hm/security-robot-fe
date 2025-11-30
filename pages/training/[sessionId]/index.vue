@@ -6,6 +6,7 @@ import EnvironmentVisualization from '~/components/environment/EnvironmentVisual
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
+import type { RobotState } from '~/libs/domains/environment/RobotState'
 import type {
   TrainingProgressMessage,
   TrainingStatusMessage,
@@ -38,6 +39,7 @@ const statusType = ref<'success' | 'info' | 'warning' | 'error'>('info')
 const showStatusAlert = ref(false)
 
 // Environment update state
+const robots = ref<RobotState[]>([])
 const robotPosition = ref<{ x: number; y: number } | null>(null)
 const robotOrientation = ref<number | null>(null)
 const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
@@ -153,13 +155,16 @@ const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessa
         (!Array.isArray(m.robot_position) && 'x' in m.robot_position && 'y' in m.robot_position))
   )
 
+  // Validate robots array
+  const hasValidRobots = Array.isArray(m.robots)
+
   return (
     typeof m.type === 'string' &&
     m.type === 'environment_update' &&
     typeof m.session_id === 'number' &&
     typeof m.episode === 'number' &&
     typeof m.step === 'number' &&
-    hasValidRobotPosition &&
+    (hasValidRobotPosition || hasValidRobots) &&
     // Optional properties
     (m.action_taken === undefined || m.action_taken === null || typeof m.action_taken === 'number') &&
     (m.reward_received === undefined || m.reward_received === null || typeof m.reward_received === 'number') &&
@@ -247,8 +252,30 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
   if (!isEnvironmentUpdateMessage(message)) return
 
   if (message.session_id === sessionId.value) {
-    // Update robot position
-    if (message.robot_position) {
+    // Update robots state
+    // Update robots state
+    if (message.robots && Array.isArray(message.robots)) {
+      robots.value = message.robots.map((r) => ({
+        id: r.id,
+        x: r.x,
+        y: r.y,
+        orientation: r.orientation,
+        batteryPercentage: r.battery_percentage,
+        isCharging: r.is_charging,
+        actionTaken: r.action_taken ?? undefined,
+      }))
+      // Update legacy fields for backward compatibility (use first robot)
+      if (robots.value.length > 0) {
+        const firstRobot = robots.value[0]
+        if (firstRobot) {
+          robotPosition.value = { x: firstRobot.x, y: firstRobot.y }
+          robotOrientation.value = firstRobot.orientation
+          batteryPercentage.value = firstRobot.batteryPercentage
+          isCharging.value = firstRobot.isCharging
+        }
+      }
+    } else if (message.robot_position) {
+      // Legacy single robot update
       const robotPos = Array.isArray(message.robot_position)
         ? { x: message.robot_position[0] ?? 0, y: message.robot_position[1] ?? 0 }
         : message.robot_position
@@ -261,19 +288,41 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
           ? robotPos.orientation
           : null) ?? (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
 
-      // Add to trajectory if position changed
-      if (!robotPosition.value || robotPosition.value.x !== newPosition.x || robotPosition.value.y !== newPosition.y) {
-        robotTrajectory.value.push({ ...newPosition })
-
-        // Limit trajectory length to 100 points for performance
-        if (robotTrajectory.value.length > 100) {
-          robotTrajectory.value.shift()
-        }
-      }
-
       robotPosition.value = newPosition
       if (orientationFromPayload !== null) {
         robotOrientation.value = orientationFromPayload
+      }
+
+      // Create single robot entry in robots array
+      robots.value = [
+        {
+          id: 0,
+          x: newPosition.x,
+          y: newPosition.y,
+          orientation: orientationFromPayload ?? 0,
+          batteryPercentage: typeof message.battery_percentage === 'number' ? message.battery_percentage : 100,
+          isCharging: typeof message.is_charging === 'boolean' ? message.is_charging : false,
+          actionTaken: typeof message.action_taken === 'number' ? message.action_taken : undefined,
+        },
+      ]
+    }
+
+    // Add to trajectory if position changed (using first robot)
+    if (robots.value.length > 0) {
+      const firstRobot = robots.value[0]
+      if (firstRobot) {
+        const newPosition = { x: firstRobot.x, y: firstRobot.y }
+        const lastPoint =
+          robotTrajectory.value.length > 0 ? robotTrajectory.value[robotTrajectory.value.length - 1] : undefined
+
+        if (!lastPoint || lastPoint.x !== newPosition.x || lastPoint.y !== newPosition.y) {
+          robotTrajectory.value.push({ ...newPosition })
+
+          // Limit trajectory length to 100 points for performance
+          if (robotTrajectory.value.length > 100) {
+            robotTrajectory.value.shift()
+          }
+        }
       }
     }
 
@@ -295,11 +344,11 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
       threatGrid.value = message.threat_grid
     }
 
-    // Update battery information (Session 050)
-    if (typeof message.battery_percentage === 'number') {
+    // Update battery information (Session 050) - Legacy fallback
+    if (typeof message.battery_percentage === 'number' && robots.value.length === 0) {
       batteryPercentage.value = message.battery_percentage
     }
-    if (typeof message.is_charging === 'boolean') {
+    if (typeof message.is_charging === 'boolean' && robots.value.length === 0) {
       isCharging.value = message.is_charging
     }
     if (typeof message.distance_to_charging_station === 'number') {
@@ -400,6 +449,7 @@ onBeforeUnmount(() => {
             :grid-height="gridHeight"
             :robot-position="robotPosition"
             :robot-orientation="robotOrientation"
+            :robots="robots"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
             :trajectory="robotTrajectory"
@@ -413,27 +463,41 @@ onBeforeUnmount(() => {
           <template #header>
             <span>Environment State</span>
           </template>
-          <RobotPositionDisplay
-            v-if="robotPositionForDisplay"
-            :position="robotPositionForDisplay"
-            :orientation="robotOrientation"
-          />
-          <BatteryDisplay
-            :battery-percentage="batteryPercentage"
-            :is-charging="isCharging"
-            :distance-to-station="distanceToStation"
-            style="margin-top: 15px"
-          />
+
+          <!-- Multi-robot display -->
+          <div v-if="robots.length > 0" class="robots-list">
+            <div v-for="(robot, index) in robots" :key="index" class="robot-item">
+              <h4>Robot {{ robot.id ?? index }}</h4>
+              <RobotPositionDisplay
+                :position="{ row: Math.round(robot.y), col: Math.round(robot.x) }"
+                :orientation="robot.orientation"
+              />
+              <BatteryDisplay
+                :battery-percentage="robot.batteryPercentage"
+                :is-charging="robot.isCharging"
+                :distance-to-station="distanceToStation"
+                style="margin-top: 10px"
+              />
+              <el-divider v-if="index < robots.length - 1" />
+            </div>
+          </div>
+
+          <!-- Legacy fallback -->
+          <div v-else>
+            <RobotPositionDisplay
+              v-if="robotPositionForDisplay"
+              :position="robotPositionForDisplay"
+              :orientation="robotOrientation"
+            />
+            <BatteryDisplay
+              :battery-percentage="batteryPercentage"
+              :is-charging="isCharging"
+              :distance-to-station="distanceToStation"
+              style="margin-top: 15px"
+            />
+          </div>
+
           <el-descriptions :column="2" border style="margin-top: 15px">
-            <el-descriptions-item label="Position X">
-              {{ robotPosition.x.toFixed(2) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="Position Y">
-              {{ robotPosition.y.toFixed(2) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="Orientation">
-              {{ robotOrientationText }}
-            </el-descriptions-item>
             <el-descriptions-item label="Last Action">
               {{ lastAction || 'N/A' }}
             </el-descriptions-item>
@@ -495,6 +559,20 @@ onBeforeUnmount(() => {
     background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-tertiary);
     height: 400px;
+    overflow-y: auto; // Allow scrolling for multiple robots
+  }
+}
+
+.robots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robot-item {
+  h4 {
+    color: var(--color-text-primary);
+    margin: 0 0 10px;
   }
 }
 </style>

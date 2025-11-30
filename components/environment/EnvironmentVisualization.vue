@@ -3,12 +3,14 @@ import { ref, onMounted, watch, computed } from 'vue'
 
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
+import type { RobotState } from '~/libs/domains/environment/RobotState'
 
 interface Props {
   gridWidth?: number
   gridHeight?: number
   robotPosition?: Position | null
   robotOrientation?: number | null
+  robots?: RobotState[] // Multi-Agent Support
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
   obstacles?: boolean[][] | null // 障害物マップ
@@ -27,6 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   gridWidth: 8,
   gridHeight: 8,
   robotPosition: null,
+  robots: () => [],
   coverageMap: () => [],
   threatGrid: () => [],
   obstacles: null,
@@ -118,6 +121,20 @@ const normalizeOrientation = (orientation: number | null | undefined): number | 
   return normalized < 0 ? normalized + 4 : normalized
 }
 
+const getRobotColor = (index: number, rootStyle: CSSStyleDeclaration): string => {
+  const colors = [
+    rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff', // Blue (Default)
+    '#67c23a', // Green
+    '#e6a23c', // Orange
+    '#f56c6c', // Red
+    '#909399', // Gray
+    '#a0cfff', // Light Blue
+    '#b3e19d', // Light Green
+    '#f3d19e', // Light Orange
+  ]
+  return colors[index % colors.length] ?? '#409EFF'
+}
+
 const drawEnvironment = () => {
   if (!canvas.value) return
 
@@ -127,7 +144,6 @@ const drawEnvironment = () => {
   const rootStyle = getComputedStyle(document.documentElement)
   const visitedCellColor = rootStyle.getPropertyValue('--color-bg-visited-cell').trim() || 'rgba(0, 255, 0, 0.2)'
   const gridBorderColor = rootStyle.getPropertyValue('--color-border-grid').trim() || '#999'
-  const robotBodyColor = rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff'
   const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
   const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
   const patrolRangeFillColor =
@@ -194,15 +210,41 @@ const drawEnvironment = () => {
   // Draw robot trajectory
   drawTrajectory(ctx, trajectoryColors)
 
-  // Draw robot position
-  if (props.robotPosition) {
-    const robotX = Math.floor(props.robotPosition.x) * cellSize + cellSize / 2
-    const robotY = Math.floor(props.robotPosition.y) * cellSize + cellSize / 2
+  // Determine robots to draw
+  let robotsToDraw: Array<{ x: number; y: number; orientation: number; id: number }> = []
 
-    drawPatrolRange(ctx, robotX, robotY, patrolRangeFillColor, patrolRangeStrokeColor)
+  if (props.robots && props.robots.length > 0) {
+    robotsToDraw = props.robots.map((r, i) => ({
+      x: r.x,
+      y: r.y,
+      orientation: r.orientation,
+      id: r.id ?? i,
+    }))
+  } else if (props.robotPosition) {
+    // Backward compatibility
+    robotsToDraw = [
+      {
+        x: props.robotPosition.x,
+        y: props.robotPosition.y,
+        orientation: props.robotOrientation ?? 0,
+        id: 0,
+      },
+    ]
+  }
+
+  // Draw robots
+  robotsToDraw.forEach((robot, index) => {
+    const robotX = Math.floor(robot.x) * cellSize + cellSize / 2
+    const robotY = Math.floor(robot.y) * cellSize + cellSize / 2
+    const robotColor = getRobotColor(index, rootStyle)
+
+    // Draw patrol range only for the first robot (or selected robot in future)
+    if (index === 0) {
+      drawPatrolRange(ctx, robotX, robotY, patrolRangeFillColor, patrolRangeStrokeColor)
+    }
 
     // Robot body (circle)
-    ctx.fillStyle = robotBodyColor
+    ctx.fillStyle = robotColor
     ctx.beginPath()
     ctx.arc(robotX, robotY, cellSize / 3, 0, Math.PI * 2)
     ctx.fill()
@@ -213,8 +255,17 @@ const drawEnvironment = () => {
     ctx.stroke()
 
     // Robot direction indicator (small circle)
-    drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor)
-  }
+    drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor, robot.orientation)
+
+    // Robot ID badge
+    if (robotsToDraw.length > 1) {
+      ctx.fillStyle = '#fff'
+      ctx.font = `bold ${cellSize / 4}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(String(robot.id), robotX, robotY)
+    }
+  })
 
   // Restore canvas context
   ctx.restore()
@@ -285,8 +336,14 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors)
   })
 }
 
-const drawOrientationIndicator = (ctx: CanvasRenderingContext2D, robotX: number, robotY: number, color: string) => {
-  const orientation = normalizeOrientation(props.robotOrientation)
+const drawOrientationIndicator = (
+  ctx: CanvasRenderingContext2D,
+  robotX: number,
+  robotY: number,
+  color: string,
+  orientationValue?: number | null
+) => {
+  const orientation = normalizeOrientation(orientationValue ?? props.robotOrientation)
   if (orientation === null) {
     ctx.fillStyle = color
     ctx.beginPath()
