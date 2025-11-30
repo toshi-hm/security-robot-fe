@@ -31,18 +31,19 @@ describe('useTraining', () => {
     return useTraining()
   }
 
-  const createSession = () =>
-    new TrainingSession(
-      1,
-      'Session',
+  const createSession = (id: number = 1, name: string = 'Session') => {
+    return new TrainingSession(
+      id,
+      name,
       'ppo',
       'standard',
       'running',
       10_000,
       5_000,
+      20,
       10,
       10,
-      10,
+      1, // numRobots
       1,
       2,
       3,
@@ -56,6 +57,7 @@ describe('useTraining', () => {
       new Date('2024-01-01T01:00:00Z'),
       null
     )
+  }
 
   it('fetches sessions and populates refs', async () => {
     const composable = await loadComposable()

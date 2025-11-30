@@ -25,6 +25,7 @@ export interface TrainingSessionDTO {
   episodes_completed: number
   env_width: number
   env_height: number
+  num_robots?: number
   coverage_weight: number
   exploration_weight: number
   diversity_weight: number
@@ -61,6 +62,7 @@ export class TrainingSessionEntity {
       dto.episodes_completed,
       dto.env_width,
       dto.env_height,
+      dto.num_robots ?? 1,
       dto.coverage_weight,
       dto.exploration_weight,
       dto.diversity_weight,
@@ -88,6 +90,7 @@ export class TrainingSessionEntity {
       episodes_completed: domain.episodesCompleted,
       env_width: domain.envWidth,
       env_height: domain.envHeight,
+      num_robots: domain.numRobots,
       coverage_weight: domain.coverageWeight,
       exploration_weight: domain.explorationWeight,
       diversity_weight: domain.diversityWeight,

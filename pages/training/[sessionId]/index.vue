@@ -7,6 +7,8 @@ import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
+import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
+import { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
 import type {
   TrainingProgressMessage,
   TrainingStatusMessage,
@@ -18,6 +20,13 @@ import { getChargingStationPosition } from '~/utils/batteryHelpers'
 
 const route = useRoute()
 const sessionId = computed(() => Number(route.params.sessionId))
+const config = useRuntimeConfig()
+
+// Session info state
+const sessionInfo = ref<TrainingSession | null>(null)
+const sessionLoading = ref(true)
+const sessionError = ref<string | null>(null)
+const sessionStartTime = ref<Date | null>(null)
 
 // WebSocket integration
 const { connect, disconnect, isConnected, error, on, off } = useWebSocket()
@@ -66,13 +75,23 @@ const robotPositionForDisplay = computed(() => {
   }
 })
 
-const orientationLabels = ['北', '東', '南', '西'] as const
-const robotOrientationText = computed(() => {
-  if (robotOrientation.value === null || Number.isNaN(robotOrientation.value)) return '未取得'
-  const normalized =
-    ((Math.round(robotOrientation.value) % orientationLabels.length) + orientationLabels.length) %
-    orientationLabels.length
-  return orientationLabels[normalized]
+// Session info computed properties
+const totalTimesteps = computed(() => sessionInfo.value?.totalTimesteps ?? 0)
+const numRobots = computed(() => sessionInfo.value?.numRobots ?? 1)
+const progressPercentage = computed(() => {
+  if (totalTimesteps.value === 0) return 0
+  return Math.min(100, (currentMetrics.value.timestep / totalTimesteps.value) * 100)
+})
+const estimatedTimeRemaining = computed(() => {
+  if (!sessionStartTime.value || !sessionInfo.value?.isRunning) return null
+  if (currentMetrics.value.timestep === 0 || progressPercentage.value === 0) return null
+
+  const elapsed = Date.now() - sessionStartTime.value.getTime()
+  const stepsPerMs = currentMetrics.value.timestep / elapsed
+  const remainingSteps = totalTimesteps.value - currentMetrics.value.timestep
+  const remainingMs = remainingSteps / stepsPerMs
+
+  return Math.ceil(remainingMs / 60000) // Convert to minutes
 })
 
 // Type guards for 2D arrays
@@ -361,9 +380,25 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = sessionId.value
   if (id && !isNaN(id)) {
+    // Fetch session info from backend API
+    try {
+      const data = await $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
+      if (data) {
+        // Convert DTO to domain model using entity
+        sessionInfo.value = TrainingSessionEntity.toDomain(data as any)
+        if (sessionInfo.value.startedAt) {
+          sessionStartTime.value = sessionInfo.value.startedAt
+        }
+      }
+    } catch (err: any) {
+      sessionError.value = `Failed to load session info: ${err.message || err}`
+    } finally {
+      sessionLoading.value = false
+    }
+
     // Register message handlers
     on('training_progress', handleTrainingProgress)
     on('training_status', handleTrainingStatus)
@@ -376,6 +411,7 @@ onMounted(() => {
     connect(id)
   } else {
     console.error('Invalid session ID, WebSocket connection aborted.', id)
+    sessionLoading.value = false
   }
 })
 
@@ -415,6 +451,42 @@ onBeforeUnmount(() => {
       <template #title> Training Status: {{ trainingStatus }} </template>
       {{ statusMessage }}
     </el-alert>
+
+    <!-- Session Info Card -->
+    <el-card v-if="sessionInfo" class="training-session__session-info" style="margin-bottom: 20px">
+      <template #header>
+        <span class="training-session__session-info-title">セッション情報</span>
+      </template>
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">ロボット数</div>
+            <div class="training-session__info-value">{{ numRobots }}台</div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">目標ステップ数</div>
+            <div class="training-session__info-value">{{ totalTimesteps.toLocaleString() }}</div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">進捗率</div>
+            <div class="training-session__info-value">{{ progressPercentage.toFixed(1) }}%</div>
+            <el-progress :percentage="progressPercentage" :stroke-width="8" style="margin-top: 8px" />
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">完了予測</div>
+            <div class="training-session__info-value">
+              {{ estimatedTimeRemaining !== null ? `約${estimatedTimeRemaining}分後` : 'N/A' }}
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
 
     <el-card class="training-session__metrics">
       <template #header>
@@ -560,6 +632,38 @@ onBeforeUnmount(() => {
     border: 2px solid var(--md-tertiary);
     height: 400px;
     overflow-y: auto; // Allow scrolling for multiple robots
+  }
+
+  &__session-info {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+  }
+
+  &__session-info-title {
+    color: var(--md-on-surface);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  &__info-card {
+    background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
+    border: 1px solid var(--md-secondary);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  &__info-label {
+    color: var(--md-on-secondary-container);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  &__info-value {
+    color: var(--md-on-surface);
+    font-size: 1.5rem;
+    font-weight: 700;
   }
 }
 

@@ -31,14 +31,7 @@ describe('Environment', () => {
       },
     ]
 
-    return new Environment(
-      width,
-      height,
-      robots,
-      threatGrid,
-      coverageMap,
-      overrides.suspiciousObjects ?? []
-    )
+    return new Environment(width, height, robots, threatGrid, coverageMap, overrides.suspiciousObjects ?? [])
   }
 
   describe('initialization', () => {
