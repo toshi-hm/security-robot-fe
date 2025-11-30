@@ -24,6 +24,55 @@
 
 ## 📝 セッション記録
 
+<a id="session-057---multi-agent-support-implementation-2025-11-30"></a>
+### Session 057 - Multi-Agent Support Implementation (2025-11-30)
+
+**目的**: バックエンドAPIのマルチエージェント学習対応に合わせて、フロントエンドの実装（テストを含む）を行う。
+
+**実施内容**:
+
+1.  **APIスキーマの更新 (`types/api.ts`)**
+    -   `RobotState` インターフェースを新規追加。
+    -   `EnvironmentUpdateMessage` および `EnvironmentStateResponseDTO` に `robots?: RobotState[]` フィールドを追加。
+
+2.  **ドメインモデルの更新**
+    -   `libs/domains/environment/RobotState.ts`: API定義に合わせて更新。
+    -   `libs/domains/environment/Environment.ts`: コンストラクタを `robots` 配列を受け取るように変更。後方互換性のため、単一ロボット用のGetter (`robotX`, `robotY` 等) を実装し、`robots[0]` から値を取得するように変更。
+    -   `libs/entities/environment/EnvironmentStateEntity.ts`: `robots` プロパティ追加。
+
+3.  **可視化コンポーネントの更新**
+    -   `components/environment/EnvironmentVisualization.vue`:
+        -   `robots` propを追加。
+        -   複数のロボットを描画するループ処理を実装。
+        -   ロボットごとに異なる色（青、緑、オレンジ、紫...）とIDバッジを表示。
+        -   単一ロボットプロパティ (`robotPosition`) との後方互換性を維持。
+    -   `components/environment/RobotPositionDisplay.vue`:
+        -   複数ロボットの情報表示に対応（リスト表示）。
+
+4.  **ページロジックの更新**
+    -   `pages/training/[sessionId]/index.vue`:
+        -   WebSocket `environment_update` メッセージから `robots` 配列を解析。
+        -   `robots` データがない場合は、レガシーフィールドから単一ロボット配列を生成する後方互換ロジックを実装。
+    -   `pages/playback/[sessionId].vue`:
+        -   フレームデータから `robots` 配列を抽出して可視化コンポーネントに渡すように変更。
+
+5.  **テストの更新**
+    -   `tests/unit/libs/domains/environment/Environment.spec.ts`: コンストラクタ変更に合わせてテストケースを修正。
+
+**技術的発見**:
+
+-   **後方互換性の重要性**: バックエンドの移行期間中、新旧両方のデータ形式に対応することで、システムの安定性を維持できる。
+-   **VueのReactivity**: 配列データの変更を検知してCanvasを再描画するために、`watch` の `deep: true` オプションが有効。
+
+**成果物**:
+-   マルチエージェント対応のフロントエンド実装（Training/Playbackページ）
+-   更新されたAPI定義とドメインモデル
+
+**時間**: 約90分
+**コミット**: `feat: implement multi-agent frontend support`
+
+---
+
 <a id="session-026---test-refactoring--enhancement-2025-10-14"></a>
 ### Session 026 - Test Refactoring & Enhancement (2025-10-14)
 
