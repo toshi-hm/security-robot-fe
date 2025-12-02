@@ -274,6 +274,7 @@ describe('TrainingControl.vue', () => {
       learningRate: 0.0003,
       batchSize: 64,
       numWorkers: 1,
+      numRobots: 1,
       // Random Map Settings
       mapConfig: {
         mapType: 'random',

@@ -36,6 +36,7 @@ const createDummySession = (config: TrainingConfig): TrainingSession => {
     0,
     config.envWidth,
     config.envHeight,
+    config.numRobots ?? 1,
     config.coverageWeight,
     config.explorationWeight,
     config.diversityWeight,

@@ -17,6 +17,7 @@ import type {
   EnvironmentUpdateMessage,
 } from '~/types/api'
 import { getChargingStationPosition } from '~/utils/batteryHelpers'
+import { updateRobotsFromMessage } from '~/utils/robotStateHelpers'
 
 const route = useRoute()
 const sessionId = computed(() => Number(route.params.sessionId))
@@ -273,57 +274,17 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
   if (message.session_id === sessionId.value) {
     // Update robots state
     // Update robots state
-    if (message.robots && Array.isArray(message.robots)) {
-      robots.value = message.robots.map((r) => ({
-        id: r.id,
-        x: r.x,
-        y: r.y,
-        orientation: r.orientation,
-        batteryPercentage: r.battery_percentage,
-        isCharging: r.is_charging,
-        actionTaken: r.action_taken ?? undefined,
-      }))
-      // Update legacy fields for backward compatibility (use first robot)
-      if (robots.value.length > 0) {
-        const firstRobot = robots.value[0]
-        if (firstRobot) {
-          robotPosition.value = { x: firstRobot.x, y: firstRobot.y }
-          robotOrientation.value = firstRobot.orientation
-          batteryPercentage.value = firstRobot.batteryPercentage
-          isCharging.value = firstRobot.isCharging
-        }
-      }
-    } else if (message.robot_position) {
-      // Legacy single robot update
-      const robotPos = Array.isArray(message.robot_position)
-        ? { x: message.robot_position[0] ?? 0, y: message.robot_position[1] ?? 0 }
-        : message.robot_position
-      const newPosition = {
-        x: robotPos.x ?? 0,
-        y: robotPos.y ?? 0,
-      }
-      const orientationFromPayload =
-        (!Array.isArray(message.robot_position) && typeof robotPos.orientation === 'number'
-          ? robotPos.orientation
-          : null) ?? (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
+    robots.value = updateRobotsFromMessage(message)
 
-      robotPosition.value = newPosition
-      if (orientationFromPayload !== null) {
-        robotOrientation.value = orientationFromPayload
+    // Update legacy fields for backward compatibility (use first robot)
+    if (robots.value.length > 0) {
+      const firstRobot = robots.value[0]
+      if (firstRobot) {
+        robotPosition.value = { x: firstRobot.x, y: firstRobot.y }
+        robotOrientation.value = firstRobot.orientation
+        batteryPercentage.value = firstRobot.batteryPercentage
+        isCharging.value = firstRobot.isCharging
       }
-
-      // Create single robot entry in robots array
-      robots.value = [
-        {
-          id: 0,
-          x: newPosition.x,
-          y: newPosition.y,
-          orientation: orientationFromPayload ?? 0,
-          batteryPercentage: typeof message.battery_percentage === 'number' ? message.battery_percentage : 100,
-          isCharging: typeof message.is_charging === 'boolean' ? message.is_charging : false,
-          actionTaken: typeof message.action_taken === 'number' ? message.action_taken : undefined,
-        },
-      ]
     }
 
     // Add to trajectory if position changed (using first robot)

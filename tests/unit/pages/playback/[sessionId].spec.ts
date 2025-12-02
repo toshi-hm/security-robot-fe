@@ -313,7 +313,7 @@ describe('Playback Session Page', () => {
     // Verify robot list display
     const robotItems = wrapper.findAll('.robot-item')
     expect(robotItems).toHaveLength(2)
-    expect(robotItems[0].text()).toContain('Robot 0')
-    expect(robotItems[1].text()).toContain('Robot 1')
+    expect(robotItems[0]?.text()).toContain('Robot 0')
+    expect(robotItems[1]?.text()).toContain('Robot 1')
   })
 })
