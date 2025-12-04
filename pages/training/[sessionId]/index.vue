@@ -5,7 +5,6 @@ import BatteryDisplay from '~/components/environment/BatteryDisplay.vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
-import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
 import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
@@ -49,9 +48,8 @@ const statusType = ref<'success' | 'info' | 'warning' | 'error'>('info')
 const showStatusAlert = ref(false)
 
 // Environment update state
+// Environment update state
 const robots = ref<RobotState[]>([])
-const robotPosition = ref<{ x: number; y: number } | null>(null)
-const robotOrientation = ref<number | null>(null)
 const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
@@ -59,13 +57,36 @@ const gridWidth = ref<number>(8)
 const gridHeight = ref<number>(8)
 const coverageMap = ref<boolean[][]>([])
 const threatGrid = ref<number[][]>([])
+import { DEFAULT_PATROL_RADIUS } from '../../../configs/constants'
 const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 
 // Battery system state (Session 050)
-const batteryPercentage = ref<number | null>(null)
-const isCharging = ref<boolean>(false)
+const globalBatteryPercentage = ref<number | null>(null)
+const globalIsCharging = ref<boolean>(false)
 const distanceToStation = ref<number | null>(null)
 const chargingStationPosition = ref<{ x: number; y: number } | null>(null)
+
+// Computed properties for robot state (Reactivity Optimization)
+const firstRobot = computed(() => (robots.value.length > 0 ? robots.value[0] : null))
+
+const robotPosition = computed(() => {
+  if (firstRobot.value) {
+    return { x: firstRobot.value.x, y: firstRobot.value.y }
+  }
+  return null
+})
+
+const robotOrientation = computed(() => firstRobot.value?.orientation ?? null)
+
+const batteryPercentage = computed(() => {
+  if (firstRobot.value) return firstRobot.value.batteryPercentage
+  return globalBatteryPercentage.value
+})
+
+const isCharging = computed(() => {
+  if (firstRobot.value) return firstRobot.value.isCharging
+  return globalIsCharging.value
+})
 
 // Computed property for RobotPositionDisplay (converts x,y to row,col)
 const robotPositionForDisplay = computed(() => {
@@ -273,19 +294,7 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
 
   if (message.session_id === sessionId.value) {
     // Update robots state
-    // Update robots state
     robots.value = updateRobotsFromMessage(message)
-
-    // Update legacy fields for backward compatibility (use first robot)
-    if (robots.value.length > 0) {
-      const firstRobot = robots.value[0]
-      if (firstRobot) {
-        robotPosition.value = { x: firstRobot.x, y: firstRobot.y }
-        robotOrientation.value = firstRobot.orientation
-        batteryPercentage.value = firstRobot.batteryPercentage
-        isCharging.value = firstRobot.isCharging
-      }
-    }
 
     // Add to trajectory if position changed (using first robot)
     if (robots.value.length > 0) {
@@ -326,10 +335,10 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
 
     // Update battery information (Session 050) - Legacy fallback
     if (typeof message.battery_percentage === 'number' && robots.value.length === 0) {
-      batteryPercentage.value = message.battery_percentage
+      globalBatteryPercentage.value = message.battery_percentage
     }
     if (typeof message.is_charging === 'boolean' && robots.value.length === 0) {
-      isCharging.value = message.is_charging
+      globalIsCharging.value = message.is_charging
     }
     if (typeof message.distance_to_charging_station === 'number') {
       distanceToStation.value = message.distance_to_charging_station
@@ -345,20 +354,22 @@ onMounted(async () => {
   const id = sessionId.value
   if (id && !isNaN(id)) {
     // Fetch session info from backend API
-    try {
-      const data = await $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
-      if (data) {
-        // Convert DTO to domain model using entity
-        sessionInfo.value = TrainingSessionEntity.toDomain(data as any)
-        if (sessionInfo.value.startedAt) {
-          sessionStartTime.value = sessionInfo.value.startedAt
-        }
+    // Fetch session info from backend API
+    const { data, error: fetchError } = await useAsyncData(`session-${id}`, () =>
+      $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
+    )
+
+    if (fetchError.value) {
+      sessionError.value = `Failed to load session info: ${fetchError.value.message || fetchError.value}`
+      ElMessage.error(sessionError.value)
+    } else if (data.value) {
+      // Convert DTO to domain model using entity
+      sessionInfo.value = TrainingSessionEntity.toDomain(data.value as any)
+      if (sessionInfo.value.startedAt) {
+        sessionStartTime.value = sessionInfo.value.startedAt
       }
-    } catch (err: any) {
-      sessionError.value = `Failed to load session info: ${err.message || err}`
-    } finally {
-      sessionLoading.value = false
     }
+    sessionLoading.value = false
 
     // Register message handlers
     on('training_progress', handleTrainingProgress)

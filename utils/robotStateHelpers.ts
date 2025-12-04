@@ -43,7 +43,7 @@ export const updateRobotsFromMessage = (message: EnvironmentUpdateMessage): Robo
         x: newPosition.x,
         y: newPosition.y,
         orientation: orientationFromPayload ?? 0,
-        batteryPercentage: typeof message.battery_percentage === 'number' ? message.battery_percentage : 100,
+        batteryPercentage: typeof message.battery_percentage === 'number' ? message.battery_percentage : 0,
         isCharging: typeof message.is_charging === 'boolean' ? message.is_charging : false,
         actionTaken: typeof message.action_taken === 'number' ? message.action_taken : undefined,
       },

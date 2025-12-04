@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
 import TrainingSessionPage from '~/pages/training/[sessionId]/index.vue'
@@ -21,6 +21,32 @@ vi.stubGlobal('useWebSocket', () => ({
   on: vi.fn(),
   off: vi.fn(),
 }))
+
+// Mock useAsyncData
+vi.stubGlobal('useAsyncData', () =>
+  Promise.resolve({
+    data: { value: null },
+    error: { value: null },
+  })
+)
+
+// Mock useRuntimeConfig
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: {
+    apiBaseUrl: 'http://localhost:8000',
+  },
+}))
+
+// Mock $fetch
+vi.stubGlobal('$fetch', vi.fn())
+
+// Mock ElMessage
+vi.stubGlobal('ElMessage', {
+  error: vi.fn(),
+  success: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+})
 
 // Mock TrainingMetrics component
 const TrainingMetricsStub = {
@@ -115,7 +141,7 @@ describe('Training Session Page', () => {
     expect(props).toHaveProperty('explorationScore')
   })
 
-  it('registers all WebSocket event handlers on mount', () => {
+  it('registers all WebSocket event handlers on mount', async () => {
     const mockOn = vi.fn()
     vi.stubGlobal('useWebSocket', () => ({
       connect: vi.fn(),
@@ -131,6 +157,8 @@ describe('Training Session Page', () => {
         stubs: commonStubs,
       },
     })
+
+    await flushPromises()
 
     expect(mockOn).toHaveBeenCalledWith('training_progress', expect.any(Function))
     expect(mockOn).toHaveBeenCalledWith('training_status', expect.any(Function))

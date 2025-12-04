@@ -175,7 +175,7 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   session_id: number
   episode: number
   step: number
-  robot_position: { x: number; y: number; orientation?: number } | [number, number]
+  robot_position?: { x: number; y: number; orientation?: number } | [number, number]
   robot_orientation?: number | null
   robots?: RobotStateDTO[] // Multi-Agent Support
   action_taken?: number | null

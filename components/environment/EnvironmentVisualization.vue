@@ -39,6 +39,29 @@ const props = withDefaults(defineProps<Props>(), {
   chargingStationPosition: null,
 })
 
+// Computed robots to draw
+const robotsToDraw = computed(() => {
+  if (props.robots && props.robots.length > 0) {
+    return props.robots.map((r, i) => ({
+      x: r.x,
+      y: r.y,
+      orientation: r.orientation,
+      id: r.id ?? i,
+    }))
+  } else if (props.robotPosition) {
+    // Backward compatibility
+    return [
+      {
+        x: props.robotPosition.x,
+        y: props.robotPosition.y,
+        orientation: props.robotOrientation ?? 0,
+        id: 0,
+      },
+    ]
+  }
+  return []
+})
+
 const canvas = ref<HTMLCanvasElement | null>(null)
 const cellSize = 60 // pixels per cell
 
@@ -121,8 +144,11 @@ const normalizeOrientation = (orientation: number | null | undefined): number | 
   return normalized < 0 ? normalized + 4 : normalized
 }
 
-const getRobotColor = (index: number, rootStyle: CSSStyleDeclaration): string => {
-  const colors = [
+const robotColors = ref<string[]>([])
+
+const updateRobotColors = () => {
+  const rootStyle = getComputedStyle(document.documentElement)
+  robotColors.value = [
     rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff', // Blue (Default)
     '#67c23a', // Green
     '#e6a23c', // Orange
@@ -132,7 +158,11 @@ const getRobotColor = (index: number, rootStyle: CSSStyleDeclaration): string =>
     '#b3e19d', // Light Green
     '#f3d19e', // Light Orange
   ]
-  return colors[index % colors.length] ?? '#409EFF'
+}
+
+const getRobotColor = (index: number): string => {
+  if (robotColors.value.length === 0) return '#409EFF'
+  return robotColors.value[index % robotColors.value.length] ?? '#409EFF'
 }
 
 const drawEnvironment = () => {
@@ -211,32 +241,14 @@ const drawEnvironment = () => {
   drawTrajectory(ctx, trajectoryColors)
 
   // Determine robots to draw
-  let robotsToDraw: Array<{ x: number; y: number; orientation: number; id: number }> = []
-
-  if (props.robots && props.robots.length > 0) {
-    robotsToDraw = props.robots.map((r, i) => ({
-      x: r.x,
-      y: r.y,
-      orientation: r.orientation,
-      id: r.id ?? i,
-    }))
-  } else if (props.robotPosition) {
-    // Backward compatibility
-    robotsToDraw = [
-      {
-        x: props.robotPosition.x,
-        y: props.robotPosition.y,
-        orientation: props.robotOrientation ?? 0,
-        id: 0,
-      },
-    ]
-  }
+  // robotsToDraw is now a computed property, accessed via .value
+  const robots = robotsToDraw.value
 
   // Draw robots
-  robotsToDraw.forEach((robot, index) => {
+  robots.forEach((robot, index) => {
     const robotX = Math.floor(robot.x) * cellSize + cellSize / 2
     const robotY = Math.floor(robot.y) * cellSize + cellSize / 2
-    const robotColor = getRobotColor(index, rootStyle)
+    const robotColor = getRobotColor(index)
 
     // Draw patrol range only for the first robot (or selected robot in future)
     if (index === 0) {
@@ -258,7 +270,7 @@ const drawEnvironment = () => {
     drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor, robot.orientation)
 
     // Robot ID badge
-    if (robotsToDraw.length > 1) {
+    if (robots.length > 1 && typeof robot.id === 'number') {
       ctx.fillStyle = '#fff'
       ctx.font = `bold ${cellSize / 4}px Arial`
       ctx.textAlign = 'center'
@@ -461,6 +473,7 @@ watch(
 )
 
 onMounted(() => {
+  updateRobotColors()
   drawEnvironment()
 })
 </script>
