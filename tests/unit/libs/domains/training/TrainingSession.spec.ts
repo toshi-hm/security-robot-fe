@@ -18,6 +18,7 @@ type SessionOverrides = {
   episodesCompleted?: number
   envWidth?: number
   envHeight?: number
+  numRobots?: number
   coverageWeight?: number
   explorationWeight?: number
   diversityWeight?: number
@@ -41,6 +42,7 @@ describe('TrainingSession', () => {
       overrides.episodesCompleted ?? 20,
       overrides.envWidth ?? 10,
       overrides.envHeight ?? 10,
+      overrides.numRobots ?? 1,
       overrides.coverageWeight ?? 1,
       overrides.explorationWeight ?? 2,
       overrides.diversityWeight ?? 3,

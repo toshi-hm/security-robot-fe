@@ -20,6 +20,7 @@ export interface MapConfig {
  */
 export interface TrainingSessionConfig {
   map_config?: MapConfig
+  num_robots?: number // Multi-Agent Support
 }
 
 /**
@@ -45,6 +46,7 @@ export interface TrainingSessionCreateRequest {
   learning_rate?: number
   batch_size?: number
   num_workers?: number
+  num_robots?: number // Multi-Agent Support
   config?: TrainingSessionConfig
 }
 
@@ -173,8 +175,9 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   session_id: number
   episode: number
   step: number
-  robot_position: { x: number; y: number; orientation?: number } | [number, number]
+  robot_position?: { x: number; y: number; orientation?: number } | [number, number]
   robot_orientation?: number | null
+  robots?: RobotStateDTO[] // Multi-Agent Support
   action_taken?: number | null
   reward_received?: number | null
   grid_width?: number
@@ -187,6 +190,16 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   distance_to_charging_station?: number
   charging_station_position_x?: number
   charging_station_position_y?: number
+}
+
+export interface RobotStateDTO {
+  id: number
+  x: number
+  y: number
+  orientation: number
+  battery_percentage: number
+  is_charging: boolean
+  action_taken?: number | null
 }
 
 export interface ConnectionAckMessage extends BaseWebSocketMessage {
@@ -262,7 +275,8 @@ export interface EnvironmentStateResponseDTO {
   robot_x: number
   robot_y: number
   robot_orientation: number
-  threat_grid: number[][] // Backend: {levels: number[][]}, normalized to number[][]
+  robots?: RobotStateDTO[] // Multi-Agent Support
+  threat_grid: number[][] // Backend: {levels: number[][]} | null, normalized to number[][]
   coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
   obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null
   suspicious_objects: Array<{

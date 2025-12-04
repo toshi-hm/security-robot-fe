@@ -1,5 +1,9 @@
 export interface RobotState {
-  position: { row: number; col: number }
-  batteryLevel: number
-  sensorReadings: number[]
+  id: number
+  x: number
+  y: number
+  orientation: number
+  batteryPercentage: number
+  isCharging: boolean
+  actionTaken?: number
 }

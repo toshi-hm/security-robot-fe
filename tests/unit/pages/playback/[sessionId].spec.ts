@@ -59,6 +59,7 @@ const EnvironmentVisualizationStub = {
     'threatGrid',
     'trajectory',
     'patrolRadius',
+    'robots', // Add robots prop to stub
   ],
 }
 
@@ -242,5 +243,77 @@ describe('Playback Session Page', () => {
       { x: 1, y: 1 },
       { x: 2, y: 1 },
     ])
+  })
+
+  it('handles multi-agent data correctly', () => {
+    const playbackStore = usePlaybackStore()
+    playbackStore.frames = [
+      {
+        timestamp: '',
+        reward: 0,
+        environmentState: {
+          robot_x: 1,
+          robot_y: 1,
+          robot_orientation: 0,
+          threat_grid: [[0]],
+          coverage_map: [[0]],
+          robots: [
+            {
+              id: 0,
+              x: 1,
+              y: 1,
+              orientation: 0,
+              battery_percentage: 100,
+              is_charging: false,
+            },
+            {
+              id: 1,
+              x: 5,
+              y: 5,
+              orientation: 2,
+              battery_percentage: 80,
+              is_charging: true,
+            },
+          ],
+        },
+      },
+    ] as any
+    playbackStore.currentFrameIndex = 0
+
+    const wrapper = mount(PlaybackSessionPage, {
+      global: { stubs: globalStubs },
+    })
+
+    // Verify EnvironmentVisualization props
+    const env = wrapper.findComponent(EnvironmentVisualizationStub)
+    expect(env.exists()).toBe(true)
+    const robotsProp = env.props('robots')
+    expect(robotsProp).toHaveLength(2)
+    expect(robotsProp[0]).toEqual(
+      expect.objectContaining({
+        id: 0,
+        x: 1,
+        y: 1,
+        orientation: 0,
+        batteryPercentage: 100,
+        isCharging: false,
+      })
+    )
+    expect(robotsProp[1]).toEqual(
+      expect.objectContaining({
+        id: 1,
+        x: 5,
+        y: 5,
+        orientation: 2,
+        batteryPercentage: 80,
+        isCharging: true,
+      })
+    )
+
+    // Verify robot list display
+    const robotItems = wrapper.findAll('.robot-item')
+    expect(robotItems).toHaveLength(2)
+    expect(robotItems[0]?.text()).toContain('Robot 0')
+    expect(robotItems[1]?.text()).toContain('Robot 1')
   })
 })

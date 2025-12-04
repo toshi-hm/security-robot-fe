@@ -106,6 +106,7 @@ describe('TrainingRepositoryImpl', () => {
           total_timesteps: 10_000,
           env_width: 10,
           env_height: 10,
+          num_robots: 1,
           coverage_weight: 1,
           exploration_weight: 2,
           diversity_weight: 3,

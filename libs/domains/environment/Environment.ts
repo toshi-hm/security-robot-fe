@@ -1,3 +1,5 @@
+import type { RobotState } from './RobotState'
+
 export interface SuspiciousObject {
   id: number
   x: number
@@ -31,20 +33,39 @@ export class Environment {
   constructor(
     public readonly width: number,
     public readonly height: number,
-    public readonly robotX: number,
-    public readonly robotY: number,
-    public readonly robotOrientation: number, // 0=北, 1=東, 2=南, 3=西
+    public readonly robots: RobotState[], // 複数ロボット対応
     public readonly threatGrid: number[][], // [y][x] = 0.0-1.0
     public readonly coverageMap: boolean[][], // [y][x] = visited
     public readonly suspiciousObjects: SuspiciousObject[],
     public readonly obstacles: boolean[][] = [] // [y][x] = isObstacle
   ) {
-    this.validateRobotPosition()
+    this.validateRobots()
     this.validateGridDimensions()
   }
 
   /**
-   * ロボットの向き(テキスト)
+   * 後方互換性: 最初のロボットのX座標
+   */
+  get robotX(): number {
+    return this.robots[0]?.x ?? 0
+  }
+
+  /**
+   * 後方互換性: 最初のロボットのY座標
+   */
+  get robotY(): number {
+    return this.robots[0]?.y ?? 0
+  }
+
+  /**
+   * 後方互換性: 最初のロボットの向き
+   */
+  get robotOrientation(): number {
+    return this.robots[0]?.orientation ?? 0
+  }
+
+  /**
+   * ロボットの向き(テキスト) - 最初のロボット
    */
   get orientationText(): string {
     const directions = ['北', '東', '南', '西']
@@ -104,16 +125,21 @@ export class Environment {
     return this.obstacles[y]?.[x] ?? false
   }
 
-  private validateRobotPosition(): void {
-    if (this.robotX < 0 || this.robotX >= this.width) {
-      throw new Error(`Robot X position ${this.robotX} out of bounds`)
+  private validateRobots(): void {
+    if (this.robots.length === 0) {
+      throw new Error('Environment must have at least one robot')
     }
-    if (this.robotY < 0 || this.robotY >= this.height) {
-      throw new Error(`Robot Y position ${this.robotY} out of bounds`)
-    }
-    if (this.robotOrientation < 0 || this.robotOrientation > 3) {
-      throw new Error(`Invalid robot orientation ${this.robotOrientation}`)
-    }
+    this.robots.forEach((robot, index) => {
+      if (robot.x < 0 || robot.x >= this.width) {
+        throw new Error(`Robot ${index} X position ${robot.x} out of bounds`)
+      }
+      if (robot.y < 0 || robot.y >= this.height) {
+        throw new Error(`Robot ${index} Y position ${robot.y} out of bounds`)
+      }
+      if (robot.orientation < 0 || robot.orientation > 3) {
+        throw new Error(`Invalid robot ${index} orientation ${robot.orientation}`)
+      }
+    })
   }
 
   private validateGridDimensions(): void {

@@ -24,6 +24,7 @@ export class TrainingSession {
     public readonly episodesCompleted: number,
     public readonly envWidth: number,
     public readonly envHeight: number,
+    public readonly numRobots: number,
     public readonly coverageWeight: number,
     public readonly explorationWeight: number,
     public readonly diversityWeight: number,

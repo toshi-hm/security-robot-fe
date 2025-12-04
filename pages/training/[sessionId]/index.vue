@@ -6,6 +6,9 @@ import EnvironmentVisualization from '~/components/environment/EnvironmentVisual
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
+import type { RobotState } from '~/libs/domains/environment/RobotState'
+import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
+import { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
 import type {
   TrainingProgressMessage,
   TrainingStatusMessage,
@@ -14,9 +17,17 @@ import type {
   EnvironmentUpdateMessage,
 } from '~/types/api'
 import { getChargingStationPosition } from '~/utils/batteryHelpers'
+import { updateRobotsFromMessage } from '~/utils/robotStateHelpers'
 
 const route = useRoute()
 const sessionId = computed(() => Number(route.params.sessionId))
+const config = useRuntimeConfig()
+
+// Session info state
+const sessionInfo = ref<TrainingSession | null>(null)
+const sessionLoading = ref(true)
+const sessionError = ref<string | null>(null)
+const sessionStartTime = ref<Date | null>(null)
 
 // WebSocket integration
 const { connect, disconnect, isConnected, error, on, off } = useWebSocket()
@@ -38,8 +49,8 @@ const statusType = ref<'success' | 'info' | 'warning' | 'error'>('info')
 const showStatusAlert = ref(false)
 
 // Environment update state
-const robotPosition = ref<{ x: number; y: number } | null>(null)
-const robotOrientation = ref<number | null>(null)
+// Environment update state
+const robots = ref<RobotState[]>([])
 const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
@@ -50,10 +61,32 @@ const threatGrid = ref<number[][]>([])
 const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 
 // Battery system state (Session 050)
-const batteryPercentage = ref<number | null>(null)
-const isCharging = ref<boolean>(false)
+const globalBatteryPercentage = ref<number | null>(null)
+const globalIsCharging = ref<boolean>(false)
 const distanceToStation = ref<number | null>(null)
 const chargingStationPosition = ref<{ x: number; y: number } | null>(null)
+
+// Computed properties for robot state (Reactivity Optimization)
+const firstRobot = computed(() => (robots.value.length > 0 ? robots.value[0] : null))
+
+const robotPosition = computed(() => {
+  if (firstRobot.value) {
+    return { x: firstRobot.value.x, y: firstRobot.value.y }
+  }
+  return null
+})
+
+const robotOrientation = computed(() => firstRobot.value?.orientation ?? null)
+
+const batteryPercentage = computed(() => {
+  if (firstRobot.value) return firstRobot.value.batteryPercentage
+  return globalBatteryPercentage.value
+})
+
+const isCharging = computed(() => {
+  if (firstRobot.value) return firstRobot.value.isCharging
+  return globalIsCharging.value
+})
 
 // Computed property for RobotPositionDisplay (converts x,y to row,col)
 const robotPositionForDisplay = computed(() => {
@@ -64,13 +97,23 @@ const robotPositionForDisplay = computed(() => {
   }
 })
 
-const orientationLabels = ['北', '東', '南', '西'] as const
-const robotOrientationText = computed(() => {
-  if (robotOrientation.value === null || Number.isNaN(robotOrientation.value)) return '未取得'
-  const normalized =
-    ((Math.round(robotOrientation.value) % orientationLabels.length) + orientationLabels.length) %
-    orientationLabels.length
-  return orientationLabels[normalized]
+// Session info computed properties
+const totalTimesteps = computed(() => sessionInfo.value?.totalTimesteps ?? 0)
+const numRobots = computed(() => sessionInfo.value?.numRobots ?? 1)
+const progressPercentage = computed(() => {
+  if (totalTimesteps.value === 0) return 0
+  return Math.min(100, (currentMetrics.value.timestep / totalTimesteps.value) * 100)
+})
+const estimatedTimeRemaining = computed(() => {
+  if (!sessionStartTime.value || !sessionInfo.value?.isRunning) return null
+  if (currentMetrics.value.timestep === 0 || progressPercentage.value === 0) return null
+
+  const elapsed = Date.now() - sessionStartTime.value.getTime()
+  const stepsPerMs = currentMetrics.value.timestep / elapsed
+  const remainingSteps = totalTimesteps.value - currentMetrics.value.timestep
+  const remainingMs = remainingSteps / stepsPerMs
+
+  return Math.ceil(remainingMs / 60000) // Convert to minutes
 })
 
 // Type guards for 2D arrays
@@ -153,13 +196,29 @@ const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessa
         (!Array.isArray(m.robot_position) && 'x' in m.robot_position && 'y' in m.robot_position))
   )
 
+  // Validate robots array
+  const hasValidRobots =
+    Array.isArray(m.robots) &&
+    m.robots.every((r) => {
+      if (typeof r !== 'object' || r === null) return false
+      const robot = r as Record<string, unknown>
+      return (
+        typeof robot.id === 'number' &&
+        typeof robot.x === 'number' &&
+        typeof robot.y === 'number' &&
+        typeof robot.orientation === 'number' &&
+        typeof robot.battery_percentage === 'number' &&
+        typeof robot.is_charging === 'boolean'
+      )
+    })
+
   return (
     typeof m.type === 'string' &&
     m.type === 'environment_update' &&
     typeof m.session_id === 'number' &&
     typeof m.episode === 'number' &&
     typeof m.step === 'number' &&
-    hasValidRobotPosition &&
+    (hasValidRobotPosition || hasValidRobots) &&
     // Optional properties
     (m.action_taken === undefined || m.action_taken === null || typeof m.action_taken === 'number') &&
     (m.reward_received === undefined || m.reward_received === null || typeof m.reward_received === 'number') &&
@@ -247,33 +306,25 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
   if (!isEnvironmentUpdateMessage(message)) return
 
   if (message.session_id === sessionId.value) {
-    // Update robot position
-    if (message.robot_position) {
-      const robotPos = Array.isArray(message.robot_position)
-        ? { x: message.robot_position[0] ?? 0, y: message.robot_position[1] ?? 0 }
-        : message.robot_position
-      const newPosition = {
-        x: robotPos.x ?? 0,
-        y: robotPos.y ?? 0,
-      }
-      const orientationFromPayload =
-        (!Array.isArray(message.robot_position) && typeof robotPos.orientation === 'number'
-          ? robotPos.orientation
-          : null) ?? (typeof message.robot_orientation === 'number' ? message.robot_orientation : null)
+    // Update robots state
+    robots.value = updateRobotsFromMessage(message)
 
-      // Add to trajectory if position changed
-      if (!robotPosition.value || robotPosition.value.x !== newPosition.x || robotPosition.value.y !== newPosition.y) {
-        robotTrajectory.value.push({ ...newPosition })
+    // Add to trajectory if position changed (using first robot)
+    if (robots.value.length > 0) {
+      const firstRobot = robots.value[0]
+      if (firstRobot) {
+        const newPosition = { x: firstRobot.x, y: firstRobot.y }
+        const lastPoint =
+          robotTrajectory.value.length > 0 ? robotTrajectory.value[robotTrajectory.value.length - 1] : undefined
 
-        // Limit trajectory length to 100 points for performance
-        if (robotTrajectory.value.length > 100) {
-          robotTrajectory.value.shift()
+        if (!lastPoint || lastPoint.x !== newPosition.x || lastPoint.y !== newPosition.y) {
+          robotTrajectory.value.push({ ...newPosition })
+
+          // Limit trajectory length to 100 points for performance
+          if (robotTrajectory.value.length > 100) {
+            robotTrajectory.value.shift()
+          }
         }
-      }
-
-      robotPosition.value = newPosition
-      if (orientationFromPayload !== null) {
-        robotOrientation.value = orientationFromPayload
       }
     }
 
@@ -295,12 +346,12 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
       threatGrid.value = message.threat_grid
     }
 
-    // Update battery information (Session 050)
-    if (typeof message.battery_percentage === 'number') {
-      batteryPercentage.value = message.battery_percentage
+    // Update battery information (Session 050) - Legacy fallback
+    if (typeof message.battery_percentage === 'number' && robots.value.length === 0) {
+      globalBatteryPercentage.value = message.battery_percentage
     }
-    if (typeof message.is_charging === 'boolean') {
-      isCharging.value = message.is_charging
+    if (typeof message.is_charging === 'boolean' && robots.value.length === 0) {
+      globalIsCharging.value = message.is_charging
     }
     if (typeof message.distance_to_charging_station === 'number') {
       distanceToStation.value = message.distance_to_charging_station
@@ -312,21 +363,44 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = sessionId.value
   if (id && !isNaN(id)) {
-    // Register message handlers
-    on('training_progress', handleTrainingProgress)
-    on('training_status', handleTrainingStatus)
-    on('training_error', handleTrainingError)
-    on('environment_update', handleEnvironmentUpdate)
-    on('connection_ack', handleConnectionAck)
-    on('pong', handlePong)
+    sessionLoading.value = true
 
-    // Connect to WebSocket
-    connect(id)
+    try {
+      // Fetch session info from backend API
+      const { data, error: fetchError } = await useAsyncData(`session-${id}`, () =>
+        $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
+      )
+
+      if (fetchError.value) {
+        sessionError.value = `Failed to load session info: ${fetchError.value.message || fetchError.value}`
+        ElMessage.error(sessionError.value)
+      } else if (data.value) {
+        // Convert DTO to domain model using entity
+        sessionInfo.value = TrainingSessionEntity.toDomain(data.value as any)
+        if (sessionInfo.value.startedAt) {
+          sessionStartTime.value = sessionInfo.value.startedAt
+        }
+
+        // Register message handlers
+        on('training_progress', handleTrainingProgress)
+        on('training_status', handleTrainingStatus)
+        on('training_error', handleTrainingError)
+        on('environment_update', handleEnvironmentUpdate)
+        on('connection_ack', handleConnectionAck)
+        on('pong', handlePong)
+
+        // Connect to WebSocket
+        connect(id)
+      }
+    } finally {
+      sessionLoading.value = false
+    }
   } else {
     console.error('Invalid session ID, WebSocket connection aborted.', id)
+    sessionLoading.value = false
   }
 })
 
@@ -367,6 +441,42 @@ onBeforeUnmount(() => {
       {{ statusMessage }}
     </el-alert>
 
+    <!-- Session Info Card -->
+    <el-card v-if="sessionInfo" class="training-session__session-info" style="margin-bottom: 20px">
+      <template #header>
+        <span class="training-session__session-info-title">セッション情報</span>
+      </template>
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">ロボット数</div>
+            <div class="training-session__info-value">{{ numRobots }}台</div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">目標ステップ数</div>
+            <div class="training-session__info-value">{{ totalTimesteps.toLocaleString() }}</div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">進捗率</div>
+            <div class="training-session__info-value">{{ progressPercentage.toFixed(1) }}%</div>
+            <el-progress :percentage="progressPercentage" :stroke-width="8" style="margin-top: 8px" />
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="training-session__info-card">
+            <div class="training-session__info-label">完了予測</div>
+            <div class="training-session__info-value">
+              {{ estimatedTimeRemaining !== null ? `約${estimatedTimeRemaining}分後` : 'N/A' }}
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
+
     <el-card class="training-session__metrics">
       <template #header>
         <span class="training-session__metrics-title">Real-time Metrics</span>
@@ -400,6 +510,7 @@ onBeforeUnmount(() => {
             :grid-height="gridHeight"
             :robot-position="robotPosition"
             :robot-orientation="robotOrientation"
+            :robots="robots"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
             :trajectory="robotTrajectory"
@@ -413,27 +524,41 @@ onBeforeUnmount(() => {
           <template #header>
             <span>Environment State</span>
           </template>
-          <RobotPositionDisplay
-            v-if="robotPositionForDisplay"
-            :position="robotPositionForDisplay"
-            :orientation="robotOrientation"
-          />
-          <BatteryDisplay
-            :battery-percentage="batteryPercentage"
-            :is-charging="isCharging"
-            :distance-to-station="distanceToStation"
-            style="margin-top: 15px"
-          />
+
+          <!-- Multi-robot display -->
+          <div v-if="robots.length > 0" class="robots-list">
+            <div v-for="(robot, index) in robots" :key="index" class="robot-item">
+              <h4>Robot {{ robot.id ?? index }}</h4>
+              <RobotPositionDisplay
+                :position="{ row: Math.round(robot.y), col: Math.round(robot.x) }"
+                :orientation="robot.orientation"
+              />
+              <BatteryDisplay
+                :battery-percentage="robot.batteryPercentage"
+                :is-charging="robot.isCharging"
+                :distance-to-station="distanceToStation"
+                style="margin-top: 10px"
+              />
+              <el-divider v-if="index < robots.length - 1" />
+            </div>
+          </div>
+
+          <!-- Legacy fallback -->
+          <div v-else>
+            <RobotPositionDisplay
+              v-if="robotPositionForDisplay"
+              :position="robotPositionForDisplay"
+              :orientation="robotOrientation"
+            />
+            <BatteryDisplay
+              :battery-percentage="batteryPercentage"
+              :is-charging="isCharging"
+              :distance-to-station="distanceToStation"
+              style="margin-top: 15px"
+            />
+          </div>
+
           <el-descriptions :column="2" border style="margin-top: 15px">
-            <el-descriptions-item label="Position X">
-              {{ robotPosition.x.toFixed(2) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="Position Y">
-              {{ robotPosition.y.toFixed(2) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="Orientation">
-              {{ robotOrientationText }}
-            </el-descriptions-item>
             <el-descriptions-item label="Last Action">
               {{ lastAction || 'N/A' }}
             </el-descriptions-item>
@@ -495,6 +620,52 @@ onBeforeUnmount(() => {
     background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-tertiary);
     height: 400px;
+    overflow-y: auto; // Allow scrolling for multiple robots
+  }
+
+  &__session-info {
+    background-color: var(--md-surface-1);
+    border: 1px solid var(--md-outline-variant);
+  }
+
+  &__session-info-title {
+    color: var(--md-on-surface);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  &__info-card {
+    background: linear-gradient(135deg, var(--md-secondary-container) 0%, var(--md-surface) 100%);
+    border: 1px solid var(--md-secondary);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  &__info-label {
+    color: var(--md-on-secondary-container);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  &__info-value {
+    color: var(--md-on-surface);
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+.robots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robot-item {
+  h4 {
+    color: var(--color-text-primary);
+    margin: 0 0 10px;
   }
 }
 </style>
