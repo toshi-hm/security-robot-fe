@@ -363,34 +363,38 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
 onMounted(async () => {
   const id = sessionId.value
   if (id && !isNaN(id)) {
-    // Fetch session info from backend API
-    // Fetch session info from backend API
-    const { data, error: fetchError } = await useAsyncData(`session-${id}`, () =>
-      $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
-    )
+    sessionLoading.value = true
 
-    if (fetchError.value) {
-      sessionError.value = `Failed to load session info: ${fetchError.value.message || fetchError.value}`
-      ElMessage.error(sessionError.value)
-    } else if (data.value) {
-      // Convert DTO to domain model using entity
-      sessionInfo.value = TrainingSessionEntity.toDomain(data.value as any)
-      if (sessionInfo.value.startedAt) {
-        sessionStartTime.value = sessionInfo.value.startedAt
+    try {
+      // Fetch session info from backend API
+      const { data, error: fetchError } = await useAsyncData(`session-${id}`, () =>
+        $fetch(`${config.public.apiBaseUrl}/api/v1/training/${id}/status`)
+      )
+
+      if (fetchError.value) {
+        sessionError.value = `Failed to load session info: ${fetchError.value.message || fetchError.value}`
+        ElMessage.error(sessionError.value)
+      } else if (data.value) {
+        // Convert DTO to domain model using entity
+        sessionInfo.value = TrainingSessionEntity.toDomain(data.value as any)
+        if (sessionInfo.value.startedAt) {
+          sessionStartTime.value = sessionInfo.value.startedAt
+        }
+
+        // Register message handlers
+        on('training_progress', handleTrainingProgress)
+        on('training_status', handleTrainingStatus)
+        on('training_error', handleTrainingError)
+        on('environment_update', handleEnvironmentUpdate)
+        on('connection_ack', handleConnectionAck)
+        on('pong', handlePong)
+
+        // Connect to WebSocket
+        connect(id)
       }
+    } finally {
+      sessionLoading.value = false
     }
-    sessionLoading.value = false
-
-    // Register message handlers
-    on('training_progress', handleTrainingProgress)
-    on('training_status', handleTrainingStatus)
-    on('training_error', handleTrainingError)
-    on('environment_update', handleEnvironmentUpdate)
-    on('connection_ack', handleConnectionAck)
-    on('pong', handlePong)
-
-    // Connect to WebSocket
-    connect(id)
   } else {
     console.error('Invalid session ID, WebSocket connection aborted.', id)
     sessionLoading.value = false

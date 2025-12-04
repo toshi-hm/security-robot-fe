@@ -152,6 +152,24 @@ describe('Training Session Page', () => {
       off: vi.fn(),
     }))
 
+    // Mock useAsyncData to return valid session data
+    vi.stubGlobal('useAsyncData', () =>
+      Promise.resolve({
+        data: {
+          value: {
+            id: 789,
+            status: 'running',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            total_timesteps: 1000,
+            num_robots: 1,
+            is_running: true,
+          },
+        },
+        error: { value: null },
+      })
+    )
+
     mount(TrainingSessionPage, {
       global: {
         stubs: commonStubs,

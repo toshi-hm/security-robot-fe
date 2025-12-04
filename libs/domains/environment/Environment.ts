@@ -126,6 +126,9 @@ export class Environment {
   }
 
   private validateRobots(): void {
+    if (this.robots.length === 0) {
+      throw new Error('Environment must have at least one robot')
+    }
     this.robots.forEach((robot, index) => {
       if (robot.x < 0 || robot.x >= this.width) {
         throw new Error(`Robot ${index} X position ${robot.x} out of bounds`)
