@@ -25,7 +25,7 @@ export const updateRobotsFromMessage = (message: EnvironmentUpdateMessage): Robo
   if (message.robot_position) {
     const robotPos = Array.isArray(message.robot_position)
       ? { x: message.robot_position[0] ?? 0, y: message.robot_position[1] ?? 0 }
-      : message.robot_position
+      : (message.robot_position as { x: number; y: number; orientation?: number })
 
     const newPosition = {
       x: robotPos.x ?? 0,

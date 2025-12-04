@@ -197,7 +197,17 @@ const isEnvironmentUpdateMessage = (msg: unknown): msg is EnvironmentUpdateMessa
   )
 
   // Validate robots array
-  const hasValidRobots = Array.isArray(m.robots)
+  const hasValidRobots =
+    Array.isArray(m.robots) &&
+    m.robots.every(
+      (r: any) =>
+        typeof r.id === 'number' &&
+        typeof r.x === 'number' &&
+        typeof r.y === 'number' &&
+        typeof r.orientation === 'number' &&
+        typeof r.battery_percentage === 'number' &&
+        typeof r.is_charging === 'boolean'
+    )
 
   return (
     typeof m.type === 'string' &&
