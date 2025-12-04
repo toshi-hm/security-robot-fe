@@ -456,6 +456,7 @@ const drawChargingStation = (ctx: CanvasRenderingContext2D, stationX: number, st
 // Watch for prop changes and redraw
 watch(
   () => [
+    props.robots,
     props.robotPosition,
     props.robotOrientation,
     props.coverageMap,

@@ -5,6 +5,7 @@ import BatteryDisplay from '~/components/environment/BatteryDisplay.vue'
 import EnvironmentVisualization from '~/components/environment/EnvironmentVisualization.vue'
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
+import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
 import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
@@ -57,7 +58,6 @@ const gridWidth = ref<number>(8)
 const gridHeight = ref<number>(8)
 const coverageMap = ref<boolean[][]>([])
 const threatGrid = ref<number[][]>([])
-import { DEFAULT_PATROL_RADIUS } from '../../../configs/constants'
 const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 
 // Battery system state (Session 050)
