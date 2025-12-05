@@ -24,24 +24,53 @@ const currentFrame = computed(() => {
   const index = playbackStore.currentFrameIndex
   return frames[index] || null
 })
-const robotTrajectory = computed<Position[]>(() => {
+const robotTrajectories = computed<Position[][]>(() => {
   const frames = playbackStore.frames
   const index = playbackStore.currentFrameIndex
   if (!frames.length || index < 0) return []
 
-  const path: Position[] = []
+  const paths: Record<string, Position[]> = {}
+
   for (let i = 0; i <= index && i < frames.length; i++) {
     const env = frames[i]?.environmentState
-    if (!env || typeof env.robot_x !== 'number' || typeof env.robot_y !== 'number') continue
+    if (!env) continue
 
-    const x = env.robot_x
-    const y = env.robot_y
-    const last = path[path.length - 1]
-    if (last && last.x === x && last.y === y) continue
-    path.push({ x, y })
+    if (env.robots && env.robots.length > 0) {
+      env.robots.forEach((r) => {
+        const id = String(r.id)
+        if (!paths[id]) paths[id] = []
+        const last = paths[id][paths[id].length - 1]
+        // Dedupe consecutive same positions
+        if (last && Math.abs(last.x - r.x) < 0.01 && Math.abs(last.y - r.y) < 0.01) return
+        paths[id].push({ x: r.x, y: r.y })
+      })
+    } else if (typeof env.robot_x === 'number' && typeof env.robot_y === 'number') {
+      // Legacy single robot
+      const id = '0'
+      if (!paths[id]) paths[id] = []
+      const last = paths[id][paths[id].length - 1]
+      if (last && Math.abs(last.x - env.robot_x) < 0.01 && Math.abs(last.y - env.robot_y) < 0.01) continue
+      paths[id].push({ x: env.robot_x, y: env.robot_y })
+    }
   }
 
-  return path
+  // Sort by ID to ensure consistent color assignment
+  return Object.keys(paths)
+    .sort()
+    .map((id) => paths[id]!)
+})
+
+const chargingStations = computed<Position[]>(() => {
+  const env = currentFrame.value?.environmentState
+  if (!env) return []
+
+  if (env.charging_stations && env.charging_stations.length > 0) {
+    return env.charging_stations.map((s) => ({ x: s.x, y: s.y }))
+  }
+
+  // Legacy fallback
+  const single = getChargingStationPosition(env)
+  return single ? [single] : []
 })
 
 const frameInfoColumns = computed(() => {
@@ -311,17 +340,17 @@ const formatOrientation = (orientation?: number | null): string => {
                   x: r.x,
                   y: r.y,
                   orientation: r.orientation,
-                  batteryPercentage: r.battery_percentage,
-                  isCharging: r.is_charging,
+                  batteryPercentage: r.battery_percentage, // Use recorded battery
+                  isCharging: r.is_charging, // Use recorded status
                   actionTaken: r.action_taken ?? undefined,
                 }))
               "
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
               :obstacles="currentFrame.environmentState.obstacles ?? null"
-              :trajectory="robotTrajectory"
+              :trajectories="robotTrajectories"
               :patrol-radius="PATROL_RADIUS"
-              :charging-station-position="chargingStationPosition"
+              :charging-stations="chargingStations"
             />
             <el-empty v-else description="環境データがありません" />
           </div>

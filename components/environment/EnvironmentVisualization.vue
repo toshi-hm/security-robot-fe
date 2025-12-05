@@ -16,7 +16,9 @@ interface Props {
   obstacles?: boolean[][] | null // 障害物マップ
   trajectory?: Position[]
   patrolRadius?: number
-  chargingStationPosition?: Position | null // バッテリーシステム (Session 050)
+  chargingStationPosition?: Position | null // Legacy single station
+  chargingStations?: Position[] // Multi-Agent Support
+  trajectories?: Position[][] // Multi-Agent Support (List of paths)
 }
 
 interface TrajectoryColors {
@@ -34,9 +36,11 @@ const props = withDefaults(defineProps<Props>(), {
   threatGrid: () => [],
   obstacles: null,
   trajectory: () => [],
+  trajectories: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
   chargingStationPosition: null,
+  chargingStations: () => [],
 })
 
 // Computed robots to draw
@@ -230,15 +234,45 @@ const drawEnvironment = () => {
     }
   }
 
-  // Draw charging station (before robot)
+  // Draw charging stations (Legacy)
   if (props.chargingStationPosition) {
     const stationX = Math.floor(props.chargingStationPosition.x) * cellSize + cellSize / 2
     const stationY = Math.floor(props.chargingStationPosition.y) * cellSize + cellSize / 2
     drawChargingStation(ctx, stationX, stationY)
   }
 
-  // Draw robot trajectory
-  drawTrajectory(ctx, trajectoryColors)
+  // Draw multiple charging stations
+  if (props.chargingStations && props.chargingStations.length > 0) {
+    props.chargingStations.forEach((station) => {
+      const stationX = Math.floor(station.x) * cellSize + cellSize / 2
+      const stationY = Math.floor(station.y) * cellSize + cellSize / 2
+      drawChargingStation(ctx, stationX, stationY)
+    })
+  }
+
+  // Draw robot trajectory (Legacy)
+  if (props.trajectory && props.trajectory.length > 0) {
+    drawTrajectory(ctx, props.trajectory, trajectoryColors)
+  }
+
+  // Draw multiple trajectories
+  if (props.trajectories && props.trajectories.length > 0) {
+    // Assign different colors for each trajectory if possible, or use same style
+    // For now, simpler implementation using same style or slight variation could be nice
+    // But let's just draw them all
+    props.trajectories.forEach((traj, index) => {
+      // Differentiate colors maybe?
+      // Use robot color logic for trajectory line?
+      const color = getRobotColor(index)
+      // Create a specific color set for this robot
+      const specificColors = {
+        ...trajectoryColors,
+        line: color + '4D', // 30% opacity hex usually, or just use what we have
+        point: color,
+      }
+      drawTrajectory(ctx, traj, specificColors)
+    })
+  }
 
   // Determine robots to draw
   // robotsToDraw is now a computed property, accessed via .value
@@ -301,8 +335,12 @@ const getThreatColor = (level: number): string => {
 /**
  * Draw robot trajectory (path history)
  */
-const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors) => {
-  if (!props.trajectory || props.trajectory.length === 0) return
+const drawTrajectory = (
+  ctx: CanvasRenderingContext2D,
+  trajectory: Position[],
+  colors: TrajectoryColors
+) => {
+  if (!trajectory || trajectory.length === 0) return
 
   // Draw trajectory path
   ctx.strokeStyle = colors.line // Light blue with transparency
@@ -311,7 +349,7 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors)
   ctx.lineJoin = 'round'
 
   ctx.beginPath()
-  props.trajectory.forEach((pos, index) => {
+  trajectory.forEach((pos, index) => {
     const x = Math.floor(pos.x) * cellSize + cellSize / 2
     const y = Math.floor(pos.y) * cellSize + cellSize / 2
 
@@ -324,12 +362,12 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors)
   ctx.stroke()
 
   // Draw trajectory points (fade from old to recent)
-  props.trajectory.forEach((pos, index) => {
+  trajectory.forEach((pos, index) => {
     const x = Math.floor(pos.x) * cellSize + cellSize / 2
     const y = Math.floor(pos.y) * cellSize + cellSize / 2
 
     // Calculate opacity based on position in trajectory (older = more transparent)
-    const opacity = 0.2 + (index / props.trajectory.length) * 0.6
+    const opacity = 0.2 + (index / trajectory.length) * 0.6
 
     ctx.save()
     ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
@@ -467,6 +505,8 @@ watch(
     props.trajectory,
     props.patrolRadius,
     props.chargingStationPosition,
+    props.chargingStations,
+    props.trajectories,
   ],
   () => {
     drawEnvironment()
