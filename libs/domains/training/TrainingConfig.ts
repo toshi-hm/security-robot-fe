@@ -20,6 +20,11 @@ export const TRAINING_CONSTRAINTS = {
     max: 16,
     step: 1,
   },
+  numEnvs: {
+    min: 1,
+    max: 32,
+    step: 1,
+  },
   mapConfig: {
     count: {
       min: 1,
@@ -59,6 +64,9 @@ export interface TrainingConfig {
   batchSize?: number
   numWorkers?: number
   numRobots?: number // Multi-Agent Support
+  // GPU Optimization
+  numEnvs?: number
+  policyType?: 'MlpPolicy' | 'CnnPolicy'
 }
 
 export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
@@ -79,6 +87,8 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   batchSize: 64,
   numWorkers: 1,
   numRobots: 1,
+  numEnvs: 1,
+  policyType: 'MlpPolicy',
 }
 
 export const createTrainingConfig = (overrides: Partial<TrainingConfig> = {}): TrainingConfig => ({
@@ -185,6 +195,14 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
   if (config.numRobots !== undefined) {
     if (config.numRobots < 1 || config.numRobots > 10) {
       throw new Error('Number of robots must be between 1 and 10')
+    }
+  }
+
+  if (config.numEnvs !== undefined) {
+    if (config.numEnvs < TRAINING_CONSTRAINTS.numEnvs.min || config.numEnvs > TRAINING_CONSTRAINTS.numEnvs.max) {
+      throw new Error(
+        `Number of parallel environments must be between ${TRAINING_CONSTRAINTS.numEnvs.min} and ${TRAINING_CONSTRAINTS.numEnvs.max}`
+      )
     }
   }
 }
