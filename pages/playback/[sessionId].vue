@@ -24,24 +24,91 @@ const currentFrame = computed(() => {
   const index = playbackStore.currentFrameIndex
   return frames[index] || null
 })
-const robotTrajectory = computed<Position[]>(() => {
-  const frames = playbackStore.frames
-  const index = playbackStore.currentFrameIndex
-  if (!frames.length || index < 0) return []
 
-  const path: Position[] = []
-  for (let i = 0; i <= index && i < frames.length; i++) {
-    const env = frames[i]?.environmentState
-    if (!env || typeof env.robot_x !== 'number' || typeof env.robot_y !== 'number') continue
+// Memoized trajectory computation for performance optimization
+// Uses watch to update trajectories incrementally when playing forward
+const robotTrajectories = ref<Position[][]>([])
+const trajectoryCache = ref<{
+  index: number
+  paths: Record<string, Position[]>
+}>({ index: -1, paths: {} })
 
-    const x = env.robot_x
-    const y = env.robot_y
-    const last = path[path.length - 1]
-    if (last && last.x === x && last.y === y) continue
-    path.push({ x, y })
+// Helper function to compute trajectories
+const computeTrajectories = (frames: typeof playbackStore.frames, targetIndex: number) => {
+  if (!frames.length || targetIndex < 0) {
+    trajectoryCache.value = { index: -1, paths: {} }
+    return []
   }
 
-  return path
+  let paths: Record<string, Position[]>
+  let startIndex: number
+
+  // If we're playing forward from cached position, reuse cached paths
+  if (targetIndex >= trajectoryCache.value.index && trajectoryCache.value.index >= 0) {
+    paths = {}
+    // Deep clone the cached paths
+    for (const [id, positions] of Object.entries(trajectoryCache.value.paths)) {
+      paths[id] = [...positions]
+    }
+    startIndex = trajectoryCache.value.index + 1
+  } else {
+    // Seeking backward or first computation - start fresh
+    paths = {}
+    startIndex = 0
+  }
+
+  for (let i = startIndex; i <= targetIndex && i < frames.length; i++) {
+    const env = frames[i]?.environmentState
+    if (!env) continue
+
+    if (env.robots && env.robots.length > 0) {
+      env.robots.forEach((r) => {
+        const id = String(r.id)
+        if (!paths[id]) paths[id] = []
+        const last = paths[id][paths[id].length - 1]
+        // Dedupe consecutive same positions
+        if (last && Math.abs(last.x - r.x) < 0.01 && Math.abs(last.y - r.y) < 0.01) return
+        paths[id].push({ x: r.x, y: r.y })
+      })
+    } else if (typeof env.robot_x === 'number' && typeof env.robot_y === 'number') {
+      // Legacy single robot
+      const id = '0'
+      if (!paths[id]) paths[id] = []
+      const last = paths[id][paths[id].length - 1]
+      if (last && Math.abs(last.x - env.robot_x) < 0.01 && Math.abs(last.y - env.robot_y) < 0.01) continue
+      paths[id].push({ x: env.robot_x, y: env.robot_y })
+    }
+  }
+
+  // Update cache
+  trajectoryCache.value = { index: targetIndex, paths }
+
+  // Sort by ID to ensure consistent color assignment
+  return Object.keys(paths)
+    .sort()
+    .map((id) => paths[id]!)
+}
+
+// Watch for frame index changes and update trajectories
+watch(
+  () => [playbackStore.frames, playbackStore.currentFrameIndex] as const,
+  ([frames, index]) => {
+    robotTrajectories.value = computeTrajectories(frames, index)
+  },
+  { immediate: true }
+)
+
+const chargingStations = computed<Position[]>(() => {
+  const env = currentFrame.value?.environmentState
+  if (!env) return []
+
+  if (env.charging_stations && env.charging_stations.length > 0) {
+    return env.charging_stations.map((s) => ({ x: s.x, y: s.y }))
+  }
+
+  // Legacy fallback
+  const single = getChargingStationPosition(env)
+  return single ? [single] : []
 })
 
 const frameInfoColumns = computed(() => {
@@ -101,13 +168,6 @@ const distanceToStation = computed(() => {
   const env = currentFrame.value?.environmentState
   return env?.distance_to_charging_station ?? null
 })
-
-const chargingStationPosition = computed<Position | null>(() => {
-  const env = currentFrame.value?.environmentState
-  if (!env) return null
-  return getChargingStationPosition(env)
-})
-
 // Grid dimensions computed from threat_grid
 const gridWidth = computed(() => {
   const threatGrid = currentFrame.value?.environmentState?.threat_grid
@@ -311,17 +371,17 @@ const formatOrientation = (orientation?: number | null): string => {
                   x: r.x,
                   y: r.y,
                   orientation: r.orientation,
-                  batteryPercentage: r.battery_percentage,
-                  isCharging: r.is_charging,
+                  batteryPercentage: r.battery_percentage, // Use recorded battery
+                  isCharging: r.is_charging, // Use recorded status
                   actionTaken: r.action_taken ?? undefined,
                 }))
               "
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
               :obstacles="currentFrame.environmentState.obstacles ?? null"
-              :trajectory="robotTrajectory"
+              :trajectories="robotTrajectories"
               :patrol-radius="PATROL_RADIUS"
-              :charging-station-position="chargingStationPosition"
+              :charging-stations="chargingStations"
             />
             <el-empty v-else description="環境データがありません" />
           </div>

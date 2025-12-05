@@ -58,8 +58,11 @@ const EnvironmentVisualizationStub = {
     'coverageMap',
     'threatGrid',
     'trajectory',
+    'trajectories', // Multi-agent trajectories
     'patrolRadius',
-    'robots', // Add robots prop to stub
+    'robots',
+    'chargingStations',
+    'obstacles',
   ],
 }
 
@@ -205,7 +208,7 @@ describe('Playback Session Page', () => {
     expect(firstCardText).toContain('1 / 1')
   })
 
-  it('passes robot trajectory to EnvironmentVisualization', () => {
+  it('passes robot trajectories to EnvironmentVisualization', () => {
     const playbackStore = usePlaybackStore()
     playbackStore.frames = [
       {
@@ -239,9 +242,12 @@ describe('Playback Session Page', () => {
 
     const env = wrapper.findComponent(EnvironmentVisualizationStub)
     expect(env.exists()).toBe(true)
-    expect(env.props('trajectory')).toEqual([
-      { x: 1, y: 1 },
-      { x: 2, y: 1 },
+    // Now using trajectories (array of arrays) instead of trajectory
+    expect(env.props('trajectories')).toEqual([
+      [
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+      ],
     ])
   })
 
