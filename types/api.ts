@@ -21,6 +21,9 @@ export interface MapConfig {
 export interface TrainingSessionConfig {
   map_config?: MapConfig
   num_robots?: number // Multi-Agent Support
+  // GPU Optimization
+  num_envs?: number
+  policy_type?: string
 }
 
 /**
@@ -47,6 +50,8 @@ export interface TrainingSessionCreateRequest {
   batch_size?: number
   num_workers?: number
   num_robots?: number // Multi-Agent Support
+  num_envs?: number
+  policy_type?: string
   config?: TrainingSessionConfig
 }
 
