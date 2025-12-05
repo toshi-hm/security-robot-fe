@@ -250,29 +250,23 @@ const drawEnvironment = () => {
     })
   }
 
-  // Draw robot trajectory (Legacy)
-  if (props.trajectory && props.trajectory.length > 0) {
-    drawTrajectory(ctx, props.trajectory, trajectoryColors)
-  }
+  // Unified trajectory drawing
+  // Merge legacy single trajectory with multi-agent trajectories
+  const trajectoriesToDraw =
+    props.trajectories.length > 0 ? props.trajectories : props.trajectory.length > 0 ? [props.trajectory] : []
 
-  // Draw multiple trajectories
-  if (props.trajectories && props.trajectories.length > 0) {
-    // Assign different colors for each trajectory if possible, or use same style
-    // For now, simpler implementation using same style or slight variation could be nice
-    // But let's just draw them all
-    props.trajectories.forEach((traj, index) => {
-      // Differentiate colors maybe?
-      // Use robot color logic for trajectory line?
-      const color = getRobotColor(index)
-      // Create a specific color set for this robot
-      const specificColors = {
-        ...trajectoryColors,
-        line: color + '4D', // 30% opacity hex usually, or just use what we have
-        point: color,
-      }
-      drawTrajectory(ctx, traj, specificColors)
-    })
-  }
+  // Hex value for 30% opacity (77/255 ≈ 0.30)
+  const TRAJECTORY_LINE_OPACITY_HEX = '4D'
+
+  trajectoriesToDraw.forEach((traj, index) => {
+    const color = getRobotColor(index)
+    const specificColors: TrajectoryColors = {
+      ...trajectoryColors,
+      line: `${color}${TRAJECTORY_LINE_OPACITY_HEX}`,
+      point: color,
+    }
+    drawTrajectory(ctx, traj, specificColors)
+  })
 
   // Determine robots to draw
   // robotsToDraw is now a computed property, accessed via .value
@@ -335,11 +329,7 @@ const getThreatColor = (level: number): string => {
 /**
  * Draw robot trajectory (path history)
  */
-const drawTrajectory = (
-  ctx: CanvasRenderingContext2D,
-  trajectory: Position[],
-  colors: TrajectoryColors
-) => {
+const drawTrajectory = (ctx: CanvasRenderingContext2D, trajectory: Position[], colors: TrajectoryColors) => {
   if (!trajectory || trajectory.length === 0) return
 
   // Draw trajectory path
