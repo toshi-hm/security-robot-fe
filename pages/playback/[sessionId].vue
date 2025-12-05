@@ -24,14 +24,40 @@ const currentFrame = computed(() => {
   const index = playbackStore.currentFrameIndex
   return frames[index] || null
 })
-const robotTrajectories = computed<Position[][]>(() => {
-  const frames = playbackStore.frames
-  const index = playbackStore.currentFrameIndex
-  if (!frames.length || index < 0) return []
 
-  const paths: Record<string, Position[]> = {}
+// Memoized trajectory computation for performance optimization
+// Uses watch to update trajectories incrementally when playing forward
+const robotTrajectories = ref<Position[][]>([])
+const trajectoryCache = ref<{
+  index: number
+  paths: Record<string, Position[]>
+}>({ index: -1, paths: {} })
 
-  for (let i = 0; i <= index && i < frames.length; i++) {
+// Helper function to compute trajectories
+const computeTrajectories = (frames: typeof playbackStore.frames, targetIndex: number) => {
+  if (!frames.length || targetIndex < 0) {
+    trajectoryCache.value = { index: -1, paths: {} }
+    return []
+  }
+
+  let paths: Record<string, Position[]>
+  let startIndex: number
+
+  // If we're playing forward from cached position, reuse cached paths
+  if (targetIndex >= trajectoryCache.value.index && trajectoryCache.value.index >= 0) {
+    paths = {}
+    // Deep clone the cached paths
+    for (const [id, positions] of Object.entries(trajectoryCache.value.paths)) {
+      paths[id] = [...positions]
+    }
+    startIndex = trajectoryCache.value.index + 1
+  } else {
+    // Seeking backward or first computation - start fresh
+    paths = {}
+    startIndex = 0
+  }
+
+  for (let i = startIndex; i <= targetIndex && i < frames.length; i++) {
     const env = frames[i]?.environmentState
     if (!env) continue
 
@@ -54,11 +80,23 @@ const robotTrajectories = computed<Position[][]>(() => {
     }
   }
 
+  // Update cache
+  trajectoryCache.value = { index: targetIndex, paths }
+
   // Sort by ID to ensure consistent color assignment
   return Object.keys(paths)
     .sort()
     .map((id) => paths[id]!)
-})
+}
+
+// Watch for frame index changes and update trajectories
+watch(
+  () => [playbackStore.frames, playbackStore.currentFrameIndex] as const,
+  ([frames, index]) => {
+    robotTrajectories.value = computeTrajectories(frames, index)
+  },
+  { immediate: true }
+)
 
 const chargingStations = computed<Position[]>(() => {
   const env = currentFrame.value?.environmentState
@@ -130,13 +168,6 @@ const distanceToStation = computed(() => {
   const env = currentFrame.value?.environmentState
   return env?.distance_to_charging_station ?? null
 })
-
-const chargingStationPosition = computed<Position | null>(() => {
-  const env = currentFrame.value?.environmentState
-  if (!env) return null
-  return getChargingStationPosition(env)
-})
-
 // Grid dimensions computed from threat_grid
 const gridWidth = computed(() => {
   const threatGrid = currentFrame.value?.environmentState?.threat_grid
