@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 
+import type { TrainingMetricDTO } from '~/types/api'
+
 import type { ChartConfiguration } from 'chart.js/auto'
 
 interface RealtimeMetrics {
@@ -10,10 +12,12 @@ interface RealtimeMetrics {
   loss: number | null
   coverageRatio: number | null
   explorationScore: number | null
+  threatLevelAvg: number | null
 }
 
 interface Props {
   realtimeMetrics: RealtimeMetrics
+  metricsHistory?: TrainingMetricDTO[]
 }
 
 const props = defineProps<Props>()
@@ -216,6 +220,100 @@ const explorationChartConfig: ChartConfiguration = {
 const explorationChart = useChart(explorationChartConfig)
 const explorationCanvas = explorationChart.canvas
 
+// Threat Level Chart
+const threatLevelChartConfig: ChartConfiguration = {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Avg Threat Level',
+        data: [],
+        borderColor: 'rgb(255, 159, 64)',
+        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+        tension: 0.1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Threat Level Progress',
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Timestep',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Avg Threat Level',
+        },
+        min: 0,
+        max: 1,
+      },
+    },
+  },
+}
+
+const threatLevelChart = useChart(threatLevelChartConfig)
+const threatLevelCanvas = threatLevelChart.canvas
+
+// Watch for historical metrics changes
+watch(
+  () => props.metricsHistory,
+  (history) => {
+    if (!history || history.length === 0) return
+
+    // Sort by timestep just in case
+    const sortedHistory = [...history].sort((a, b) => a.timestep - b.timestep)
+    const labels = sortedHistory.map((m) => m.timestep.toString())
+
+    // Update Reward Chart
+    rewardChart.replaceData(labels, [{ data: sortedHistory.map((m) => m.reward) }])
+
+    // Update Loss Chart
+    lossChart.replaceData(labels, [{ data: sortedHistory.map((m) => m.loss ?? (null as unknown as number)) }])
+
+    // Update Coverage Chart
+    coverageChart.replaceData(labels, [
+      { data: sortedHistory.map((m) => m.coverage_ratio ?? (null as unknown as number)) },
+    ])
+
+    // Update Exploration Chart
+    explorationChart.replaceData(labels, [
+      { data: sortedHistory.map((m) => m.exploration_score ?? (null as unknown as number)) },
+    ])
+
+    // Update Threat Level Chart
+    threatLevelChart.replaceData(labels, [
+      {
+        data: sortedHistory.map((m) => {
+          // Flatten additional_metrics if it exists
+          interface AdditionalMetrics {
+            threat_level_avg?: number
+          }
+          const am = m.additional_metrics as AdditionalMetrics | null
+          return am?.threat_level_avg ?? (null as unknown as number)
+        }),
+      },
+    ])
+  },
+  { immediate: true }
+)
+
 // Watch for realtime metrics changes
 watch(
   () => props.realtimeMetrics,
@@ -239,21 +337,59 @@ watch(
     if (newMetrics.explorationScore !== null) {
       explorationChart.updateData(0, newMetrics.explorationScore, timestepLabel, 100)
     }
+
+    // Update Threat Level Chart (if available)
+    if (newMetrics.threatLevelAvg !== null) {
+      threatLevelChart.updateData(0, newMetrics.threatLevelAvg, timestepLabel, 100)
+    }
   },
   { deep: true }
 )
 
 // Summary stats
-const summaryStats = computed(() => ({
-  currentTimestep: props.realtimeMetrics.timestep,
-  currentEpisode: props.realtimeMetrics.episode,
-  latestReward: props.realtimeMetrics.reward.toFixed(3),
-  latestLoss: props.realtimeMetrics.loss !== null ? props.realtimeMetrics.loss.toFixed(4) : 'N/A',
-  latestCoverage:
-    props.realtimeMetrics.coverageRatio !== null ? (props.realtimeMetrics.coverageRatio * 100).toFixed(1) + '%' : 'N/A',
-  latestExploration:
-    props.realtimeMetrics.explorationScore !== null ? props.realtimeMetrics.explorationScore.toFixed(3) : 'N/A',
-}))
+const summaryStats = computed(() => {
+  // If we have history and no realtime updates yet (or session completed), use the last history item
+  const hasRealtime = props.realtimeMetrics.timestep > 0
+  const lastHistory =
+    props.metricsHistory && props.metricsHistory.length > 0
+      ? props.metricsHistory[props.metricsHistory.length - 1]
+      : null
+
+  if (!hasRealtime && lastHistory) {
+    interface AdditionalMetrics {
+      threat_level_avg?: number
+    }
+    const am = lastHistory.additional_metrics as AdditionalMetrics | null
+    const threatLevel = am?.threat_level_avg ?? null
+
+    return {
+      currentTimestep: lastHistory.timestep,
+      currentEpisode: lastHistory.episode ?? 0,
+      latestReward: lastHistory.reward.toFixed(3),
+      latestLoss: lastHistory.loss !== null ? lastHistory.loss.toFixed(4) : 'N/A',
+      latestCoverage: lastHistory.coverage_ratio !== null ? (lastHistory.coverage_ratio * 100).toFixed(1) + '%' : 'N/A',
+      latestExploration: lastHistory.exploration_score !== null ? lastHistory.exploration_score.toFixed(3) : 'N/A',
+      latestThreatLevel: threatLevel !== null ? (threatLevel * 100).toFixed(1) + '%' : 'N/A',
+    }
+  }
+
+  return {
+    currentTimestep: props.realtimeMetrics.timestep,
+    currentEpisode: props.realtimeMetrics.episode,
+    latestReward: props.realtimeMetrics.reward.toFixed(3),
+    latestLoss: props.realtimeMetrics.loss !== null ? props.realtimeMetrics.loss.toFixed(4) : 'N/A',
+    latestCoverage:
+      props.realtimeMetrics.coverageRatio !== null
+        ? (props.realtimeMetrics.coverageRatio * 100).toFixed(1) + '%'
+        : 'N/A',
+    latestExploration:
+      props.realtimeMetrics.explorationScore !== null ? props.realtimeMetrics.explorationScore.toFixed(3) : 'N/A',
+    latestThreatLevel:
+      props.realtimeMetrics.threatLevelAvg !== null
+        ? (props.realtimeMetrics.threatLevelAvg * 100).toFixed(1) + '%'
+        : 'N/A',
+  }
+})
 </script>
 
 <template>
@@ -277,7 +413,7 @@ const summaryStats = computed(() => ({
                 <div class="metric-item__value">{{ summaryStats.currentEpisode }}</div>
               </div>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="3">
               <div class="metric-item">
                 <div class="metric-item__label">Reward</div>
                 <div class="metric-item__value metric-item__value--reward">
@@ -285,7 +421,7 @@ const summaryStats = computed(() => ({
                 </div>
               </div>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="3">
               <div class="metric-item">
                 <div class="metric-item__label">Loss</div>
                 <div class="metric-item__value metric-item__value--loss">
@@ -293,7 +429,7 @@ const summaryStats = computed(() => ({
                 </div>
               </div>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="3">
               <div class="metric-item">
                 <div class="metric-item__label">Coverage</div>
                 <div class="metric-item__value metric-item__value--coverage">
@@ -301,11 +437,19 @@ const summaryStats = computed(() => ({
                 </div>
               </div>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="3">
               <div class="metric-item">
                 <div class="metric-item__label">Exploration</div>
                 <div class="metric-item__value metric-item__value--exploration">
                   {{ summaryStats.latestExploration }}
+                </div>
+              </div>
+            </el-col>
+            <el-col :span="4">
+              <div class="metric-item">
+                <div class="metric-item__label">Threat Level</div>
+                <div class="metric-item__value metric-item__value--threat">
+                  {{ summaryStats.latestThreatLevel }}
                 </div>
               </div>
             </el-col>
@@ -338,7 +482,7 @@ const summaryStats = computed(() => ({
     </el-row>
 
     <el-row :gutter="20" style="margin-top: 20px">
-      <el-col :span="12">
+      <el-col :span="8">
         <el-card>
           <template #header>
             <span>Coverage Chart</span>
@@ -348,13 +492,23 @@ const summaryStats = computed(() => ({
           </div>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="8">
         <el-card>
           <template #header>
             <span>Exploration Chart</span>
           </template>
           <div class="chart-container">
             <canvas ref="explorationCanvas" />
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card>
+          <template #header>
+            <span>Threat Level Chart</span>
+          </template>
+          <div class="chart-container">
+            <canvas ref="threatLevelCanvas" />
           </div>
         </el-card>
       </el-col>
@@ -394,6 +548,10 @@ const summaryStats = computed(() => ({
 
         &--exploration {
           color: #e6a23c;
+        }
+
+        &--threat {
+          color: #f56c6c; /* Red for threat */
         }
       }
     }
