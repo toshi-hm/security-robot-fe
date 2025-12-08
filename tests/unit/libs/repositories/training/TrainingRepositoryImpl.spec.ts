@@ -55,7 +55,7 @@ describe('TrainingRepositoryImpl', () => {
 
   it('returns null when findById fails', async () => {
     fetchMock.mockRejectedValue(new Error('Network error'))
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
 
     const session = await repository.findById(99)
 
@@ -113,6 +113,11 @@ describe('TrainingRepositoryImpl', () => {
           learning_rate: 0.0003,
           batch_size: 64,
           num_workers: 1,
+          config: {
+            strategic_init_mode: undefined,
+            battery_drain_rate: undefined,
+            threat_penalty_weight: undefined,
+          },
         },
       })
     )
@@ -121,7 +126,7 @@ describe('TrainingRepositoryImpl', () => {
 
   it('stops a training session and returns false when failing', async () => {
     fetchMock.mockRejectedValue(new Error('fail'))
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
 
     const result = await repository.stop(1)
 
