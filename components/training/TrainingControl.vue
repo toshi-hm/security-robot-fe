@@ -32,6 +32,10 @@ const trainingConfig = ref<TrainingConfig>({
   batchSize: 64,
   numWorkers: 1,
   numRobots: 1,
+  // Cycle 10 Support
+  batteryDrainRate: 0.001,
+  threatPenaltyWeight: 0.0,
+  strategicInitMode: false,
 })
 
 const rules = {
@@ -72,6 +76,10 @@ const parameterTooltips = {
     'ニューラルネットワークの重みを更新する速度。大きすぎると学習が不安定になり、小さすぎると学習が遅くなります。推奨値: 0.0003',
   batchSize: '1回の更新で使用するサンプル数。大きいほど安定しますが、メモリを多く使用します。推奨値: 64',
   numWorkers: '並列実行するワーカー数（A3C使用時のみ有効）。CPUコア数に応じて調整してください。推奨値: 1-4',
+  // Cycle 10 Params
+  batteryDrainRate: 'バッテリー消費率 (0.001-1.0)。高いほど頻繁な充電が必要になります。推奨: 0.1 (High Pressure)',
+  threatPenaltyWeight: '脅威レベルに対するペナルティの重み (0-100)。推奨: 50.0',
+  strategicInitMode: 'ヒートマップ分析に基づく最適初期位置配置を使用するかどうか。',
 }
 
 /**
@@ -536,6 +544,72 @@ const cancelForm = () => {
             </el-row>
           </el-collapse-item>
         </el-collapse>
+
+        <el-divider content-position="left">拡張設定 (Cycle 10)</el-divider>
+        <!-- Only show if environmentType is 'enhanced' -->
+        <div v-if="trainingConfig.environmentType === 'enhanced'">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    バッテリー消費率
+                    <el-tooltip :content="parameterTooltips.batteryDrainRate" placement="top">
+                      <el-icon class="training-control__help-icon"><QuestionFilled /></el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-input-number
+                  v-model="trainingConfig.batteryDrainRate"
+                  :min="TRAINING_CONSTRAINTS.batteryDrainRate.min"
+                  :max="TRAINING_CONSTRAINTS.batteryDrainRate.max"
+                  :step="TRAINING_CONSTRAINTS.batteryDrainRate.step"
+                  :precision="TRAINING_CONSTRAINTS.batteryDrainRate.precision"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    脅威ペナルティ
+                    <el-tooltip :content="parameterTooltips.threatPenaltyWeight" placement="top">
+                      <el-icon class="training-control__help-icon"><QuestionFilled /></el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-input-number
+                  v-model="trainingConfig.threatPenaltyWeight"
+                  :min="TRAINING_CONSTRAINTS.threatPenaltyWeight.min"
+                  :max="TRAINING_CONSTRAINTS.threatPenaltyWeight.max"
+                  :step="TRAINING_CONSTRAINTS.threatPenaltyWeight.step"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item>
+                <template #label>
+                  <span class="training-control__label">
+                    戦略的初期化
+                    <el-tooltip :content="parameterTooltips.strategicInitMode" placement="top">
+                      <el-icon class="training-control__help-icon"><QuestionFilled /></el-icon>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-switch v-model="trainingConfig.strategicInitMode" active-text="有効" inactive-text="無効" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+        <div v-else>
+          <el-alert
+            title="拡張設定を使用するには環境タイプを「拡張環境」にしてください"
+            type="info"
+            :closable="false"
+          />
+        </div>
 
         <el-form-item>
           <el-button type="primary" :loading="isLoading" @click="startTraining">学習を開始</el-button>

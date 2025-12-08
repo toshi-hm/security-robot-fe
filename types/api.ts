@@ -21,6 +21,10 @@ export interface MapConfig {
 export interface TrainingSessionConfig {
   map_config?: MapConfig
   num_robots?: number // Multi-Agent Support
+  // Cycle 10 Params
+  battery_drain_rate?: number
+  threat_penalty_weight?: number
+  strategic_init_mode?: boolean
 }
 
 /**
