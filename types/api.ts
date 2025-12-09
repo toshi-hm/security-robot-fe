@@ -183,6 +183,7 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   robot_position?: { x: number; y: number; orientation?: number } | [number, number]
   robot_orientation?: number | null
   robots?: RobotStateDTO[] // Multi-Agent Support
+  charging_stations?: Array<{ x: number; y: number }> // Multi-Agent Support
   action_taken?: number | null
   reward_received?: number | null
   grid_width?: number
@@ -281,6 +282,7 @@ export interface EnvironmentStateResponseDTO {
   robot_y: number
   robot_orientation: number
   robots?: RobotStateDTO[] // Multi-Agent Support
+  charging_stations?: Array<{ x: number; y: number }> // Multi-Agent Support
   threat_grid: number[][] // Backend: {levels: number[][]} | null, normalized to number[][]
   coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
   obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null

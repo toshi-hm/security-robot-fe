@@ -113,6 +113,8 @@ describe('TrainingRepositoryImpl', () => {
           learning_rate: 0.0003,
           batch_size: 64,
           num_workers: 1,
+          num_envs: 1,
+          policy_type: 'MlpPolicy',
         },
       })
     )
