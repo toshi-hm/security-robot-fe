@@ -643,6 +643,7 @@ export interface TrainingConfig {
   coverageWeight: number
   explorationWeight: number
   diversityWeight: number
+  numRobots: number
   batteryDrainRate: number
   threatPenaltyWeight: number
   strategicInitMode: boolean
