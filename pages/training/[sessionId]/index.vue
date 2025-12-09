@@ -69,6 +69,7 @@ const gridWidth = ref<number>(8)
 const gridHeight = ref<number>(8)
 const coverageMap = ref<boolean[][]>([])
 const threatGrid = ref<number[][]>([])
+const visitHistoryMap = ref<number[][]>([]) // Cycle 11
 const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 
 // Battery system state (Session 050)
@@ -416,6 +417,11 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
       }
     }
 
+    // Update visit history map if provided (Cycle 11)
+    if (Array.isArray(message.visit_history_map)) {
+      visitHistoryMap.value = message.visit_history_map
+    }
+
     // Update charging stations (Multi-agent)
     if (Array.isArray(message.charging_stations)) {
       chargingStations.value = (message.charging_stations as Array<{ x: number; y: number }>).map((cs) => ({
@@ -644,6 +650,7 @@ onBeforeUnmount(() => {
             :robots="robots"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
+            :visit-history-map="visitHistoryMap"
             :trajectories="robotTrajectories"
             :patrol-radius="patrolRadius"
             :charging-station-position="chargingStationPosition"

@@ -18,6 +18,7 @@ export interface EnvironmentRenderProps {
   robots: RobotRenderState[]
   coverageMap: number[][] | boolean[][]
   threatGrid: number[][]
+  visitHistoryMap?: number[][] // Cycle 11: Pheromone/Visit History Map
   obstacles: boolean[][] | null
   trajectories: Record<number, Position[]>
   patrolRadius: number
@@ -260,6 +261,7 @@ export const useCanvasRenderer = () => {
       obstacles,
       threatGrid,
       coverageMap,
+      visitHistoryMap,
       chargingStations,
       robots,
       trajectories,
@@ -312,7 +314,17 @@ export const useCanvasRenderer = () => {
 
           const cellValue = coverageMap?.[y]?.[x]
           const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
-          if (isVisited) {
+
+          // Cycle 11: Prefer Visit History Map (Pheromone) if available
+          const visitValue = visitHistoryMap?.[y]?.[x]
+          if (typeof visitValue === 'number' && visitValue > 0) {
+            // Blue-ish overlay for Visit History (Pheromone)
+            // Opacity based on value (1.0 = Recent = Strong, 0.0 = Old = Weak)
+            const opacity = Math.min(0.6, visitValue * 0.6)
+            ctx.fillStyle = `rgba(0, 120, 255, ${opacity})`
+            ctx.fillRect(cellX, cellY, cellSize, cellSize)
+          } else if (isVisited) {
+            // Fallback to legacy Coverage Map
             ctx.fillStyle = visitedCellColor
             ctx.fillRect(cellX, cellY, cellSize, cellSize)
           }

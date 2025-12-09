@@ -14,6 +14,7 @@ interface Props {
   robots?: RobotState[] // Multi-Agent Support
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
+  visitHistoryMap?: number[][] // Cycle 11: Pheromone/Visit History Map
   obstacles?: boolean[][] | null // 障害物マップ
   trajectories?: Record<number, Position[]> // Multi-Agent Support: Dictionary of trajectories by robot ID
   trajectory?: Position[] // Legacy support for single robot
@@ -30,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   robots: () => [],
   coverageMap: () => [],
   threatGrid: () => [],
+  visitHistoryMap: () => [],
   obstacles: null,
   trajectories: () => ({}),
   trajectory: () => [],
@@ -130,6 +132,7 @@ const render = () => {
     robots: robotsToDraw.value,
     coverageMap: props.coverageMap,
     threatGrid: props.threatGrid,
+    visitHistoryMap: props.visitHistoryMap,
     obstacles: props.obstacles,
     trajectories: normalizeTrajectories.value,
     patrolRadius: props.patrolRadius,
