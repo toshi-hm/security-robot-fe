@@ -55,7 +55,7 @@ describe('TrainingRepositoryImpl', () => {
 
   it('returns null when findById fails', async () => {
     fetchMock.mockRejectedValue(new Error('Network error'))
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const session = await repository.findById(99)
 
@@ -126,7 +126,7 @@ describe('TrainingRepositoryImpl', () => {
 
   it('stops a training session and returns false when failing', async () => {
     fetchMock.mockRejectedValue(new Error('fail'))
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const result = await repository.stop(1)
 

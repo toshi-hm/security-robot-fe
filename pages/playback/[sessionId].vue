@@ -48,8 +48,7 @@ const currentMetrics = computed(() => {
   const frameStep = currentFrame.value.environmentState?.step ?? 0
   // Find metric close to this step.
   // Assuming metrics are sorted by timestep.
-  const metric =
-    metricsHistory.value.find((m) => m.timestep === frameStep) || metricsHistory.value[metricsHistory.value.length - 1] // Fallback? Or maybe find nearest?
+
 
   // Refined search: find last metric with timestep <= frameStep
   // Because metrics might be sparse (e.g. every 10 steps) while frames are every step?
@@ -104,26 +103,6 @@ const currentMetrics = computed(() => {
     explorationScore: m.exploration_score,
     threatLevelAvg: m.threat_level_avg,
   }
-})
-
-const robotTrajectory = computed<Position[]>(() => {
-  const frames = playbackStore.frames
-  const index = playbackStore.currentFrameIndex
-  if (!frames.length || index < 0) return []
-
-  const path: Position[] = []
-  for (let i = 0; i <= index && i < frames.length; i++) {
-    const env = frames[i]?.environmentState
-    if (!env || typeof env.robot_x !== 'number' || typeof env.robot_y !== 'number') continue
-
-    const x = env.robot_x
-    const y = env.robot_y
-    const last = path[path.length - 1]
-    if (last && last.x === x && last.y === y) continue
-    path.push({ x, y })
-  }
-
-  return path
 })
 
 const frameInfoColumns = computed(() => {
@@ -361,7 +340,6 @@ const startPlayback = () => {
 
   // Calculate interval based on playback speed
   // Base: 100ms per frame (10 FPS)
-  const baseInterval = 1000
   // Fix speed logic:
   // If speed=1.0 -> 1x (Realtime? or 1 step per sec?)
   // Actually, usually user wants faster.
@@ -691,8 +669,8 @@ const formatOrientation = (orientation?: number | null): string => {
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    min-height: 400px; // Consistency with Training
     height: auto;
+    min-height: 400px; // Consistency with Training
     overflow: visible; // Allow canvas aspect ratio to drive height, avoid scrollbars if possible
     padding: 20px;
 
@@ -706,9 +684,9 @@ const formatOrientation = (orientation?: number | null): string => {
     background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-tertiary);
     border-radius: 12px;
-    min-height: 400px;
     height: auto;
     max-height: 80vh; // Prevent unlimited growth
+    min-height: 400px;
     overflow-y: auto; // Allow scrolling for multiple robots
     padding: 20px;
 
