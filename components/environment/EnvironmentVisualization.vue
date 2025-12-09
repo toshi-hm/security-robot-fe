@@ -14,9 +14,11 @@ interface Props {
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
   obstacles?: boolean[][] | null // 障害物マップ
-  trajectory?: Position[]
+  trajectories?: Record<number, Position[]> // Multi-Agent Support: Dictionary of trajectories by robot ID
+  trajectory?: Position[] // Legacy support for single robot
   patrolRadius?: number
-  chargingStationPosition?: Position | null // バッテリーシステム (Session 050)
+  chargingStationPosition?: Position | null // Legacy support
+  chargingStations?: Position[] // Multi-Agent Support: List of charging stations
 }
 
 interface TrajectoryColors {
@@ -33,10 +35,12 @@ const props = withDefaults(defineProps<Props>(), {
   coverageMap: () => [],
   threatGrid: () => [],
   obstacles: null,
+  trajectories: () => ({}),
   trajectory: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
   chargingStationPosition: null,
+  chargingStations: () => [],
 })
 
 // Computed robots to draw
@@ -47,15 +51,20 @@ const robotsToDraw = computed(() => {
       y: r.y,
       orientation: r.orientation,
       id: r.id ?? i,
+      // Default to 100% and not charging if not available
+      battery: r.batteryPercentage ?? 100,
+      isCharging: r.isCharging ?? false,
     }))
   } else if (props.robotPosition) {
     // Backward compatibility
     return [
       {
-        x: props.robotPosition.x,
-        y: props.robotPosition.y,
+        x: props.robotPosition!.x,
+        y: props.robotPosition!.y,
         orientation: props.robotOrientation ?? 0,
         id: 0,
+        battery: 100,
+        isCharging: false,
       },
     ]
   }
@@ -69,72 +78,23 @@ const cellSize = 60 // pixels per cell
 const canvasWidth = computed(() => props.gridWidth * cellSize)
 const canvasHeight = computed(() => props.gridHeight * cellSize)
 
+const canvasWrapper = ref<HTMLElement | null>(null)
+
 // Zoom and pan state
 const scale = ref(1.0)
 const offsetX = ref(0)
 const offsetY = ref(0)
-const isPanning = ref(false)
-const panStart = ref({ x: 0, y: 0 })
 
 /**
- * Handle mouse wheel event for zooming
+ * Fit the grid to the container view
  */
-const handleWheel = (event: WheelEvent) => {
-  event.preventDefault()
-
-  const zoomSpeed = 0.1
-  const delta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed
-
-  // Update scale with min/max constraints
-  scale.value = Math.max(0.5, Math.min(3.0, scale.value + delta))
-
-  drawEnvironment()
-}
-
-/**
- * Handle mouse down event for panning start
- */
-const handleMouseDown = (event: MouseEvent) => {
-  isPanning.value = true
-  panStart.value = {
-    x: event.clientX - offsetX.value,
-    y: event.clientY - offsetY.value,
-  }
-}
-
-/**
- * Handle mouse move event for panning
- */
-const handleMouseMove = (event: MouseEvent) => {
-  if (!isPanning.value) return
-
-  offsetX.value = event.clientX - panStart.value.x
-  offsetY.value = event.clientY - panStart.value.y
-
-  drawEnvironment()
-}
-
-/**
- * Handle mouse up event for panning end
- */
-const handleMouseUp = () => {
-  isPanning.value = false
-}
-
-/**
- * Handle mouse leave event for panning end
- */
-const handleMouseLeave = () => {
-  isPanning.value = false
-}
-
-/**
- * Reset view to default zoom and pan
- */
-const resetView = () => {
+const fitToView = () => {
+  // Reset to default scale (1.0) to fill the canvas internal resolution.
+  // The CSS (width: 100%, height: 100%) and container aspect-ratio will handle the visual fitting.
   scale.value = 1.0
   offsetX.value = 0
   offsetY.value = 0
+
   drawEnvironment()
 }
 
@@ -230,19 +190,42 @@ const drawEnvironment = () => {
     }
   }
 
-  // Draw charging station (before robot)
-  if (props.chargingStationPosition) {
+  // Draw charging stations (plural)
+  if (props.chargingStations && props.chargingStations.length > 0) {
+    props.chargingStations.forEach((pos) => {
+      const stationX = Math.floor(pos.x) * cellSize + cellSize / 2
+      const stationY = Math.floor(pos.y) * cellSize + cellSize / 2
+      drawChargingStation(ctx, stationX, stationY)
+    })
+  } else if (props.chargingStationPosition) {
+    // Legacy single charging station
     const stationX = Math.floor(props.chargingStationPosition.x) * cellSize + cellSize / 2
     const stationY = Math.floor(props.chargingStationPosition.y) * cellSize + cellSize / 2
     drawChargingStation(ctx, stationX, stationY)
   }
 
-  // Draw robot trajectory
-  drawTrajectory(ctx, trajectoryColors)
-
   // Determine robots to draw
   // robotsToDraw is now a computed property, accessed via .value
   const robots = robotsToDraw.value
+
+  // Draw trajectories for all robots
+  if (props.trajectories && Object.keys(props.trajectories).length > 0) {
+    Object.entries(props.trajectories).forEach(([robotIdStr, path]) => {
+      const robotId = Number(robotIdStr)
+      // Use logic to get color based on Robot ID if possible, otherwise by index in map
+      // Here we trust ID matches robots list which is safer
+      // We need to map robotId to color index.
+      const robotIndex = robots.findIndex((r) => r.id === robotId)
+      // If robot not found (maybe left?), fallback to ID based modulo
+      const colorIndex = robotIndex >= 0 ? robotIndex : robotId
+      const color = getRobotColor(colorIndex)
+
+      drawTrajectory(ctx, path, color)
+    })
+  } else if (props.trajectory && props.trajectory.length > 0) {
+    // Legacy single trajectory
+    drawTrajectory(ctx, props.trajectory, trajectoryColors.line)
+  }
 
   // Draw robots
   robots.forEach((robot, index) => {
@@ -265,6 +248,15 @@ const drawEnvironment = () => {
     ctx.strokeStyle = robotBorderColor
     ctx.lineWidth = 3
     ctx.stroke()
+
+    // Charging indicator
+    if (robot.isCharging) {
+      ctx.strokeStyle = '#E6A23C' // Warning Color (Yellow/Orange) for charging halo
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(robotX, robotY, cellSize / 2.5, 0, Math.PI * 2)
+      ctx.stroke()
+    }
 
     // Robot direction indicator (small circle)
     drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor, robot.orientation)
@@ -291,6 +283,17 @@ const getThreatColor = (level: number): string => {
   if (level === 0) return 'var(--color-bg-no-threat)' // Gray for no threat
 
   // Interpolate from yellow (low) to red (high)
+  // Yellow: 255, 255, 0 (Low threat) -> Red: 255, 0, 0 (High threat)
+  // But standard heatmap is usually Blue -> Cyan -> Green -> Yellow -> Red
+  // For security robot:
+  // 0.0 (No threat) -> Transparent/Gray
+  // 0.1 (Low) -> Yellow/Green
+  // 1.0 (High) -> Red
+
+  // Simple interpolation:
+  // level 0: (255, 255, 255) or similar? No, stick to existing logic but improve it potentially
+  // Existing logic: Green component decreases as level increases. Red stays 255.
+  // This produces Yellow -> Orange -> Red.
   const red = Math.floor(255)
   const green = Math.floor(255 * (1 - level))
   const blue = 0
@@ -301,17 +304,27 @@ const getThreatColor = (level: number): string => {
 /**
  * Draw robot trajectory (path history)
  */
-const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors) => {
-  if (!props.trajectory || props.trajectory.length === 0) return
+const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: string | TrajectoryColors) => {
+  if (!path || path.length === 0) return
+
+  const lineColor = typeof color === 'string' ? color : color.line
+  // Make line color semi-transparent if it's a solid color string and not rgba
+  const strokeStyle =
+    lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba'))
+      ? lineColor // Simplification: we might want to convert hex to rgba for transparency if desired, but sticking to input for now
+      : lineColor
+
+  // Check if we need to force some transparency for multi-agent overlapping lines
+  ctx.globalAlpha = 0.6
 
   // Draw trajectory path
-  ctx.strokeStyle = colors.line // Light blue with transparency
+  ctx.strokeStyle = strokeStyle
   ctx.lineWidth = 3
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
   ctx.beginPath()
-  props.trajectory.forEach((pos, index) => {
+  path.forEach((pos, index) => {
     const x = Math.floor(pos.x) * cellSize + cellSize / 2
     const y = Math.floor(pos.y) * cellSize + cellSize / 2
 
@@ -323,29 +336,7 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, colors: TrajectoryColors)
   })
   ctx.stroke()
 
-  // Draw trajectory points (fade from old to recent)
-  props.trajectory.forEach((pos, index) => {
-    const x = Math.floor(pos.x) * cellSize + cellSize / 2
-    const y = Math.floor(pos.y) * cellSize + cellSize / 2
-
-    // Calculate opacity based on position in trajectory (older = more transparent)
-    const opacity = 0.2 + (index / props.trajectory.length) * 0.6
-
-    ctx.save()
-    ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
-
-    ctx.fillStyle = colors.point
-    ctx.beginPath()
-    ctx.arc(x, y, 4, 0, Math.PI * 2)
-    ctx.fill()
-
-    // White border for visibility
-    ctx.strokeStyle = colors.pointBorder
-    ctx.lineWidth = 1
-    ctx.stroke()
-
-    ctx.restore()
-  })
+  ctx.globalAlpha = 1.0 // Reset alpha
 }
 
 const drawOrientationIndicator = (
@@ -462,40 +453,48 @@ watch(
     props.coverageMap,
     props.threatGrid,
     props.obstacles,
-    props.gridWidth,
-    props.gridHeight,
+    // props.gridWidth, // Handled separately
+    // props.gridHeight, // Handled separately
     props.trajectory,
+    props.trajectories,
     props.patrolRadius,
     props.chargingStationPosition,
+    props.chargingStations,
   ],
   () => {
     drawEnvironment()
+  },
+  { deep: true }
+)
+
+// Watch for grid dimension changes to refit view
+watch(
+  () => [props.gridWidth, props.gridHeight],
+  () => {
+    // Use timeout to allow canvas to resize
+    setTimeout(() => {
+      fitToView()
+    }, 50)
   }
 )
 
 onMounted(() => {
   updateRobotColors()
-  drawEnvironment()
+  // Wait for DOM layout
+  setTimeout(() => {
+    fitToView()
+  }, 100)
 })
 </script>
 
 <template>
   <div class="environment-visualization">
-    <div class="environment-visualization__canvas-wrapper">
-      <canvas
-        ref="canvas"
-        :width="canvasWidth"
-        :height="canvasHeight"
-        class="environment-visualization__canvas"
-        @wheel="handleWheel"
-        @mousedown="handleMouseDown"
-        @mousemove="handleMouseMove"
-        @mouseup="handleMouseUp"
-        @mouseleave="handleMouseLeave"
-      />
-      <el-button class="environment-visualization__reset-button" size="small" @click="resetView">
-        Reset View
-      </el-button>
+    <div
+      ref="canvasWrapper"
+      class="environment-visualization__canvas-wrapper"
+      :style="{ aspectRatio: `${gridWidth} / ${gridHeight}` }"
+    >
+      <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="environment-visualization__canvas" />
     </div>
 
     <!-- Legend as HTML -->
@@ -547,30 +546,21 @@ onMounted(() => {
 
   &__canvas-wrapper {
     align-items: center;
+    background-color: var(--color-bg-canvas-wrapper, #f5f7fa);
+    border: 1px solid var(--color-border-default);
+    border-radius: 4px;
     display: flex;
     justify-content: center;
-    overflow: auto;
+    overflow: hidden; /* Hide scrollbars for pan/zoom UI */
     position: relative;
   }
 
   &__canvas {
     background-color: var(--color-bg-canvas);
-    border: 2px solid var(--color-border-canvas);
-    border-radius: 4px;
-    cursor: grab;
+    box-shadow: 0 2px 12px 0 rgb(0 0 0 / 0.1);
     display: block;
-    max-height: 100%;
-    max-width: 100%;
-
-    &:active {
-      cursor: grabbing;
-    }
-  }
-
-  &__reset-button {
-    position: absolute;
-    right: 20px;
-    top: 20px;
+    height: 100%; /* Ensure it scales to container */
+    width: 100%; /* Ensure it scales to container */
   }
 
   &__legend {
@@ -579,6 +569,7 @@ onMounted(() => {
     border-radius: 8px;
     color: var(--color-text-legend);
     display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
     gap: 24px;
     padding: 12px 16px;
   }

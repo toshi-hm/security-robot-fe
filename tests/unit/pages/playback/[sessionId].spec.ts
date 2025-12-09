@@ -26,6 +26,13 @@ const mockRouter = {
 }
 vi.stubGlobal('useRoute', () => mockRoute)
 vi.stubGlobal('useRouter', () => mockRouter)
+vi.stubGlobal(
+  'useFetch',
+  vi.fn().mockResolvedValue({
+    data: { value: { data: { metrics: [] } } },
+    error: { value: null },
+  })
+)
 
 // Mock components
 const PlaybackTimelineStub = {
@@ -58,8 +65,11 @@ const EnvironmentVisualizationStub = {
     'coverageMap',
     'threatGrid',
     'trajectory',
+    'trajectories',
     'patrolRadius',
-    'robots', // Add robots prop to stub
+    'robots',
+    'chargingStations',
+    'chargingStationPosition',
   ],
 }
 
@@ -239,10 +249,12 @@ describe('Playback Session Page', () => {
 
     const env = wrapper.findComponent(EnvironmentVisualizationStub)
     expect(env.exists()).toBe(true)
-    expect(env.props('trajectory')).toEqual([
-      { x: 1, y: 1 },
-      { x: 2, y: 1 },
-    ])
+    expect(env.props('trajectories')).toEqual({
+      0: [
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+      ],
+    })
   })
 
   it('handles multi-agent data correctly', () => {

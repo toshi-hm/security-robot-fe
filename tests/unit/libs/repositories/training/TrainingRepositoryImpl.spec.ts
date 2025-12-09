@@ -113,6 +113,11 @@ describe('TrainingRepositoryImpl', () => {
           learning_rate: 0.0003,
           batch_size: 64,
           num_workers: 1,
+          config: {
+            strategic_init_mode: undefined,
+            battery_drain_rate: undefined,
+            threat_penalty_weight: undefined,
+          },
         },
       })
     )
