@@ -49,7 +49,6 @@ const currentMetrics = computed(() => {
   // Find metric close to this step.
   // Assuming metrics are sorted by timestep.
 
-
   // Refined search: find last metric with timestep <= frameStep
   // Because metrics might be sparse (e.g. every 10 steps) while frames are every step?
   // Or vice versa.

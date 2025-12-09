@@ -13,6 +13,7 @@ interface Props {
   robots?: RobotState[] // Multi-Agent Support
   coverageMap?: number[][] | boolean[][]
   threatGrid?: number[][]
+  visitHistoryMap?: number[][] // Cycle 11 Pheromone
   obstacles?: boolean[][] | null // 障害物マップ
   trajectories?: Record<number, Position[]> // Multi-Agent Support: Dictionary of trajectories by robot ID
   trajectory?: Position[] // Legacy support for single robot
@@ -34,6 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   robots: () => [],
   coverageMap: () => [],
   threatGrid: () => [],
+  visitHistoryMap: () => [],
   obstacles: null,
   trajectories: () => ({}),
   trajectory: () => [],
@@ -175,11 +177,23 @@ const drawEnvironment = () => {
         ctx.fillRect(cellX, cellY, cellSize, cellSize)
 
         // Draw coverage overlay (visited cells)
-        const cellValue = props.coverageMap?.[y]?.[x]
-        const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
-        if (isVisited) {
-          ctx.fillStyle = visitedCellColor // Green overlay for visited
+        // Cycle 11: Prefer Visit History Map (Pheromone) if available
+        const visitValue = props.visitHistoryMap?.[y]?.[x]
+        if (typeof visitValue === 'number' && visitValue > 0) {
+          // Blue-ish overlay for Visit History (Pheromone)
+          // Opacity based on value (1.0 = Recent = Strong, 0.0 = Old = Weak)
+          // Use max 0.5 opacity to see threat underneath
+          const opacity = Math.min(0.6, visitValue * 0.6)
+          ctx.fillStyle = `rgba(0, 120, 255, ${opacity})`
           ctx.fillRect(cellX, cellY, cellSize, cellSize)
+        } else {
+          // Fallback to legacy Coverage Map (Boolean/Binary)
+          const cellValue = props.coverageMap?.[y]?.[x]
+          const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
+          if (isVisited) {
+            ctx.fillStyle = visitedCellColor // Green overlay for visited
+            ctx.fillRect(cellX, cellY, cellSize, cellSize)
+          }
         }
       }
 
@@ -452,6 +466,7 @@ watch(
     props.robotOrientation,
     props.coverageMap,
     props.threatGrid,
+    props.visitHistoryMap,
     props.obstacles,
     // props.gridWidth, // Handled separately
     // props.gridHeight, // Handled separately
@@ -518,6 +533,10 @@ onMounted(() => {
         <div class="environment-visualization__legend-item">
           <span class="environment-visualization__legend-color environment-visualization__legend-color--visited" />
           <span>Visited</span>
+        </div>
+        <div class="environment-visualization__legend-item">
+          <span class="environment-visualization__legend-color environment-visualization__legend-color--pheromone" />
+          <span>Visit History (Recent)</span>
         </div>
       </div>
       <div class="environment-visualization__legend-section">
@@ -622,6 +641,10 @@ onMounted(() => {
 
     &--visited {
       background-color: var(--color-bg-visited-cell);
+    }
+
+    &--pheromone {
+      background-color: rgb(0 120 255 / 0.6);
     }
   }
 
