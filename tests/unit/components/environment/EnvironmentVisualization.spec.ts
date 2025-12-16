@@ -431,8 +431,8 @@ describe('EnvironmentVisualization', () => {
     describe('robots prop', () => {
       it('accepts robots array prop', () => {
         const robots = [
-          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
-          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+          { id: 0, x: 1, y: 1, orientation: 0, batteryPercentage: 100, isCharging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, batteryPercentage: 80, isCharging: true },
         ]
         const wrapper = mount(EnvironmentVisualization, {
           ...mountOptions,
@@ -442,36 +442,40 @@ describe('EnvironmentVisualization', () => {
         expect(wrapper.props('robots')).toEqual(robots)
       })
 
-      it('draws multiple robots when robots array is provided', () => {
+      it('draws multiple robots when robots array is provided', async () => {
         const robots = [
-          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
-          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+          { id: 0, x: 1, y: 1, orientation: 0, batteryPercentage: 100, isCharging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, batteryPercentage: 80, isCharging: true },
         ]
         mount(EnvironmentVisualization, {
           ...mountOptions,
           props: { robots },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // Each robot draws: body arc, border stroke, direction indicator
         // Multiple calls to arc expected for multiple robots
         expect(canvasMock.arc.mock.calls.length).toBeGreaterThanOrEqual(2)
       })
 
-      it('draws robot ID badge when multiple robots exist', () => {
+      it('draws robot ID badge when multiple robots exist', async () => {
         const robots = [
-          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
-          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+          { id: 0, x: 1, y: 1, orientation: 0, batteryPercentage: 100, isCharging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, batteryPercentage: 80, isCharging: true },
         ]
         mount(EnvironmentVisualization, {
           ...mountOptions,
           props: { robots },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // fillText is called for robot ID badges
         expect(canvasMock.fillText).toHaveBeenCalled()
       })
 
-      it('falls back to robotPosition when robots array is empty', () => {
+      it('falls back to robotPosition when robots array is empty', async () => {
         mount(EnvironmentVisualization, {
           ...mountOptions,
           props: {
@@ -479,6 +483,8 @@ describe('EnvironmentVisualization', () => {
             robotPosition: { x: 2, y: 2 },
           },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // Should still draw the single robot
         expect(canvasMock.arc).toHaveBeenCalled()
@@ -486,17 +492,17 @@ describe('EnvironmentVisualization', () => {
     })
 
     describe('trajectories prop', () => {
-      it('accepts trajectories array prop', () => {
-        const trajectories = [
-          [
+      it('accepts trajectories prop', () => {
+        const trajectories = {
+          0: [
             { x: 0, y: 0 },
             { x: 1, y: 1 },
           ],
-          [
+          1: [
             { x: 2, y: 2 },
             { x: 3, y: 3 },
           ],
-        ]
+        }
         const wrapper = mount(EnvironmentVisualization, {
           ...mountOptions,
           props: { trajectories },
@@ -505,21 +511,23 @@ describe('EnvironmentVisualization', () => {
         expect(wrapper.props('trajectories')).toEqual(trajectories)
       })
 
-      it('draws multiple trajectories when provided', () => {
-        const trajectories = [
-          [
+      it('draws multiple trajectories when provided', async () => {
+        const trajectories = {
+          0: [
             { x: 0, y: 0 },
             { x: 1, y: 1 },
           ],
-          [
+          1: [
             { x: 2, y: 2 },
             { x: 3, y: 3 },
           ],
-        ]
+        }
         mount(EnvironmentVisualization, {
           ...mountOptions,
           props: { trajectories },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // Trajectory paths use stroke
         expect(canvasMock.stroke).toHaveBeenCalled()
@@ -527,14 +535,14 @@ describe('EnvironmentVisualization', () => {
         expect(canvasMock.arc).toHaveBeenCalled()
       })
 
-      it('prioritizes trajectories over legacy trajectory prop', () => {
+      it('prioritizes trajectories over legacy trajectory prop', async () => {
         canvasMock.moveTo.mockClear()
-        const trajectories = [
-          [
+        const trajectories = {
+          0: [
             { x: 0, y: 0 },
             { x: 1, y: 1 },
           ],
-        ]
+        }
         const trajectory = [
           { x: 5, y: 5 },
           { x: 6, y: 6 },
@@ -543,6 +551,8 @@ describe('EnvironmentVisualization', () => {
           ...mountOptions,
           props: { trajectories, trajectory },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // Should draw trajectories, not legacy trajectory
         // The unified logic picks trajectories when available
@@ -553,16 +563,24 @@ describe('EnvironmentVisualization', () => {
         const wrapper = mount(EnvironmentVisualization, {
           ...mountOptions,
           props: {
-            trajectories: [[{ x: 0, y: 0 }]],
+            trajectories: { 0: [{ x: 0, y: 0 }] },
           },
         })
 
+        await nextTick()
+        vi.runAllTimers()
         canvasMock.clearRect.mockClear()
 
         await wrapper.setProps({
-          trajectories: [[{ x: 0, y: 0 }], [{ x: 1, y: 1 }]],
+          trajectories: {
+            0: [
+              { x: 0, y: 0 },
+              { x: 1, y: 1 },
+            ],
+          },
         })
         await nextTick()
+        vi.runAllTimers()
 
         expect(canvasMock.clearRect).toHaveBeenCalled()
       })
@@ -582,7 +600,7 @@ describe('EnvironmentVisualization', () => {
         expect(wrapper.props('chargingStations')).toEqual(chargingStations)
       })
 
-      it('draws multiple charging stations when provided', () => {
+      it('draws multiple charging stations when provided', async () => {
         const chargingStations = [
           { x: 0, y: 0 },
           { x: 7, y: 7 },
@@ -591,6 +609,8 @@ describe('EnvironmentVisualization', () => {
           ...mountOptions,
           props: { chargingStations },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         // Charging stations are drawn as circles with arc
         expect(canvasMock.arc).toHaveBeenCalled()
@@ -605,6 +625,8 @@ describe('EnvironmentVisualization', () => {
             chargingStations: [{ x: 0, y: 0 }],
           },
         })
+        await nextTick()
+        vi.runAllTimers()
 
         canvasMock.clearRect.mockClear()
 
@@ -615,11 +637,12 @@ describe('EnvironmentVisualization', () => {
           ],
         })
         await nextTick()
+        vi.runAllTimers()
 
         expect(canvasMock.clearRect).toHaveBeenCalled()
       })
 
-      it('supports both legacy chargingStationPosition and chargingStations', () => {
+      it('prioritizes chargingStations over legacy chargingStationPosition', async () => {
         mount(EnvironmentVisualization, {
           ...mountOptions,
           props: {
@@ -627,10 +650,12 @@ describe('EnvironmentVisualization', () => {
             chargingStations: [{ x: 7, y: 7 }],
           },
         })
+        await nextTick()
+        vi.runAllTimers()
 
-        // Both should be drawn - fillText called for each station's lightning bolt
+        // Should draw only from chargingStations (prop priority)
         const fillTextCalls = canvasMock.fillText.mock.calls.filter((call: string[]) => call[0] === '⚡')
-        expect(fillTextCalls.length).toBeGreaterThanOrEqual(2)
+        expect(fillTextCalls.length).toBe(1)
       })
     })
   })

@@ -37,7 +37,6 @@ const props = withDefaults(defineProps<Props>(), {
   obstacles: null,
   trajectories: () => ({}),
   trajectory: () => [],
-  trajectories: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
   chargingStationPosition: null,
@@ -315,22 +314,24 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: 
   // Resolve colors
   let specificColors: TrajectoryColors
   if (typeof color === 'string') {
-     // Default from root style if not provided (should be passed but fallback just in case)
-     const rootStyle = getComputedStyle(document.documentElement)
-     specificColors = {
-        line: color,
-        point: color,
-        pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || '#fff'
-     }
+    // Default from root style if not provided (should be passed but fallback just in case)
+    const rootStyle = getComputedStyle(document.documentElement)
+    specificColors = {
+      line: color,
+      point: color,
+      pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || '#fff',
+    }
   } else {
     specificColors = color
   }
 
   const { line: lineColor, point: pointColor, pointBorder } = specificColors
-  
+
   // Make line color semi-transparent if it's a solid color string and not rgba
   // This logic from HEAD helps when single color string is passed
-  const strokeStyle = typeof color === 'string' && (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
+  const strokeStyle =
+    typeof color === 'string' &&
+    (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
       ? lineColor // We could add opacity here but let's rely on caller or inputs
       : lineColor
 
@@ -381,7 +382,6 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: 
 
     ctx.restore()
   })
-}
 }
 
 const drawOrientationIndicator = (

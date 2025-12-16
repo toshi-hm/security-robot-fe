@@ -60,7 +60,16 @@ const currentMetrics = computed(() => {
     }
 
   let bestMetric = metricsHistory.value[0]
-  if (!bestMetric) return { timestep: 0, episode: 0, reward: 0, loss: null, coverageRatio: null, explorationScore: null, threatLevelAvg: null }
+  if (!bestMetric)
+    return {
+      timestep: 0,
+      episode: 0,
+      reward: 0,
+      loss: null,
+      coverageRatio: null,
+      explorationScore: null,
+      threatLevelAvg: null,
+    }
 
   let minDiff = Math.abs(bestMetric.timestep - frameStep)
 
@@ -145,7 +154,7 @@ const computeTrajectories = (frames: typeof playbackStore.frames, targetIndex: n
 
   // Convert to Record<number, Position[]>
   const result: Record<number, Position[]> = {}
-  Object.keys(paths).forEach(key => {
+  Object.keys(paths).forEach((key) => {
     result[Number(key)] = paths[key]
   })
   return result
@@ -171,7 +180,6 @@ const chargingStations = computed<Position[]>(() => {
   // Legacy fallback
   const single = getChargingStationPosition(env)
   return single ? [single] : []
-})
 })
 
 const frameInfoColumns = computed(() => {
