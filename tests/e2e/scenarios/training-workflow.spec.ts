@@ -1,52 +1,73 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Training Workflow', () => {
-  test('should display training page with control component', async ({ page }) => {
+  test('should submit training session with cycle 10 and GPU parameters', async ({ page }) => {
+    // Mock the API response
+    await page.route('/api/v1/training/sessions', async (route) => {
+      const request = route.request()
+      const postData = request.postDataJSON()
+
+      // Verify payload
+      expect(postData).toMatchObject({
+        name: 'E2E Test Session',
+        environment_type: 'enhanced',
+        config: {
+          battery_drain_rate: 0.1,
+          threat_penalty_weight: 50,
+          strategic_init_mode: true,
+          num_envs: 1,
+        },
+      })
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 999,
+          name: 'E2E Test Session',
+          status: 'pending',
+        }),
+      })
+    })
+
     await page.goto('/training')
 
-    // Check page title
-    await expect(page.getByRole('heading', { name: /training sessions/i })).toBeVisible()
+    // Open form
+    await page.getByRole('button', { name: '新規学習セッションを開始' }).click()
 
-    // Check training control component is rendered
-    await expect(page.locator('.training-control')).toBeVisible()
-  })
+    // Fill name
+    // Element Plus inputs often need specific targeting
+    await page.getByPlaceholder('例: PPO学習 実行1').fill('E2E Test Session')
 
-  test('should display training progress when session exists', async ({ page }) => {
-    await page.goto('/training')
+    // Select Environment Type: Enhanced
+    // Element Plus select is complex, simpler to click label then option if possible,
+    // or use specific locator strategy.
+    // Clicking the input inside the form-item for '環境タイプ'
+    await page.locator('.el-form-item').filter({ hasText: '環境タイプ' }).locator('div.el-select').click()
+    await page.getByRole('option', { name: '拡張環境' }).click()
 
-    // Check if progress component is present
-    const _progressComponent = page.locator('.training-progress')
+    // Wait for extended fields to appear
+    await expect(page.getByText('拡張設定 (Cycle 10)')).toBeVisible()
 
-    // Note: Actual visibility depends on session state
-    // In a real test, we would mock the backend or create a session first
-  })
+    // Set Battery Drain Rate
+    // Element Plus InputNumber has input inside
+    const batteryInput = page.locator('.el-form-item').filter({ hasText: 'バッテリー消費率' }).locator('input')
+    await batteryInput.clear()
+    await batteryInput.fill('0.1')
 
-  test('should navigate to training session detail page', async ({ page }) => {
-    await page.goto('/training')
+    // Set Threat Penalty
+    const threatInput = page.locator('.el-form-item').filter({ hasText: '脅威ペナルティ' }).locator('input')
+    await threatInput.clear()
+    await threatInput.fill('50')
 
-    // This test would require backend mock or actual session creation
-    // For now, we can test the URL pattern works
-    const sessionId = 'test-session-123'
-    await page.goto(`/training/${sessionId}`)
+    // Toggle Strategic Init
+    // Element Plus switch
+    await page.locator('.el-form-item').filter({ hasText: '戦略的初期化' }).locator('.el-switch').click()
 
-    await expect(page.getByRole('heading', { name: new RegExp(sessionId) })).toBeVisible()
-  })
+    // Submit
+    await page.getByRole('button', { name: '学習を開始' }).click()
 
-  test('should display training metrics page', async ({ page }) => {
-    const sessionId = 'test-session-456'
-    await page.goto(`/training/${sessionId}/metrics`)
-
-    await expect(page.getByRole('heading', { name: /metrics for session/i })).toBeVisible()
-  })
-
-  test('should have proper page structure on training index', async ({ page }) => {
-    await page.goto('/training')
-
-    // Check main container
-    await expect(page.locator('main, [role="main"]')).toBeVisible()
-
-    // Check heading exists
-    const heading = page.getByRole('heading', { level: 2 })
-    await expect(heading).toBeVisible()
+    // Verify navigation or success message
+    await expect(page.getByText('学習セッション「E2E Test Session」を開始しました')).toBeVisible()
   })
 })

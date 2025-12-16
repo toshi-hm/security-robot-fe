@@ -155,7 +155,7 @@ const computeTrajectories = (frames: typeof playbackStore.frames, targetIndex: n
   // Convert to Record<number, Position[]>
   const result: Record<number, Position[]> = {}
   Object.keys(paths).forEach((key) => {
-    result[Number(key)] = paths[key]
+    result[Number(key)] = paths[key]!
   })
   return result
 }
