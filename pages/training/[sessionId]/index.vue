@@ -6,6 +6,7 @@ import EnvironmentVisualization from '~/components/environment/EnvironmentVisual
 import RobotPositionDisplay from '~/components/environment/RobotPositionDisplay.vue'
 import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
+import type { Position } from '~/libs/domains/common/Position'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
 import type { TrainingSession } from '~/libs/domains/training/TrainingSession'
 import { TrainingSessionEntity } from '~/libs/entities/training/TrainingSessionEntity'
@@ -15,6 +16,8 @@ import type {
   ConnectionAckMessage,
   TrainingErrorMessage,
   EnvironmentUpdateMessage,
+  PaginatedMetricsResponse,
+  TrainingMetricDTO,
 } from '~/types/api'
 import { getChargingStationPosition } from '~/utils/batteryHelpers'
 import { updateRobotsFromMessage } from '~/utils/robotStateHelpers'
@@ -40,7 +43,12 @@ const currentMetrics = ref({
   loss: null as number | null,
   coverageRatio: null as number | null,
   explorationScore: null as number | null,
+  threatLevelAvg: null as number | null,
 })
+
+// Historical metrics
+const metricsHistory = ref<TrainingMetricDTO[]>([])
+const metricsError = ref<string>('')
 
 // Training status and notifications
 const trainingStatus = ref<string>('')
@@ -49,9 +57,12 @@ const statusType = ref<'success' | 'info' | 'warning' | 'error'>('info')
 const showStatusAlert = ref(false)
 
 // Environment update state
-// Environment update state
 const robots = ref<RobotState[]>([])
-const robotTrajectory = ref<Array<{ x: number; y: number }>>([])
+// Multi-agent trajectory support
+const robotTrajectories = ref<Record<number, Position[]>>({})
+// Legacy trajectory support
+const robotTrajectory = ref<Position[]>([])
+
 const lastAction = ref<string>('')
 const lastReward = ref<number>(0)
 const gridWidth = ref<number>(8)
@@ -64,7 +75,9 @@ const patrolRadius = ref<number>(DEFAULT_PATROL_RADIUS)
 const globalBatteryPercentage = ref<number | null>(null)
 const globalIsCharging = ref<boolean>(false)
 const distanceToStation = ref<number | null>(null)
-const chargingStationPosition = ref<{ x: number; y: number } | null>(null)
+// Charging stations (Multi & Single)
+const chargingStations = ref<Position[]>([])
+const chargingStationPosition = ref<Position | null>(null)
 
 // Computed properties for robot state (Reactivity Optimization)
 const firstRobot = computed(() => (robots.value.length > 0 ? robots.value[0] : null))
@@ -116,6 +129,34 @@ const estimatedTimeRemaining = computed(() => {
   return Math.ceil(remainingMs / 60000) // Convert to minutes
 })
 
+/**
+ * Calculate Manhattan distance from a robot to the nearest charging station.
+ */
+const calculateDistanceToStation = (robot: RobotState): number | null => {
+  // If robot has explicit distance (legacy), use it? No, legacy is global.
+  // Calculate from positions
+  if (!chargingStations.value || chargingStations.value.length === 0) {
+    // Fallback to legacy single station if available
+    if (chargingStationPosition.value) {
+      return (
+        Math.abs(Math.round(robot.x) - Math.round(chargingStationPosition.value.x)) +
+        Math.abs(Math.round(robot.y) - Math.round(chargingStationPosition.value.y))
+      )
+    }
+    return null
+  }
+
+  let minDist = Infinity
+  for (const station of chargingStations.value) {
+    const dist =
+      Math.abs(Math.round(robot.x) - Math.round(station.x)) + Math.abs(Math.round(robot.y) - Math.round(station.y))
+    if (dist < minDist) {
+      minDist = dist
+    }
+  }
+  return minDist === Infinity ? null : minDist
+}
+
 // Type guards for 2D arrays
 const isNumberArray2D = (value: unknown): value is number[][] => {
   if (!Array.isArray(value)) return false
@@ -138,6 +179,8 @@ const isTrainingProgressMessage = (msg: unknown): msg is TrainingProgressMessage
     (m.loss === undefined || m.loss === null || typeof m.loss === 'number') &&
     (m.coverage_ratio === undefined || m.coverage_ratio === null || typeof m.coverage_ratio === 'number') &&
     (m.exploration_score === undefined || m.exploration_score === null || typeof m.exploration_score === 'number') &&
+    (m.threat_level_avg === undefined || m.threat_level_avg === null || typeof m.threat_level_avg === 'number') &&
+    (m.additional_metrics === undefined || typeof m.additional_metrics === 'object') &&
     (m.data === undefined || (typeof m.data === 'object' && m.data !== null))
   )
 }
@@ -236,6 +279,16 @@ const handleTrainingProgress = (message: Record<string, unknown>) => {
   if (!isTrainingProgressMessage(message)) return
 
   if (message.session_id === sessionId.value) {
+    // Extract threat_level_avg from additional_metrics or direct field
+    let threatLevel = message.data?.threat_level_avg ?? message.threat_level_avg ?? null
+
+    if (threatLevel === null && message.additional_metrics) {
+      const am = message.additional_metrics as Record<string, unknown>
+      if (typeof am.threat_level_avg === 'number') {
+        threatLevel = am.threat_level_avg
+      }
+    }
+
     currentMetrics.value = {
       timestep: message.data?.timestep || message.timestep || 0,
       episode: message.data?.episode || message.episode || 0,
@@ -243,6 +296,7 @@ const handleTrainingProgress = (message: Record<string, unknown>) => {
       loss: message.data?.loss ?? message.loss ?? null,
       coverageRatio: message.data?.coverage_ratio ?? message.coverage_ratio ?? null,
       explorationScore: message.data?.exploration_score ?? message.exploration_score ?? null,
+      threatLevelAvg: threatLevel,
     }
   }
 }
@@ -309,23 +363,31 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     // Update robots state
     robots.value = updateRobotsFromMessage(message)
 
-    // Add to trajectory if position changed (using first robot)
-    if (robots.value.length > 0) {
-      const firstRobot = robots.value[0]
-      if (firstRobot) {
-        const newPosition = { x: firstRobot.x, y: firstRobot.y }
-        const lastPoint =
-          robotTrajectory.value.length > 0 ? robotTrajectory.value[robotTrajectory.value.length - 1] : undefined
+    // Update trajectories for all robots
+    robots.value.forEach((robot) => {
+      const robotId = robot.id ?? 0
+      const newPos = { x: robot.x, y: robot.y }
 
-        if (!lastPoint || lastPoint.x !== newPosition.x || lastPoint.y !== newPosition.y) {
-          robotTrajectory.value.push({ ...newPosition })
+      if (!robotTrajectories.value[robotId]) {
+        robotTrajectories.value[robotId] = []
+      }
 
-          // Limit trajectory length to 100 points for performance
-          if (robotTrajectory.value.length > 100) {
-            robotTrajectory.value.shift()
-          }
+      const traj = robotTrajectories.value[robotId]
+      const lastPoint = traj.length > 0 ? traj[traj.length - 1] : undefined
+
+      if (!lastPoint || lastPoint.x !== newPos.x || lastPoint.y !== newPos.y) {
+        traj.push(newPos)
+        // Limit trajectory length
+        if (traj.length > 100) {
+          traj.shift()
         }
       }
+    })
+
+    // Legacy trajectory support (for first robot)
+    if (robots.value.length > 0) {
+      const r = robots.value[0]!
+      robotTrajectory.value = [...(robotTrajectories.value[r.id ?? 0] || [])]
     }
 
     // Update action and reward
@@ -344,6 +406,22 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     // Update threat grid if provided
     if (Array.isArray(message.threat_grid)) {
       threatGrid.value = message.threat_grid
+      // Auto-update grid dimensions from threat grid if valid
+      if (threatGrid.value.length > 0) {
+        gridHeight.value = threatGrid.value.length
+        const firstRow = threatGrid.value[0]
+        if (firstRow && firstRow.length > 0) {
+          gridWidth.value = firstRow.length
+        }
+      }
+    }
+
+    // Update charging stations (Multi-agent)
+    if (Array.isArray(message.charging_stations)) {
+      chargingStations.value = (message.charging_stations as Array<{ x: number; y: number }>).map((cs) => ({
+        x: cs.x,
+        y: cs.y,
+      }))
     }
 
     // Update battery information (Session 050) - Legacy fallback
@@ -360,6 +438,23 @@ const handleEnvironmentUpdate = (message: Record<string, unknown>) => {
     if (stationPosition) {
       chargingStationPosition.value = stationPosition
     }
+  }
+}
+
+const fetchMetricsHistory = async () => {
+  try {
+    const url = `${config.public.apiBaseUrl}/api/v1/training/sessions/${sessionId.value}/metrics`
+    console.log('Fetching metrics from:', url)
+    const data = await $fetch<PaginatedMetricsResponse>(url, {
+      query: { page: 1, page_size: 500 },
+    })
+    if (data) {
+      console.log('Metrics fetched:', data.metrics.length)
+      metricsHistory.value = data.metrics
+    }
+  } catch (e: any) {
+    console.error('Failed to fetch metrics history', e)
+    metricsError.value = e.message || String(e)
   }
 }
 
@@ -382,6 +477,42 @@ onMounted(async () => {
         sessionInfo.value = TrainingSessionEntity.toDomain(data.value as any)
         if (sessionInfo.value.startedAt) {
           sessionStartTime.value = sessionInfo.value.startedAt
+        }
+
+        // Fetch metrics history
+        await fetchMetricsHistory()
+
+        // Initialize currentMetrics from history if available
+        if (metricsHistory.value.length > 0) {
+          const latestMetric = metricsHistory.value[0]
+          if (latestMetric) {
+            interface AdditionalMetrics {
+              threat_level_avg?: number
+            }
+            const am = latestMetric.additional_metrics as AdditionalMetrics | null
+            const threatLevel = am?.threat_level_avg ?? null
+
+            currentMetrics.value = {
+              timestep: latestMetric.timestep,
+              episode: latestMetric.episode ?? 0,
+              reward: latestMetric.reward,
+              loss: latestMetric.loss,
+              coverageRatio: latestMetric.coverage_ratio,
+              explorationScore: latestMetric.exploration_score,
+              threatLevelAvg: threatLevel,
+            }
+          }
+        } else if (sessionInfo.value.status === 'completed') {
+          // Fallback for completed sessions without metrics (e.g. legacy)
+          currentMetrics.value = {
+            timestep: sessionInfo.value.totalTimesteps,
+            episode: sessionInfo.value.episodesCompleted,
+            reward: 0,
+            loss: null,
+            coverageRatio: null,
+            explorationScore: null,
+            threatLevelAvg: null,
+          }
         }
 
         // Register message handlers
@@ -500,7 +631,7 @@ onBeforeUnmount(() => {
     </el-card>
 
     <el-row v-if="robotPosition" :gutter="20" style="margin-bottom: 20px">
-      <el-col :span="12">
+      <el-col :span="16">
         <el-card class="training-session__environment">
           <template #header>
             <span>Environment Visualization</span>
@@ -513,13 +644,14 @@ onBeforeUnmount(() => {
             :robots="robots"
             :coverage-map="coverageMap"
             :threat-grid="threatGrid"
-            :trajectory="robotTrajectory"
+            :trajectories="robotTrajectories"
             :patrol-radius="patrolRadius"
             :charging-station-position="chargingStationPosition"
+            :charging-stations="chargingStations"
           />
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="8">
         <el-card class="training-session__environment-info">
           <template #header>
             <span>Environment State</span>
@@ -536,7 +668,7 @@ onBeforeUnmount(() => {
               <BatteryDisplay
                 :battery-percentage="robot.batteryPercentage"
                 :is-charging="robot.isCharging"
-                :distance-to-station="distanceToStation"
+                :distance-to-station="calculateDistanceToStation(robot)"
                 style="margin-top: 10px"
               />
               <el-divider v-if="index < robots.length - 1" />
@@ -573,7 +705,7 @@ onBeforeUnmount(() => {
       </el-col>
     </el-row>
 
-    <TrainingMetrics :realtime-metrics="currentMetrics" />
+    <TrainingMetrics :realtime-metrics="currentMetrics" :metrics-history="metricsHistory" />
   </div>
 </template>
 
@@ -608,7 +740,12 @@ onBeforeUnmount(() => {
   &__environment {
     background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-primary);
-    height: 400px;
+    border-radius: 12px;
+    height: auto;
+    min-height: 400px;
+    padding: 20px;
+
+    /* Aspect ratio handled by wrapper inside component */
 
     canvas {
       height: 100%;
@@ -619,8 +756,12 @@ onBeforeUnmount(() => {
   &__environment-info {
     background: linear-gradient(135deg, var(--md-tertiary-container) 0%, var(--md-surface) 100%);
     border: 2px solid var(--md-tertiary);
-    height: 400px;
-    overflow-y: auto; // Allow scrolling for multiple robots
+    border-radius: 12px;
+    height: auto;
+    max-height: 80vh;
+    min-height: 400px;
+    overflow-y: auto;
+    padding: 20px;
   }
 
   &__session-info {

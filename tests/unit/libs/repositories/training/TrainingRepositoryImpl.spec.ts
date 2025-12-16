@@ -115,6 +115,11 @@ describe('TrainingRepositoryImpl', () => {
           num_workers: 1,
           num_envs: 1,
           policy_type: 'MlpPolicy',
+          config: {
+            strategic_init_mode: undefined,
+            battery_drain_rate: undefined,
+            threat_penalty_weight: undefined,
+          },
         },
       })
     )

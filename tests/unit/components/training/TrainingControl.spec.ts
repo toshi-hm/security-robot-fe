@@ -275,6 +275,10 @@ describe('TrainingControl.vue', () => {
       batchSize: 64,
       numWorkers: 1,
       numRobots: 1,
+      // Cycle 10 Support
+      batteryDrainRate: 0.001,
+      threatPenaltyWeight: 0.0,
+      strategicInitMode: false,
       // GPU Optimization
       numEnvs: 1,
       policyType: 'MlpPolicy',

@@ -36,6 +36,17 @@ export const TRAINING_CONSTRAINTS = {
       step: 0.01,
     },
   },
+  batteryDrainRate: {
+    min: 0.0,
+    max: 1.0,
+    step: 0.001,
+    precision: 3,
+  },
+  threatPenaltyWeight: {
+    min: 0.0,
+    max: 100.0,
+    step: 1.0,
+  },
 } as const
 
 export type MapType = 'random' | 'maze' | 'room' | 'cave'
@@ -64,6 +75,10 @@ export interface TrainingConfig {
   batchSize?: number
   numWorkers?: number
   numRobots?: number // Multi-Agent Support
+  // Cycle 10 Params
+  batteryDrainRate?: number
+  threatPenaltyWeight?: number
+  strategicInitMode?: boolean
   // GPU Optimization
   numEnvs?: number
   policyType?: 'MlpPolicy' | 'CnnPolicy'
@@ -87,6 +102,9 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   batchSize: 64,
   numWorkers: 1,
   numRobots: 1,
+  batteryDrainRate: 0.001,
+  threatPenaltyWeight: 0.0,
+  strategicInitMode: false,
   numEnvs: 1,
   policyType: 'MlpPolicy',
 }
@@ -195,6 +213,28 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
   if (config.numRobots !== undefined) {
     if (config.numRobots < 1 || config.numRobots > 10) {
       throw new Error('Number of robots must be between 1 and 10')
+    }
+  }
+
+  if (config.batteryDrainRate !== undefined) {
+    if (
+      config.batteryDrainRate < TRAINING_CONSTRAINTS.batteryDrainRate.min ||
+      config.batteryDrainRate > TRAINING_CONSTRAINTS.batteryDrainRate.max
+    ) {
+      throw new Error(
+        `Battery drain rate must be between ${TRAINING_CONSTRAINTS.batteryDrainRate.min} and ${TRAINING_CONSTRAINTS.batteryDrainRate.max}`
+      )
+    }
+  }
+
+  if (config.threatPenaltyWeight !== undefined) {
+    if (
+      config.threatPenaltyWeight < TRAINING_CONSTRAINTS.threatPenaltyWeight.min ||
+      config.threatPenaltyWeight > TRAINING_CONSTRAINTS.threatPenaltyWeight.max
+    ) {
+      throw new Error(
+        `Threat penalty weight must be between ${TRAINING_CONSTRAINTS.threatPenaltyWeight.min} and ${TRAINING_CONSTRAINTS.threatPenaltyWeight.max}`
+      )
     }
   }
 

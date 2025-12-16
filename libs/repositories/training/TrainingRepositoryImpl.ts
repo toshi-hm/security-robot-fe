@@ -146,7 +146,6 @@ export class TrainingRepositoryImpl implements TrainingRepository {
   async create(config: TrainingConfig): Promise<TrainingSession> {
     try {
       // Convert camelCase to snake_case for backend API
-      // Note: map_config must be placed inside config.map_config
       const apiRequest: TrainingSessionCreateRequest = {
         name: config.name,
         algorithm: config.algorithm,
@@ -163,16 +162,22 @@ export class TrainingRepositoryImpl implements TrainingRepository {
         num_robots: config.numRobots ?? 1, // Multi-Agent Support
         num_envs: config.numEnvs ?? 1, // GPU Optimization
         policy_type: config.policyType ?? 'MlpPolicy',
-        config: config.mapConfig
-          ? {
-              map_config: {
-                map_type: config.mapConfig.mapType,
-                seed: config.mapConfig.seed,
-                count: config.mapConfig.count,
-                initial_wall_probability: config.mapConfig.initialWallProbability,
-              },
-            }
-          : undefined,
+        config: {
+          ...(config.mapConfig
+            ? {
+                map_config: {
+                  map_type: config.mapConfig.mapType,
+                  seed: config.mapConfig.seed,
+                  count: config.mapConfig.count,
+                  initial_wall_probability: config.mapConfig.initialWallProbability,
+                },
+              }
+            : {}),
+          // Additional Params
+          strategic_init_mode: config.strategicInitMode,
+          battery_drain_rate: config.batteryDrainRate,
+          threat_penalty_weight: config.threatPenaltyWeight,
+        },
       }
 
       // Backend: POST /api/v1/training/start

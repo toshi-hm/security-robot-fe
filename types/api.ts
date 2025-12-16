@@ -21,6 +21,10 @@ export interface MapConfig {
 export interface TrainingSessionConfig {
   map_config?: MapConfig
   num_robots?: number // Multi-Agent Support
+  // Cycle 10 Params
+  battery_drain_rate?: number
+  threat_penalty_weight?: number
+  strategic_init_mode?: boolean
   // GPU Optimization
   num_envs?: number
   policy_type?: string
@@ -157,6 +161,7 @@ export interface TrainingProgressMessage extends BaseWebSocketMessage {
     loss?: number | null
     coverage_ratio?: number | null
     exploration_score?: number | null
+    threat_level_avg?: number | null
   }
 }
 
