@@ -20,6 +20,11 @@ export const TRAINING_CONSTRAINTS = {
     max: 16,
     step: 1,
   },
+  numEnvs: {
+    min: 1,
+    max: 32,
+    step: 1,
+  },
   mapConfig: {
     count: {
       min: 1,
@@ -74,6 +79,9 @@ export interface TrainingConfig {
   batteryDrainRate?: number
   threatPenaltyWeight?: number
   strategicInitMode?: boolean
+  // GPU Optimization
+  numEnvs?: number
+  policyType?: 'MlpPolicy' | 'CnnPolicy'
 }
 
 export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
@@ -97,6 +105,8 @@ export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   batteryDrainRate: 0.001,
   threatPenaltyWeight: 0.0,
   strategicInitMode: false,
+  numEnvs: 1,
+  policyType: 'MlpPolicy',
 }
 
 export const createTrainingConfig = (overrides: Partial<TrainingConfig> = {}): TrainingConfig => ({
@@ -224,6 +234,14 @@ export const validateTrainingConfig = (config: TrainingConfig): void => {
     ) {
       throw new Error(
         `Threat penalty weight must be between ${TRAINING_CONSTRAINTS.threatPenaltyWeight.min} and ${TRAINING_CONSTRAINTS.threatPenaltyWeight.max}`
+      )
+    }
+  }
+
+  if (config.numEnvs !== undefined) {
+    if (config.numEnvs < TRAINING_CONSTRAINTS.numEnvs.min || config.numEnvs > TRAINING_CONSTRAINTS.numEnvs.max) {
+      throw new Error(
+        `Number of parallel environments must be between ${TRAINING_CONSTRAINTS.numEnvs.min} and ${TRAINING_CONSTRAINTS.numEnvs.max}`
       )
     }
   }

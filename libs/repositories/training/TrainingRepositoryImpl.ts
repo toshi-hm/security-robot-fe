@@ -160,6 +160,8 @@ export class TrainingRepositoryImpl implements TrainingRepository {
         batch_size: config.batchSize ?? 64,
         num_workers: config.numWorkers ?? 1,
         num_robots: config.numRobots ?? 1, // Multi-Agent Support
+        num_envs: config.numEnvs ?? 1, // GPU Optimization
+        policy_type: config.policyType ?? 'MlpPolicy',
         config: {
           ...(config.mapConfig
             ? {

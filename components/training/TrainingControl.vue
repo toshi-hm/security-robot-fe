@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { QuestionFilled } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { TRAINING_CONSTRAINTS, type TrainingConfig, type MapType } from '~/libs/domains/training/TrainingConfig'
 
@@ -36,6 +36,9 @@ const trainingConfig = ref<TrainingConfig>({
   batteryDrainRate: 0.001,
   threatPenaltyWeight: 0.0,
   strategicInitMode: false,
+  // GPU Optimization
+  numEnvs: 1,
+  policyType: 'MlpPolicy',
 })
 
 const rules = {
@@ -80,6 +83,10 @@ const parameterTooltips = {
   batteryDrainRate: 'バッテリー消費率 (0.001-1.0)。高いほど頻繁な充電が必要になります。推奨: 0.1 (High Pressure)',
   threatPenaltyWeight: '脅威レベルに対するペナルティの重み (0-100)。推奨: 50.0',
   strategicInitMode: 'ヒートマップ分析に基づく最適初期位置配置を使用するかどうか。',
+  numEnvs:
+    '並列環境数（PPO専用）。GPU利用時に増やすと効率が向上します。推奨値: CPUコア数またはGPUメモリに応じて調整 (1-32)',
+  policyType:
+    'ポリシーネットワークの種類。MlpPolicy=標準的な全結合層、CnnPolicy=画像処理用（グリッド情報を2次元として処理）。',
 }
 
 /**
@@ -115,7 +122,9 @@ const getErrorMessage = (error: unknown): string => {
   return apiError?.message || '学習セッションの開始に失敗しました'
 }
 
-const startTraining = async () => {
+const isPPO = computed(() => trainingConfig.value.algorithm === 'ppo')
+
+const startTraining = async (): Promise<void> => {
   if (!formRef.value) return
 
   const valid = await formRef.value.validate().catch(() => false)
@@ -142,11 +151,11 @@ const startTraining = async () => {
   }
 }
 
-const openForm = () => {
+const openForm = (): void => {
   showForm.value = true
 }
 
-const cancelForm = () => {
+const cancelForm = (): void => {
   showForm.value = false
   formRef.value?.resetFields()
 }
@@ -503,7 +512,7 @@ const cancelForm = () => {
 
             <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item>
+                <el-form-item v-if="!isPPO">
                   <template #label>
                     <span class="training-control__label">
                       ワーカー数
@@ -521,6 +530,43 @@ const cancelForm = () => {
                     :step="TRAINING_CONSTRAINTS.numWorkers.step"
                     style="width: 100%"
                   />
+                </el-form-item>
+
+                <el-form-item v-if="isPPO">
+                  <template #label>
+                    <span class="training-control__label">
+                      並列環境数 (GPU推奨)
+                      <el-tooltip :content="parameterTooltips.numEnvs" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-input-number
+                    v-model="trainingConfig.numEnvs"
+                    :min="TRAINING_CONSTRAINTS.numEnvs.min"
+                    :max="TRAINING_CONSTRAINTS.numEnvs.max"
+                    style="width: 100%"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col v-if="isPPO" :span="12">
+                <el-form-item>
+                  <template #label>
+                    <span class="training-control__label">
+                      ポリシータイプ
+                      <el-tooltip :content="parameterTooltips.policyType" placement="top">
+                        <el-icon class="training-control__help-icon">
+                          <QuestionFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-select v-model="trainingConfig.policyType" style="width: 100%">
+                    <el-option label="MlpPolicy (標準)" value="MlpPolicy" />
+                    <el-option label="CnnPolicy (画像処理)" value="CnnPolicy" />
+                  </el-select>
                 </el-form-item>
               </el-col>
             </el-row>

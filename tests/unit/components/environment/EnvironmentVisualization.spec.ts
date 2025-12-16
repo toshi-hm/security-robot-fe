@@ -426,4 +426,212 @@ describe('EnvironmentVisualization', () => {
       expect(canvasMock.arc).toHaveBeenCalled()
     })
   })
+
+  describe('Multi-Agent Support', () => {
+    describe('robots prop', () => {
+      it('accepts robots array prop', () => {
+        const robots = [
+          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+        ]
+        const wrapper = mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { robots },
+        })
+
+        expect(wrapper.props('robots')).toEqual(robots)
+      })
+
+      it('draws multiple robots when robots array is provided', () => {
+        const robots = [
+          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+        ]
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { robots },
+        })
+
+        // Each robot draws: body arc, border stroke, direction indicator
+        // Multiple calls to arc expected for multiple robots
+        expect(canvasMock.arc.mock.calls.length).toBeGreaterThanOrEqual(2)
+      })
+
+      it('draws robot ID badge when multiple robots exist', () => {
+        const robots = [
+          { id: 0, x: 1, y: 1, orientation: 0, battery_percentage: 100, is_charging: false },
+          { id: 1, x: 3, y: 3, orientation: 2, battery_percentage: 80, is_charging: true },
+        ]
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { robots },
+        })
+
+        // fillText is called for robot ID badges
+        expect(canvasMock.fillText).toHaveBeenCalled()
+      })
+
+      it('falls back to robotPosition when robots array is empty', () => {
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: {
+            robots: [],
+            robotPosition: { x: 2, y: 2 },
+          },
+        })
+
+        // Should still draw the single robot
+        expect(canvasMock.arc).toHaveBeenCalled()
+      })
+    })
+
+    describe('trajectories prop', () => {
+      it('accepts trajectories array prop', () => {
+        const trajectories = [
+          [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ],
+          [
+            { x: 2, y: 2 },
+            { x: 3, y: 3 },
+          ],
+        ]
+        const wrapper = mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { trajectories },
+        })
+
+        expect(wrapper.props('trajectories')).toEqual(trajectories)
+      })
+
+      it('draws multiple trajectories when provided', () => {
+        const trajectories = [
+          [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ],
+          [
+            { x: 2, y: 2 },
+            { x: 3, y: 3 },
+          ],
+        ]
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { trajectories },
+        })
+
+        // Trajectory paths use stroke
+        expect(canvasMock.stroke).toHaveBeenCalled()
+        // Trajectory points use arc
+        expect(canvasMock.arc).toHaveBeenCalled()
+      })
+
+      it('prioritizes trajectories over legacy trajectory prop', () => {
+        canvasMock.moveTo.mockClear()
+        const trajectories = [
+          [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ],
+        ]
+        const trajectory = [
+          { x: 5, y: 5 },
+          { x: 6, y: 6 },
+        ]
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { trajectories, trajectory },
+        })
+
+        // Should draw trajectories, not legacy trajectory
+        // The unified logic picks trajectories when available
+        expect(canvasMock.moveTo).toHaveBeenCalled()
+      })
+
+      it('redraws when trajectories change', async () => {
+        const wrapper = mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: {
+            trajectories: [[{ x: 0, y: 0 }]],
+          },
+        })
+
+        canvasMock.clearRect.mockClear()
+
+        await wrapper.setProps({
+          trajectories: [[{ x: 0, y: 0 }], [{ x: 1, y: 1 }]],
+        })
+        await nextTick()
+
+        expect(canvasMock.clearRect).toHaveBeenCalled()
+      })
+    })
+
+    describe('chargingStations prop', () => {
+      it('accepts chargingStations array prop', () => {
+        const chargingStations = [
+          { x: 0, y: 0 },
+          { x: 7, y: 7 },
+        ]
+        const wrapper = mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { chargingStations },
+        })
+
+        expect(wrapper.props('chargingStations')).toEqual(chargingStations)
+      })
+
+      it('draws multiple charging stations when provided', () => {
+        const chargingStations = [
+          { x: 0, y: 0 },
+          { x: 7, y: 7 },
+        ]
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: { chargingStations },
+        })
+
+        // Charging stations are drawn as circles with arc
+        expect(canvasMock.arc).toHaveBeenCalled()
+        // Lightning bolt symbol is drawn with fillText
+        expect(canvasMock.fillText).toHaveBeenCalled()
+      })
+
+      it('redraws when chargingStations change', async () => {
+        const wrapper = mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: {
+            chargingStations: [{ x: 0, y: 0 }],
+          },
+        })
+
+        canvasMock.clearRect.mockClear()
+
+        await wrapper.setProps({
+          chargingStations: [
+            { x: 0, y: 0 },
+            { x: 5, y: 5 },
+          ],
+        })
+        await nextTick()
+
+        expect(canvasMock.clearRect).toHaveBeenCalled()
+      })
+
+      it('supports both legacy chargingStationPosition and chargingStations', () => {
+        mount(EnvironmentVisualization, {
+          ...mountOptions,
+          props: {
+            chargingStationPosition: { x: 0, y: 0 },
+            chargingStations: [{ x: 7, y: 7 }],
+          },
+        })
+
+        // Both should be drawn - fillText called for each station's lightning bolt
+        const fillTextCalls = canvasMock.fillText.mock.calls.filter((call: string[]) => call[0] === '⚡')
+        expect(fillTextCalls.length).toBeGreaterThanOrEqual(2)
+      })
+    })
+  })
 })

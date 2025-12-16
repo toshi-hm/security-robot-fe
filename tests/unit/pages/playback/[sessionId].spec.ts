@@ -70,6 +70,7 @@ const EnvironmentVisualizationStub = {
     'robots',
     'chargingStations',
     'chargingStationPosition',
+    'obstacles',
   ],
 }
 
@@ -215,7 +216,7 @@ describe('Playback Session Page', () => {
     expect(firstCardText).toContain('1 / 1')
   })
 
-  it('passes robot trajectory to EnvironmentVisualization', () => {
+  it('passes robot trajectories to EnvironmentVisualization', () => {
     const playbackStore = usePlaybackStore()
     playbackStore.frames = [
       {

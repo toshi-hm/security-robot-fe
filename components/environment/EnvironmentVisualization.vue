@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   obstacles: null,
   trajectories: () => ({}),
   trajectory: () => [],
+  trajectories: () => [],
   robotOrientation: null,
   patrolRadius: DEFAULT_PATROL_RADIUS,
   chargingStationPosition: null,
@@ -204,6 +205,10 @@ const drawEnvironment = () => {
     drawChargingStation(ctx, stationX, stationY)
   }
 
+  // Unified trajectory drawing
+  // Merge legacy single trajectory with multi-agent trajectories
+  // We prioritize 'trajectories' (Record<number, Position[]>) but for color mapping we use helper
+
   // Determine robots to draw
   // robotsToDraw is now a computed property, accessed via .value
   const robots = robotsToDraw.value
@@ -307,14 +312,29 @@ const getThreatColor = (level: number): string => {
 const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: string | TrajectoryColors) => {
   if (!path || path.length === 0) return
 
-  const lineColor = typeof color === 'string' ? color : color.line
+  // Resolve colors
+  let specificColors: TrajectoryColors
+  if (typeof color === 'string') {
+     // Default from root style if not provided (should be passed but fallback just in case)
+     const rootStyle = getComputedStyle(document.documentElement)
+     specificColors = {
+        line: color,
+        point: color,
+        pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || '#fff'
+     }
+  } else {
+    specificColors = color
+  }
+
+  const { line: lineColor, point: pointColor, pointBorder } = specificColors
+  
   // Make line color semi-transparent if it's a solid color string and not rgba
-  const strokeStyle =
-    lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba'))
-      ? lineColor // Simplification: we might want to convert hex to rgba for transparency if desired, but sticking to input for now
+  // This logic from HEAD helps when single color string is passed
+  const strokeStyle = typeof color === 'string' && (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
+      ? lineColor // We could add opacity here but let's rely on caller or inputs
       : lineColor
 
-  // Check if we need to force some transparency for multi-agent overlapping lines
+  // Check if we need to force some transparency for multi-agent overlapping lines (HEAD logic)
   ctx.globalAlpha = 0.6
 
   // Draw trajectory path
@@ -337,6 +357,31 @@ const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: 
   ctx.stroke()
 
   ctx.globalAlpha = 1.0 // Reset alpha
+
+  // Draw trajectory points (fade from old to recent) - GPU Optimization Feature
+  path.forEach((pos, index) => {
+    const x = Math.floor(pos.x) * cellSize + cellSize / 2
+    const y = Math.floor(pos.y) * cellSize + cellSize / 2
+
+    // Calculate opacity based on position in trajectory (older = more transparent)
+    const opacity = 0.2 + (index / path.length) * 0.6
+
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
+
+    ctx.fillStyle = pointColor
+    ctx.beginPath()
+    ctx.arc(x, y, 4, 0, Math.PI * 2)
+    ctx.fill()
+
+    // White border for visibility
+    ctx.strokeStyle = pointBorder
+    ctx.lineWidth = 1
+    ctx.stroke()
+
+    ctx.restore()
+  })
+}
 }
 
 const drawOrientationIndicator = (
@@ -460,6 +505,9 @@ watch(
     props.patrolRadius,
     props.chargingStationPosition,
     props.chargingStations,
+    props.chargingStationPosition,
+    props.chargingStations,
+    props.trajectories,
   ],
   () => {
     drawEnvironment()
