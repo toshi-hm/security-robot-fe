@@ -10,6 +10,18 @@ describe('TrainingRepositoryImpl', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('$fetch', fetchMock)
+
+    // Stub setTimeout to skip retry delays (1000ms+) but keep abort timeout (10000ms)
+    // Retry logic uses 1000 * 2^i, max 3 retries -> 1000, 2000, 4000. All < 10000.
+    vi.stubGlobal('setTimeout', (fn: Function, delay: number) => {
+      if (delay < 10000) {
+        fn()
+        return 123
+      }
+      return 456
+    })
+
+    vi.stubGlobal('clearTimeout', () => {})
   })
 
   afterEach(() => {
@@ -113,6 +125,13 @@ describe('TrainingRepositoryImpl', () => {
           learning_rate: 0.0003,
           batch_size: 64,
           num_workers: 1,
+          num_envs: 1,
+          policy_type: 'MlpPolicy',
+          config: {
+            strategic_init_mode: undefined,
+            battery_drain_rate: undefined,
+            threat_penalty_weight: undefined,
+          },
         },
       })
     )

@@ -21,6 +21,13 @@ export interface MapConfig {
 export interface TrainingSessionConfig {
   map_config?: MapConfig
   num_robots?: number // Multi-Agent Support
+  // Cycle 10 Params
+  battery_drain_rate?: number
+  threat_penalty_weight?: number
+  strategic_init_mode?: boolean
+  // GPU Optimization
+  num_envs?: number
+  policy_type?: string
 }
 
 /**
@@ -47,6 +54,8 @@ export interface TrainingSessionCreateRequest {
   batch_size?: number
   num_workers?: number
   num_robots?: number // Multi-Agent Support
+  num_envs?: number
+  policy_type?: string
   config?: TrainingSessionConfig
 }
 
@@ -152,6 +161,7 @@ export interface TrainingProgressMessage extends BaseWebSocketMessage {
     loss?: number | null
     coverage_ratio?: number | null
     exploration_score?: number | null
+    threat_level_avg?: number | null
   }
 }
 
@@ -178,6 +188,7 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   robot_position?: { x: number; y: number; orientation?: number } | [number, number]
   robot_orientation?: number | null
   robots?: RobotStateDTO[] // Multi-Agent Support
+  charging_stations?: Array<{ x: number; y: number }> // Multi-Agent Support
   action_taken?: number | null
   reward_received?: number | null
   grid_width?: number
@@ -276,6 +287,7 @@ export interface EnvironmentStateResponseDTO {
   robot_y: number
   robot_orientation: number
   robots?: RobotStateDTO[] // Multi-Agent Support
+  charging_stations?: Array<{ x: number; y: number }> // Multi-Agent Support
   threat_grid: number[][] // Backend: {levels: number[][]} | null, normalized to number[][]
   coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
   obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null

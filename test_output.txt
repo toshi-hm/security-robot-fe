@@ -1,0 +1,78 @@
+
+> security-robot-rl-frontend@0.1.0 test /home/hama/work/master/security-robot-fe
+> vitest --coverage "tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts" "--run"
+
+
+ RUN  v3.2.4 /home/hama/work/master/security-robot-fe
+      Coverage enabled with v8
+
+ ✓ tests/unit/libs/repositories/training/TrainingRepositoryImpl.spec.ts (5 tests) 4025ms
+   ✓ TrainingRepositoryImpl > returns null when findById fails  3008ms
+   ✓ TrainingRepositoryImpl > stops a training session and returns false when failing  1003ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  01:28:12
+   Duration  5.39s (transform 102ms, setup 108ms, collect 79ms, tests 4.02s, environment 163ms, prepare 102ms)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |       0 |    64.44 |   64.44 |       0 |                   
+ components/common |       0 |      100 |     100 |       0 |                   
+  AppHeader.vue    |       0 |      100 |     100 |       0 | 2-10              
+  AppSidebar.vue   |       0 |      100 |     100 |       0 | 2-6               
+  ErrorAlert.vue   |       0 |      100 |     100 |       0 | 6                 
+  ...ngSpinner.vue |       0 |      100 |     100 |       0 | 2-5               
+  SearchFilter.vue |       0 |      100 |     100 |       0 | 2-41              
+  ...StatusTag.vue |       0 |      100 |     100 |       0 | 2-21              
+  ...sticsCard.vue |       0 |      100 |     100 |       0 | 20-41             
+ ...ts/environment |       0 |      100 |     100 |       0 |                   
+  ...ryDisplay.vue |       0 |      100 |     100 |       0 | 2-100             
+  CoverageMap.vue  |       0 |      100 |     100 |       0 | 2-6               
+  ...alization.vue |       0 |      100 |     100 |       0 | 2-536             
+  ...onDisplay.vue |       0 |      100 |     100 |       0 | 2-42              
+  ...tLevelMap.vue |       0 |      100 |     100 |       0 | 6-8               
+ ...nents/playback |       0 |      100 |     100 |       0 |                   
+  ...ckControl.vue |       0 |      100 |     100 |       0 | 6-18              
+  ...backSpeed.vue |       0 |      100 |     100 |       0 | 2-17              
+  ...kTimeline.vue |       0 |      100 |     100 |       0 | 3-12              
+ ...nents/training |       0 |      100 |     100 |       0 |                   
+  ...tionPanel.vue |       0 |      100 |     100 |       0 | 2-4               
+  ...ngControl.vue |       0 |      100 |     100 |       0 | 2-620             
+  ...ngMetrics.vue |       0 |      100 |     100 |       0 | 2-516             
+  ...gProgress.vue |       0 |      100 |     100 |       0 | 9                 
+ .../visualization |       0 |      100 |     100 |       0 |                   
+  ...rageChart.vue |       0 |      100 |     100 |       0 | 2-10              
+  ...tionChart.vue |       0 |      100 |     100 |       0 | 2-10              
+  LossChart.vue    |       0 |      100 |     100 |       0 | 2-10              
+  RewardChart.vue  |       0 |      100 |     100 |       0 | 2-10              
+ composables       |       0 |     12.5 |    12.5 |       0 |                   
+  useChart.ts      |       0 |        0 |       0 |       0 | 1-115             
+  ...nvironment.ts |       0 |        0 |       0 |       0 | 1-34              
+  useModels.ts     |       0 |        0 |       0 |       0 | 1-50              
+  usePlayback.ts   |       0 |        0 |       0 |       0 | 1-32              
+  ...ualization.ts |       0 |        0 |       0 |       0 | 1-265             
+  ...lateAgents.ts |       0 |      100 |     100 |       0 | 6-123             
+  useTraining.ts   |       0 |        0 |       0 |       0 | 1-291             
+  useWebSocket.ts  |       0 |        0 |       0 |       0 | 1-201             
+ layouts           |       0 |      100 |     100 |       0 |                   
+  default.vue      |       0 |      100 |     100 |       0 | 2-22              
+  fullscreen.vue   |       0 |      100 |     100 |       0 | 2-4               
+ stores            |       0 |        0 |       0 |       0 |                   
+  environment.ts   |       0 |        0 |       0 |       0 | 1-11              
+  models.ts        |       0 |        0 |       0 |       0 | 1-124             
+  playback.ts      |       0 |        0 |       0 |       0 | 1-116             
+  training.ts      |       0 |        0 |       0 |       0 | 1-11              
+  ui.ts            |       0 |        0 |       0 |       0 | 1-16              
+  websocket.ts     |       0 |        0 |       0 |       0 | 1-13              
+ utils             |       0 |       50 |      50 |       0 |                   
+  ...eryHelpers.ts |       0 |      100 |     100 |       0 | 16-39             
+  constants.ts     |       0 |        0 |       0 |       0 | 1                 
+  formatters.ts    |       0 |        0 |       0 |       0 | 1                 
+  gridHelpers.ts   |       0 |      100 |     100 |       0 | 8-99              
+  ...ateHelpers.ts |       0 |      100 |     100 |       0 | 10-55             
+  validators.ts    |       0 |        0 |       0 |       0 | 1                 
+-------------------|---------|----------|---------|---------|-------------------
+ ELIFECYCLE  Test failed. See above for more details.

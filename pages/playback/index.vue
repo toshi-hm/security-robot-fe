@@ -41,7 +41,23 @@ const filteredSessions = computed(() => {
     )
   }
 
-  return sessions
+  const statusPriority: Record<string, number> = {
+    running: 0,
+    queued: 1,
+  }
+
+  return [...sessions].sort((a, b) => {
+    const aPriority = statusPriority[a.status ?? ''] ?? 2
+    const bPriority = statusPriority[b.status ?? ''] ?? 2
+
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority
+    }
+
+    const aId = Number(a.sessionId ?? a.id ?? 0)
+    const bId = Number(b.sessionId ?? b.id ?? 0)
+    return bId - aId
+  })
 })
 
 const handleViewSession = (sessionId: string) => {

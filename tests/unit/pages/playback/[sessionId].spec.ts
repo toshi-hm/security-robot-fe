@@ -26,6 +26,13 @@ const mockRouter = {
 }
 vi.stubGlobal('useRoute', () => mockRoute)
 vi.stubGlobal('useRouter', () => mockRouter)
+vi.stubGlobal(
+  'useFetch',
+  vi.fn().mockResolvedValue({
+    data: { value: { data: { metrics: [] } } },
+    error: { value: null },
+  })
+)
 
 // Mock components
 const PlaybackTimelineStub = {
@@ -58,8 +65,12 @@ const EnvironmentVisualizationStub = {
     'coverageMap',
     'threatGrid',
     'trajectory',
+    'trajectories',
     'patrolRadius',
-    'robots', // Add robots prop to stub
+    'robots',
+    'chargingStations',
+    'chargingStationPosition',
+    'obstacles',
   ],
 }
 
@@ -192,7 +203,7 @@ describe('Playback Session Page', () => {
           coverage_map: [[0]],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
     const wrapper = mount(PlaybackSessionPage, {
       global: { stubs: globalStubs },
@@ -205,7 +216,7 @@ describe('Playback Session Page', () => {
     expect(firstCardText).toContain('1 / 1')
   })
 
-  it('passes robot trajectory to EnvironmentVisualization', () => {
+  it('passes robot trajectories to EnvironmentVisualization', () => {
     const playbackStore = usePlaybackStore()
     playbackStore.frames = [
       {
@@ -230,7 +241,7 @@ describe('Playback Session Page', () => {
           coverage_map: [[0]],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     playbackStore.currentFrameIndex = 1
 
     const wrapper = mount(PlaybackSessionPage, {
@@ -239,10 +250,12 @@ describe('Playback Session Page', () => {
 
     const env = wrapper.findComponent(EnvironmentVisualizationStub)
     expect(env.exists()).toBe(true)
-    expect(env.props('trajectory')).toEqual([
-      { x: 1, y: 1 },
-      { x: 2, y: 1 },
-    ])
+    expect(env.props('trajectories')).toEqual({
+      0: [
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+      ],
+    })
   })
 
   it('handles multi-agent data correctly', () => {
@@ -277,7 +290,7 @@ describe('Playback Session Page', () => {
           ],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     playbackStore.currentFrameIndex = 0
 
     const wrapper = mount(PlaybackSessionPage, {
