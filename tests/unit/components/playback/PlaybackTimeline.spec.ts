@@ -51,8 +51,8 @@ describe('PlaybackTimeline', () => {
       global: { stubs: globalStubs },
     })
 
-    const vm = wrapper.vm as any
-    vm.onChange(75)
+    const slider = wrapper.findComponent(ElSliderStub)
+    slider.vm.$emit('change', 75)
 
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([75])

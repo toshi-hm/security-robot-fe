@@ -1,7 +1,6 @@
-import type { Ref } from 'vue'
 import type { Position } from '~/libs/domains/common/Position'
 
-// RobotState interface might be needed depending on imports. 
+// RobotState interface might be needed depending on imports.
 // Ideally we should import it, but let's define a local compatible interface or use 'any' if types are circular.
 // Based on EnvironmentVisualization.vue, we can see the shape.
 export interface RobotRenderState {
@@ -55,14 +54,14 @@ export const useCanvasRenderer = () => {
   }
 
   const robotColors = [
-      '#409eff', // Blue (Default)
-      '#67c23a', // Green
-      '#e6a23c', // Orange
-      '#f56c6c', // Red
-      '#909399', // Gray
-      '#a0cfff', // Light Blue
-      '#b3e19d', // Light Green
-      '#f3d19e', // Light Orange
+    '#409eff', // Blue (Default)
+    '#67c23a', // Green
+    '#e6a23c', // Orange
+    '#f56c6c', // Red
+    '#909399', // Gray
+    '#a0cfff', // Light Blue
+    '#b3e19d', // Light Green
+    '#f3d19e', // Light Orange
   ]
 
   const getRobotColor = (index: number): string => {
@@ -241,7 +240,7 @@ export const useCanvasRenderer = () => {
 
       ctx.restore()
     })
-    
+
     ctx.restore()
   }
 
@@ -281,9 +280,12 @@ export const useCanvasRenderer = () => {
     const gridBorderColor = rootStyle.getPropertyValue('--color-border-grid').trim() || '#999'
     const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
     const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
-    const patrolRangeFillColor = rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
-    const patrolRangeStrokeColor = rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
-    const defaultTrajectoryPointBorder = rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || 'rgb(255 255 255)'
+    const patrolRangeFillColor =
+      rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
+    const patrolRangeStrokeColor =
+      rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
+    const defaultTrajectoryPointBorder =
+      rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || 'rgb(255 255 255)'
 
     // Clear canvas
     ctx.clearRect(0, 0, canvasWidth, canvasHeight)

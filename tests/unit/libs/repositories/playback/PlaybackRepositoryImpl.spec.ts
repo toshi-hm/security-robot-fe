@@ -337,6 +337,7 @@ describe('PlaybackRepositoryImpl', () => {
         params: {
           page: 1,
           page_size: 100,
+          include_logs: true,
         },
       })
       expect(result).toHaveLength(1)

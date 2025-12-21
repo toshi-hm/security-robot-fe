@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 
+import { useCanvasRenderer, type EnvironmentRenderProps, type RobotRenderState } from '~/composables/useCanvasRenderer'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
-import {
-  useCanvasRenderer,
-  type EnvironmentRenderProps,
-  type RobotRenderState,
-} from '~/composables/useCanvasRenderer'
 
 interface Props {
   gridWidth?: number
@@ -43,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
   chargingStations: () => [],
 })
 
-const { drawEnvironment, getThreatColor, cellSize } = useCanvasRenderer()
+const { drawEnvironment, cellSize } = useCanvasRenderer()
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 // const cellSize = 60 // Already in composable

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useCanvasRenderer } from '~/composables/useCanvasRenderer'
-import type { EnvironmentRenderProps } from '~/composables/useCanvasRenderer'
+
+import { useCanvasRenderer, type EnvironmentRenderProps } from '~/composables/useCanvasRenderer'
 
 describe('useCanvasRenderer', () => {
   let canvasMock: any
@@ -127,7 +127,7 @@ describe('useCanvasRenderer', () => {
       })
 
       it('does not draw coverage for False/0 values', () => {
-         const props = {
+        const props = {
           ...defaultProps,
           coverageMap: [[0]],
         }
@@ -162,9 +162,7 @@ describe('useCanvasRenderer', () => {
       it('draws robot with charging status', () => {
         const props = {
           ...defaultProps,
-          robots: [
-            { id: 1, x: 2, y: 2, orientation: 0, battery: 100, isCharging: true },
-          ],
+          robots: [{ id: 1, x: 2, y: 2, orientation: 0, battery: 100, isCharging: true }],
         }
         drawEnvironment(canvasMock, props, transform)
         // Should have extra stroke calls for charging halo
@@ -198,7 +196,7 @@ describe('useCanvasRenderer', () => {
       })
 
       it('handles undefined robot orientation (null check)', () => {
-         const props = {
+        const props = {
           ...defaultProps,
           robots: [{ id: 1, x: 0, y: 0, orientation: null, battery: 100, isCharging: false }],
         }
@@ -208,7 +206,7 @@ describe('useCanvasRenderer', () => {
       })
 
       it('handles NaN robot orientation', () => {
-         const props = {
+        const props = {
           ...defaultProps,
           robots: [{ id: 1, x: 0, y: 0, orientation: NaN, battery: 100, isCharging: false }],
         }
@@ -231,28 +229,26 @@ describe('useCanvasRenderer', () => {
 
       it('skips ID badge if single robot', () => {
         const props = {
-            ...defaultProps,
-            robots: [
-              { id: 1, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false },
-            ],
-          }
+          ...defaultProps,
+          robots: [{ id: 1, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false }],
+        }
         // Clear previous calls from charging stations etc if any (none in defaultProps)
         contextMock.fillText.mockClear()
         drawEnvironment(canvasMock, props, transform)
         expect(contextMock.fillText).not.toHaveBeenCalled()
       })
-      
+
       it('skips ID badge if ID not number', () => {
-         const props = {
-            ...defaultProps,
-            robots: [
-              { id: 'A' as any, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false },
-              { id: 'B' as any, x: 1, y: 1, orientation: 0, battery: 100, isCharging: false },
-            ],
-          }
-          contextMock.fillText.mockClear()
-          drawEnvironment(canvasMock, props, transform)
-          expect(contextMock.fillText).not.toHaveBeenCalled()
+        const props = {
+          ...defaultProps,
+          robots: [
+            { id: 'A' as any, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false },
+            { id: 'B' as any, x: 1, y: 1, orientation: 0, battery: 100, isCharging: false },
+          ],
+        }
+        contextMock.fillText.mockClear()
+        drawEnvironment(canvasMock, props, transform)
+        expect(contextMock.fillText).not.toHaveBeenCalled()
       })
     })
 
@@ -260,7 +256,10 @@ describe('useCanvasRenderer', () => {
       it('draws charging stations using forEach', () => {
         const props = {
           ...defaultProps,
-          chargingStations: [{ x: 1, y: 1 }, { x: 2, y: 2 }],
+          chargingStations: [
+            { x: 1, y: 1 },
+            { x: 2, y: 2 },
+          ],
         }
         drawEnvironment(canvasMock, props, transform)
         expect(contextMock.fillText).toHaveBeenCalledTimes(2)
@@ -284,15 +283,15 @@ describe('useCanvasRenderer', () => {
 
       it('handles null trajectories prop gracefully', () => {
         const props = {
-            ...defaultProps,
-            trajectories: null as any,
-          }
+          ...defaultProps,
+          trajectories: null as any,
+        }
         drawEnvironment(canvasMock, props, transform)
         // Should not throw
       })
 
       it('skips empty path', () => {
-         const props = {
+        const props = {
           ...defaultProps,
           trajectories: {
             1: [],
@@ -343,122 +342,128 @@ describe('useCanvasRenderer', () => {
       expect(contextMock.translate).toHaveBeenCalledWith(100, 50)
       expect(contextMock.scale).toHaveBeenCalledWith(2.0, 2.0)
     })
-    
+
     // Test setLineDash check fallback?
     it('handles context without setLineDash safely', () => {
-         const props = {
-          ...defaultProps,
-          robots: [{ id: 1, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false }],
-          patrolRadius: 3,
-        }
-        // Mock context without setLineDash
-        const safeCtx = { ...contextMock, setLineDash: undefined }
-        const safeCanvas = { ...canvasMock, getContext: () => safeCtx } as unknown as HTMLCanvasElement
-        
-        drawEnvironment(safeCanvas, props, transform)
-        // Should run without error
-        expect(safeCtx.arc).toHaveBeenCalled()
+      const props = {
+        ...defaultProps,
+        robots: [{ id: 1, x: 0, y: 0, orientation: 0, battery: 100, isCharging: false }],
+        patrolRadius: 3,
+      }
+      // Mock context without setLineDash
+      const safeCtx = { ...contextMock, setLineDash: undefined }
+      const safeCanvas = { ...canvasMock, getContext: () => safeCtx } as unknown as HTMLCanvasElement
+
+      drawEnvironment(safeCanvas, props, transform)
+      // Should run without error
+      expect(safeCtx.arc).toHaveBeenCalled()
     })
   })
-  
+
   describe('drawTrajectory (Direct)', () => {
     const { drawTrajectory, drawEnvironment } = useCanvasRenderer()
-    
+
     it('handles TrajectoryColors object', () => {
-        const path = [{x:0, y:0}, {x:1, y:1}]
-        const colors = { line: '#000', point: '#111', pointBorder: '#222' }
-        
-        drawTrajectory(contextMock, path, colors)
-        
-        // Check if colors were used
-        // Since we can't inspect context state easily, check calls
-        expect(contextMock.stroke).toHaveBeenCalled()
-        // verify no error
+      const path = [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ]
+      const colors = { line: '#000', point: '#111', pointBorder: '#222' }
+
+      drawTrajectory(contextMock, path, colors)
+
+      // Check if colors were used
+      // Since we can't inspect context state easily, check calls
+      expect(contextMock.stroke).toHaveBeenCalled()
+      // verify no error
     })
-    
+
     it('handles string color with explicit transparency assumption (rgba)', () => {
-         const path = [{x:0, y:0}]
-         // rgba string bypasses the opacity fallback logic in current code?
-         // (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
-         
-         drawTrajectory(contextMock, path, 'rgba(0,0,0,0.5)')
-         // Cover branch
+      const path = [{ x: 0, y: 0 }]
+      // rgba string bypasses the opacity fallback logic in current code?
+      // (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
+
+      drawTrajectory(contextMock, path, 'rgba(0,0,0,0.5)')
+      // Cover branch
     })
 
     it('handles string color needing opacity (hex/rgb)', () => {
-         const path = [{x:0, y:0}]
-         drawTrajectory(contextMock, path, '#ffffff')
-         // Cover branch
+      const path = [{ x: 0, y: 0 }]
+      drawTrajectory(contextMock, path, '#ffffff')
+      // Cover branch
     })
-    
+
     it('uses ID-based color for trajectory when robot not in list', () => {
-         const transform = { offsetX: 0, offsetY: 0, scale: 1.0 }
-         const props = {
-          gridWidth: 8,
-          gridHeight: 8,
-          robots: [],
-          coverageMap: [],
-          threatGrid: [],
-          obstacles: null,
-          trajectories: {
-            99: [{x:0, y:0}, {x:1, y:1}] // Trajectory for robot 99
-          },
-          patrolRadius: 2,
-          chargingStations: [],
-        }
-        drawEnvironment(canvasMock, props, transform)
-        expect(contextMock.stroke).toHaveBeenCalled()
-        // Should calculate color based on ID 99 since index is -1
+      const transform = { offsetX: 0, offsetY: 0, scale: 1.0 }
+      const props = {
+        gridWidth: 8,
+        gridHeight: 8,
+        robots: [],
+        coverageMap: [],
+        threatGrid: [],
+        obstacles: null,
+        trajectories: {
+          99: [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ], // Trajectory for robot 99
+        },
+        patrolRadius: 2,
+        chargingStations: [],
+      }
+      drawEnvironment(canvasMock, props, transform)
+      expect(contextMock.stroke).toHaveBeenCalled()
+      // Should calculate color based on ID 99 since index is -1
     })
   })
 
   describe('Other Helpers (Direct)', () => {
-      const { drawOrientationIndicator, drawPatrolRange } = useCanvasRenderer()
-      
-      it('drawOrientationIndicator handles null', () => {
-          drawOrientationIndicator(contextMock, 0, 0, '#000', null)
-          expect(contextMock.arc).toHaveBeenCalled()
-      })
-      
-      it('drawPatrolRange handles invalid radius gracefully', () => {
-          drawPatrolRange(contextMock, 0, 0, 0, '#000', '#000')
-          expect(contextMock.arc).not.toHaveBeenCalled()
-      })
+    const { drawOrientationIndicator, drawPatrolRange } = useCanvasRenderer()
+
+    it('drawOrientationIndicator handles null', () => {
+      drawOrientationIndicator(contextMock, 0, 0, '#000', null)
+      expect(contextMock.arc).toHaveBeenCalled()
+    })
+
+    it('drawPatrolRange handles invalid radius gracefully', () => {
+      drawPatrolRange(contextMock, 0, 0, 0, '#000', '#000')
+      expect(contextMock.arc).not.toHaveBeenCalled()
+    })
   })
-  
+
   describe('UseCanvasRenderer Internal Logic', () => {
-      const { getThreatColor, getRobotColor, drawEnvironment } = useCanvasRenderer()
-      
-      it('getRobotColor falls back on NaN index', () => {
-          expect(getRobotColor(NaN)).toBe('#409EFF')
-      })
-      
-      it('normalizes negative orientation correctly', () => {
-          // orientation -1 => South (3)
-          // vector for 3 is { dx: -1, dy: 0 } (West)? No, checking checks:
-          // 0:N(0,-1), 1:E(1,0), 2:S(0,1), 3:W(-1,0)
-          // Wait, logic says:
-          // vectors: [{0,-1}, {1,0}, {0,1}, {-1,0}]
-          // -1 % 4 = -1. -1 + 4 = 3. 3 is West.
-          
-          const props = {
-              gridWidth: 8,
-              gridHeight: 8,
-              robots: [{ id: 1, x: 0, y: 0, orientation: -1, battery: 100, isCharging: false }],
-              coverageMap: [],
-              threatGrid: [],
-              obstacles: null,
-              trajectories: {},
-              patrolRadius: 2,
-              chargingStations: [],
-            }
-          const transform = { offsetX: 0, offsetY: 0, scale: 1.0 }
-          
-          drawEnvironment(canvasMock, props, transform)
-          // Should draw arrow (moveTo/lineTo called), NOT circle (arc called only for null orientation loop or part of arrow head?)
-          // Arrow head uses moveTo/lineTo.
-          // Fallback uses arc.
-          expect(contextMock.moveTo).toHaveBeenCalled()
-      })
+    const { getRobotColor, drawEnvironment } = useCanvasRenderer()
+
+    it('getRobotColor falls back on NaN index', () => {
+      expect(getRobotColor(NaN)).toBe('#409EFF')
+    })
+
+    it('normalizes negative orientation correctly', () => {
+      // orientation -1 => South (3)
+      // vector for 3 is { dx: -1, dy: 0 } (West)? No, checking checks:
+      // 0:N(0,-1), 1:E(1,0), 2:S(0,1), 3:W(-1,0)
+      // Wait, logic says:
+      // vectors: [{0,-1}, {1,0}, {0,1}, {-1,0}]
+      // -1 % 4 = -1. -1 + 4 = 3. 3 is West.
+
+      const props = {
+        gridWidth: 8,
+        gridHeight: 8,
+        robots: [{ id: 1, x: 0, y: 0, orientation: -1, battery: 100, isCharging: false }],
+        coverageMap: [],
+        threatGrid: [],
+        obstacles: null,
+        trajectories: {},
+        patrolRadius: 2,
+        chargingStations: [],
+      }
+      const transform = { offsetX: 0, offsetY: 0, scale: 1.0 }
+
+      drawEnvironment(canvasMock, props, transform)
+      // Should draw arrow (moveTo/lineTo called), NOT circle (arc called only for null orientation loop or part of arrow head?)
+      // Arrow head uses moveTo/lineTo.
+      // Fallback uses arc.
+      expect(contextMock.moveTo).toHaveBeenCalled()
+    })
   })
 })
