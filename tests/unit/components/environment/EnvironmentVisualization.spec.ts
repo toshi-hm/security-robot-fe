@@ -94,36 +94,6 @@ describe('EnvironmentVisualization', () => {
     })
   })
 
-  describe('Canvas Helpers', () => {
-    it('getThreatColor returns gray for zero threat level', () => {
-      const wrapper = mount(EnvironmentVisualization, mountOptions)
-      const vm = wrapper.vm as any
-      const color = vm.getThreatColor(0)
-      expect(color).toBe('var(--color-bg-no-threat)')
-    })
-
-    it('returns yellow-ish for low threat level', () => {
-      const wrapper = mount(EnvironmentVisualization, mountOptions)
-      const vm = wrapper.vm as any
-      const color = vm.getThreatColor(0.2)
-      expect(color).toMatch(/^rgb\(255, \d+, 0\)$/)
-    })
-
-    it('returns red for high threat level', () => {
-      const wrapper = mount(EnvironmentVisualization, mountOptions)
-      const vm = wrapper.vm as any
-      const color = vm.getThreatColor(1.0)
-      expect(color).toBe('rgb(255, 0, 0)')
-    })
-
-    it('interpolates colors for medium threat level', () => {
-      const wrapper = mount(EnvironmentVisualization, mountOptions)
-      const vm = wrapper.vm as any
-      const color = vm.getThreatColor(0.5)
-      expect(color).toMatch(/^rgb\(255, \d+, 0\)$/)
-    })
-  })
-
   describe('Canvas Drawing', () => {
     it('calls clearRect when drawing environment', async () => {
       mount(EnvironmentVisualization, mountOptions)

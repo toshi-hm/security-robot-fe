@@ -203,7 +203,7 @@ describe('Playback Session Page', () => {
           coverage_map: [[0]],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
     const wrapper = mount(PlaybackSessionPage, {
       global: { stubs: globalStubs },
@@ -241,7 +241,7 @@ describe('Playback Session Page', () => {
           coverage_map: [[0]],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     playbackStore.currentFrameIndex = 1
 
     const wrapper = mount(PlaybackSessionPage, {
@@ -290,7 +290,7 @@ describe('Playback Session Page', () => {
           ],
         },
       },
-    ] as any
+    ] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     playbackStore.currentFrameIndex = 0
 
     const wrapper = mount(PlaybackSessionPage, {

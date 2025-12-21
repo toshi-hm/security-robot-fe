@@ -24,6 +24,9 @@ const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 19
 const metricsHistory = ref<TrainingMetricDTO[]>([])
 const sessionMetricsLoading = ref(false)
 
+// Persistent state for obstacles to prevent flickering
+const persistentObstacles = ref<boolean[][] | null>(null)
+
 const sessionId = computed(() => route.params.sessionId as string)
 const currentFrame = computed(() => {
   const frames = playbackStore.frames
@@ -160,6 +163,24 @@ const computeTrajectories = (frames: typeof playbackStore.frames, targetIndex: n
   return result
 }
 
+// Watch for current frame changes to update persistent obstacles
+watch(
+  () => currentFrame.value,
+  (newFrame) => {
+    if (!newFrame?.environmentState) return
+
+    const obstacles = newFrame.environmentState.obstacles
+    // Check if obstacles are valid (non-empty array and has content)
+    if (obstacles && Array.isArray(obstacles) && obstacles.length > 0 && Array.isArray(obstacles[0])) {
+      // If we have valid obstacles, update our persistent state
+      persistentObstacles.value = obstacles as boolean[][]
+    }
+    // If invalid/missing, we just keep the previous persistentObstacles value
+    // This solves the flickering issue
+  },
+  { immediate: true, deep: true }
+)
+
 // Watch for frame index changes and update trajectories
 watch(
   () => [playbackStore.frames, playbackStore.currentFrameIndex] as const,
@@ -274,6 +295,11 @@ const calculateDistanceToStation = (robot: { x: number; y: number }): number | n
 }
 // Grid dimensions computed from threat_grid
 const gridWidth = computed(() => {
+  // Use persistent obstacles if available for stable dimensions
+  if (persistentObstacles.value && persistentObstacles.value.length > 0) {
+    return persistentObstacles.value[0]?.length ?? 8
+  }
+
   const threatGrid = currentFrame.value?.environmentState?.threat_grid
   if (!threatGrid || !Array.isArray(threatGrid) || threatGrid.length === 0) {
     return 8 // Default fallback
@@ -284,6 +310,11 @@ const gridWidth = computed(() => {
 })
 
 const gridHeight = computed(() => {
+  // Use persistent obstacles if available for stable dimensions
+  if (persistentObstacles.value && persistentObstacles.value.length > 0) {
+    return persistentObstacles.value.length
+  }
+
   const threatGrid = currentFrame.value?.environmentState?.threat_grid
   if (!threatGrid || !Array.isArray(threatGrid)) {
     return 8 // Default fallback
@@ -519,7 +550,7 @@ const formatOrientation = (orientation?: number | null): string => {
               "
               :coverage-map="currentFrame.environmentState.coverage_map ?? []"
               :threat-grid="currentFrame.environmentState.threat_grid ?? []"
-              :obstacles="currentFrame.environmentState.obstacles ?? null"
+              :obstacles="persistentObstacles ?? currentFrame.environmentState.obstacles ?? null"
               :trajectories="robotTrajectories"
               :patrol-radius="PATROL_RADIUS"
               :charging-stations="chargingStations"

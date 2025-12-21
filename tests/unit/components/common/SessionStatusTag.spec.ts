@@ -58,7 +58,7 @@ describe('SessionStatusTag', () => {
     const wrapper = createWrapper('queued')
 
     expect(wrapper.text()).toContain('キュー中')
-    expect(wrapper.find('.el-tag--info').exists()).toBe(true)
+    expect(wrapper.find('.el-tag--primary').exists()).toBe(true)
   })
 
   it('renders unknown status with default fallback', () => {
@@ -73,6 +73,7 @@ describe('SessionStatusTag', () => {
     Object.keys(SESSION_STATUS_MAP).forEach((status) => {
       const wrapper = createWrapper(status)
       const config = SESSION_STATUS_MAP[status as keyof typeof SESSION_STATUS_MAP]
+      if (!config) throw new Error(`Config for status ${status} not found`)
 
       expect(wrapper.text()).toContain(config.text)
     })

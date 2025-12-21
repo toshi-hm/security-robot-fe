@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 
+import { useCanvasRenderer, type EnvironmentRenderProps, type RobotRenderState } from '~/composables/useCanvasRenderer'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position } from '~/libs/domains/common/Position'
 import type { RobotState } from '~/libs/domains/environment/RobotState'
@@ -19,12 +20,7 @@ interface Props {
   patrolRadius?: number
   chargingStationPosition?: Position | null // Legacy support
   chargingStations?: Position[] // Multi-Agent Support: List of charging stations
-}
-
-interface TrajectoryColors {
-  line: string
-  point: string
-  pointBorder: string
+  // Legacy props support might require strict handling if not used anymore, but keeping interface for safe refactoring
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -43,8 +39,37 @@ const props = withDefaults(defineProps<Props>(), {
   chargingStations: () => [],
 })
 
+const { drawEnvironment, cellSize } = useCanvasRenderer()
+
+const canvas = ref<HTMLCanvasElement | null>(null)
+// const cellSize = 60 // Already in composable
+
+// Computed canvas dimensions
+const canvasWidth = computed(() => props.gridWidth * cellSize)
+const canvasHeight = computed(() => props.gridHeight * cellSize)
+
+const canvasWrapper = ref<HTMLElement | null>(null)
+
+// Zoom and pan state
+const scale = ref(1.0)
+const offsetX = ref(0)
+const offsetY = ref(0)
+
+/**
+ * Fit the grid to the container view
+ */
+const fitToView = () => {
+  // Reset to default scale (1.0) to fill the canvas internal resolution.
+  // The CSS (width: 100%, height: 100%) and container aspect-ratio will handle the visual fitting.
+  scale.value = 1.0
+  offsetX.value = 0
+  offsetY.value = 0
+
+  render()
+}
+
 // Computed robots to draw
-const robotsToDraw = computed(() => {
+const robotsToDraw = computed<RobotRenderState[]>(() => {
   if (props.robots && props.robots.length > 0) {
     return props.robots.map((r, i) => ({
       x: r.x,
@@ -71,422 +96,53 @@ const robotsToDraw = computed(() => {
   return []
 })
 
-const canvas = ref<HTMLCanvasElement | null>(null)
-const cellSize = 60 // pixels per cell
+const normalizeChargingStations = computed<Position[]>(() => {
+  if (props.chargingStations && props.chargingStations.length > 0) {
+    return props.chargingStations
+  }
+  if (props.chargingStationPosition) {
+    return [props.chargingStationPosition]
+  }
+  return []
+})
 
-// Computed canvas dimensions
-const canvasWidth = computed(() => props.gridWidth * cellSize)
-const canvasHeight = computed(() => props.gridHeight * cellSize)
+const normalizeTrajectories = computed<Record<number, Position[]>>(() => {
+  if (props.trajectories && Object.keys(props.trajectories).length > 0) {
+    return props.trajectories
+  }
+  if (props.trajectory && props.trajectory.length > 0) {
+    // Treat legacy trajectory as robot ID 0 (or default)
+    // To match robot coloring logic which uses index/ID, we should probably associate it with the single robot
+    // The previous logic passed single trajectory with a specific color.
+    // The composable expects Record<number, Position[]> and colors based on ID/index.
+    // If we pass key '0', it matches robot ID 0.
+    return { 0: props.trajectory }
+  }
+  return {}
+})
 
-const canvasWrapper = ref<HTMLElement | null>(null)
-
-// Zoom and pan state
-const scale = ref(1.0)
-const offsetX = ref(0)
-const offsetY = ref(0)
-
-/**
- * Fit the grid to the container view
- */
-const fitToView = () => {
-  // Reset to default scale (1.0) to fill the canvas internal resolution.
-  // The CSS (width: 100%, height: 100%) and container aspect-ratio will handle the visual fitting.
-  scale.value = 1.0
-  offsetX.value = 0
-  offsetY.value = 0
-
-  drawEnvironment()
-}
-
-const normalizeOrientation = (orientation: number | null | undefined): number | null => {
-  if (typeof orientation !== 'number' || Number.isNaN(orientation)) return null
-  const normalized = Math.round(orientation) % 4
-  return normalized < 0 ? normalized + 4 : normalized
-}
-
-const robotColors = ref<string[]>([])
-
-const updateRobotColors = () => {
-  const rootStyle = getComputedStyle(document.documentElement)
-  robotColors.value = [
-    rootStyle.getPropertyValue('--color-robot-body').trim() || '#409eff', // Blue (Default)
-    '#67c23a', // Green
-    '#e6a23c', // Orange
-    '#f56c6c', // Red
-    '#909399', // Gray
-    '#a0cfff', // Light Blue
-    '#b3e19d', // Light Green
-    '#f3d19e', // Light Orange
-  ]
-}
-
-const getRobotColor = (index: number): string => {
-  if (robotColors.value.length === 0) return '#409EFF'
-  return robotColors.value[index % robotColors.value.length] ?? '#409EFF'
-}
-
-const drawEnvironment = () => {
+const render = () => {
   if (!canvas.value) return
 
-  const ctx = canvas.value.getContext('2d')
-  if (!ctx) return
-
-  const rootStyle = getComputedStyle(document.documentElement)
-  const visitedCellColor = rootStyle.getPropertyValue('--color-bg-visited-cell').trim() || 'rgba(0, 255, 0, 0.2)'
-  const gridBorderColor = rootStyle.getPropertyValue('--color-border-grid').trim() || '#999'
-  const robotBorderColor = rootStyle.getPropertyValue('--color-robot-border').trim() || '#fff'
-  const robotDirectionColor = rootStyle.getPropertyValue('--color-robot-direction-indicator').trim() || '#fff'
-  const patrolRangeFillColor =
-    rootStyle.getPropertyValue('--color-patrol-range-fill').trim() || 'rgba(64, 158, 255, 0.12)'
-  const patrolRangeStrokeColor =
-    rootStyle.getPropertyValue('--color-patrol-range-stroke').trim() || 'rgba(64, 158, 255, 0.65)'
-  const trajectoryColors: TrajectoryColors = {
-    line: rootStyle.getPropertyValue('--color-trajectory-line').trim() || 'rgba(64, 158, 255, 0.3)',
-    point: rootStyle.getPropertyValue('--color-trajectory-point').trim() || 'rgb(64 158 255)',
-    pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || 'rgb(255 255 255)',
+  const renderData: EnvironmentRenderProps = {
+    gridWidth: props.gridWidth,
+    gridHeight: props.gridHeight,
+    robots: robotsToDraw.value,
+    coverageMap: props.coverageMap,
+    threatGrid: props.threatGrid,
+    obstacles: props.obstacles,
+    trajectories: normalizeTrajectories.value,
+    patrolRadius: props.patrolRadius,
+    chargingStations: normalizeChargingStations.value,
   }
 
-  // Clear canvas
-  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
-
-  // Apply transformations (zoom and pan)
-  ctx.save()
-  ctx.translate(offsetX.value, offsetY.value)
-  ctx.scale(scale.value, scale.value)
-
-  // Draw grid cells with threat level heatmap
-  for (let y = 0; y < props.gridHeight; y++) {
-    for (let x = 0; x < props.gridWidth; x++) {
-      const cellX = x * cellSize
-      const cellY = y * cellSize
-
-      // Check if this cell is an obstacle
-      const isObstacle = props.obstacles?.[y]?.[x] ?? false
-
-      if (isObstacle) {
-        // Draw obstacle as dark gray/black cell
-        ctx.fillStyle = '#2c3e50' // Dark gray for obstacles
-        ctx.fillRect(cellX, cellY, cellSize, cellSize)
-      } else {
-        // Draw threat level background (heatmap)
-        const threatLevel = props.threatGrid?.[y]?.[x] ?? 0
-        const heatColor = getThreatColor(threatLevel)
-        ctx.fillStyle = heatColor
-        ctx.fillRect(cellX, cellY, cellSize, cellSize)
-
-        // Draw coverage overlay (visited cells)
-        const cellValue = props.coverageMap?.[y]?.[x]
-        const isVisited = typeof cellValue === 'number' ? cellValue > 0 : Boolean(cellValue)
-        if (isVisited) {
-          ctx.fillStyle = visitedCellColor // Green overlay for visited
-          ctx.fillRect(cellX, cellY, cellSize, cellSize)
-        }
-      }
-
-      // Draw grid lines
-      ctx.strokeStyle = gridBorderColor
-      ctx.lineWidth = 1
-      ctx.strokeRect(cellX, cellY, cellSize, cellSize)
-    }
+  const transform = {
+    offsetX: offsetX.value,
+    offsetY: offsetY.value,
+    scale: scale.value,
   }
 
-  // Draw charging stations (plural)
-  if (props.chargingStations && props.chargingStations.length > 0) {
-    props.chargingStations.forEach((pos) => {
-      const stationX = Math.floor(pos.x) * cellSize + cellSize / 2
-      const stationY = Math.floor(pos.y) * cellSize + cellSize / 2
-      drawChargingStation(ctx, stationX, stationY)
-    })
-  } else if (props.chargingStationPosition) {
-    // Legacy single charging station
-    const stationX = Math.floor(props.chargingStationPosition.x) * cellSize + cellSize / 2
-    const stationY = Math.floor(props.chargingStationPosition.y) * cellSize + cellSize / 2
-    drawChargingStation(ctx, stationX, stationY)
-  }
-
-  // Unified trajectory drawing
-  // Merge legacy single trajectory with multi-agent trajectories
-  // We prioritize 'trajectories' (Record<number, Position[]>) but for color mapping we use helper
-
-  // Determine robots to draw
-  // robotsToDraw is now a computed property, accessed via .value
-  const robots = robotsToDraw.value
-
-  // Draw trajectories for all robots
-  if (props.trajectories && Object.keys(props.trajectories).length > 0) {
-    Object.entries(props.trajectories).forEach(([robotIdStr, path]) => {
-      const robotId = Number(robotIdStr)
-      // Use logic to get color based on Robot ID if possible, otherwise by index in map
-      // Here we trust ID matches robots list which is safer
-      // We need to map robotId to color index.
-      const robotIndex = robots.findIndex((r) => r.id === robotId)
-      // If robot not found (maybe left?), fallback to ID based modulo
-      const colorIndex = robotIndex >= 0 ? robotIndex : robotId
-      const color = getRobotColor(colorIndex)
-
-      drawTrajectory(ctx, path, color)
-    })
-  } else if (props.trajectory && props.trajectory.length > 0) {
-    // Legacy single trajectory
-    drawTrajectory(ctx, props.trajectory, trajectoryColors.line)
-  }
-
-  // Draw robots
-  robots.forEach((robot, index) => {
-    const robotX = Math.floor(robot.x) * cellSize + cellSize / 2
-    const robotY = Math.floor(robot.y) * cellSize + cellSize / 2
-    const robotColor = getRobotColor(index)
-
-    // Draw patrol range only for the first robot (or selected robot in future)
-    if (index === 0) {
-      drawPatrolRange(ctx, robotX, robotY, patrolRangeFillColor, patrolRangeStrokeColor)
-    }
-
-    // Robot body (circle)
-    ctx.fillStyle = robotColor
-    ctx.beginPath()
-    ctx.arc(robotX, robotY, cellSize / 3, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Robot border
-    ctx.strokeStyle = robotBorderColor
-    ctx.lineWidth = 3
-    ctx.stroke()
-
-    // Charging indicator
-    if (robot.isCharging) {
-      ctx.strokeStyle = '#E6A23C' // Warning Color (Yellow/Orange) for charging halo
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.arc(robotX, robotY, cellSize / 2.5, 0, Math.PI * 2)
-      ctx.stroke()
-    }
-
-    // Robot direction indicator (small circle)
-    drawOrientationIndicator(ctx, robotX, robotY, robotDirectionColor, robot.orientation)
-
-    // Robot ID badge
-    if (robots.length > 1 && typeof robot.id === 'number') {
-      ctx.fillStyle = '#fff'
-      ctx.font = `bold ${cellSize / 4}px Arial`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(String(robot.id), robotX, robotY)
-    }
-  })
-
-  // Restore canvas context
-  ctx.restore()
-}
-
-/**
- * Get color for threat level (heatmap)
- * @param level - Threat level 0.0 to 1.0
- */
-const getThreatColor = (level: number): string => {
-  if (level === 0) return 'var(--color-bg-no-threat)' // Gray for no threat
-
-  // Interpolate from yellow (low) to red (high)
-  // Yellow: 255, 255, 0 (Low threat) -> Red: 255, 0, 0 (High threat)
-  // But standard heatmap is usually Blue -> Cyan -> Green -> Yellow -> Red
-  // For security robot:
-  // 0.0 (No threat) -> Transparent/Gray
-  // 0.1 (Low) -> Yellow/Green
-  // 1.0 (High) -> Red
-
-  // Simple interpolation:
-  // level 0: (255, 255, 255) or similar? No, stick to existing logic but improve it potentially
-  // Existing logic: Green component decreases as level increases. Red stays 255.
-  // This produces Yellow -> Orange -> Red.
-  const red = Math.floor(255)
-  const green = Math.floor(255 * (1 - level))
-  const blue = 0
-
-  return `rgb(${red}, ${green}, ${blue})`
-}
-
-/**
- * Draw robot trajectory (path history)
- */
-const drawTrajectory = (ctx: CanvasRenderingContext2D, path: Position[], color: string | TrajectoryColors) => {
-  if (!path || path.length === 0) return
-
-  // Resolve colors
-  let specificColors: TrajectoryColors
-  if (typeof color === 'string') {
-    // Default from root style if not provided (should be passed but fallback just in case)
-    const rootStyle = getComputedStyle(document.documentElement)
-    specificColors = {
-      line: color,
-      point: color,
-      pointBorder: rootStyle.getPropertyValue('--color-trajectory-point-border').trim() || '#fff',
-    }
-  } else {
-    specificColors = color
-  }
-
-  const { line: lineColor, point: pointColor, pointBorder } = specificColors
-
-  // Make line color semi-transparent if it's a solid color string and not rgba
-  // This logic from HEAD helps when single color string is passed
-  const strokeStyle =
-    typeof color === 'string' &&
-    (lineColor.startsWith('#') || (lineColor.startsWith('rgb') && !lineColor.startsWith('rgba')))
-      ? lineColor // We could add opacity here but let's rely on caller or inputs
-      : lineColor
-
-  // Check if we need to force some transparency for multi-agent overlapping lines (HEAD logic)
-  ctx.globalAlpha = 0.6
-
-  // Draw trajectory path
-  ctx.strokeStyle = strokeStyle
-  ctx.lineWidth = 3
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-
-  ctx.beginPath()
-  path.forEach((pos, index) => {
-    const x = Math.floor(pos.x) * cellSize + cellSize / 2
-    const y = Math.floor(pos.y) * cellSize + cellSize / 2
-
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
-    }
-  })
-  ctx.stroke()
-
-  ctx.globalAlpha = 1.0 // Reset alpha
-
-  // Draw trajectory points (fade from old to recent) - GPU Optimization Feature
-  path.forEach((pos, index) => {
-    const x = Math.floor(pos.x) * cellSize + cellSize / 2
-    const y = Math.floor(pos.y) * cellSize + cellSize / 2
-
-    // Calculate opacity based on position in trajectory (older = more transparent)
-    const opacity = 0.2 + (index / path.length) * 0.6
-
-    ctx.save()
-    ctx.globalAlpha = Math.min(1, Math.max(0, opacity))
-
-    ctx.fillStyle = pointColor
-    ctx.beginPath()
-    ctx.arc(x, y, 4, 0, Math.PI * 2)
-    ctx.fill()
-
-    // White border for visibility
-    ctx.strokeStyle = pointBorder
-    ctx.lineWidth = 1
-    ctx.stroke()
-
-    ctx.restore()
-  })
-}
-
-const drawOrientationIndicator = (
-  ctx: CanvasRenderingContext2D,
-  robotX: number,
-  robotY: number,
-  color: string,
-  orientationValue?: number | null
-) => {
-  const orientation = normalizeOrientation(orientationValue ?? props.robotOrientation)
-  if (orientation === null) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.arc(robotX, robotY - cellSize / 6, cellSize / 10, 0, Math.PI * 2)
-    ctx.fill()
-    return
-  }
-
-  const vectors: Array<{ dx: number; dy: number }> = [
-    { dx: 0, dy: -1 }, // 北
-    { dx: 1, dy: 0 }, // 東
-    { dx: 0, dy: 1 }, // 南
-    { dx: -1, dy: 0 }, // 西
-  ]
-  const vector = (vectors[orientation] ?? vectors[0])!
-  const { dx, dy } = vector
-  const arrowLength = cellSize * 0.45
-  const startX = robotX
-  const startY = robotY
-  const endX = startX + dx * arrowLength
-  const endY = startY + dy * arrowLength
-
-  ctx.strokeStyle = color
-  ctx.lineWidth = 3
-  ctx.lineCap = 'round'
-  ctx.beginPath()
-  ctx.moveTo(startX, startY)
-  ctx.lineTo(endX, endY)
-  ctx.stroke()
-
-  // Arrow head
-  const headLength = 10
-  const angle = Math.atan2(dy, dx)
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.moveTo(endX, endY)
-  ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), endY - headLength * Math.sin(angle - Math.PI / 6))
-  ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), endY - headLength * Math.sin(angle + Math.PI / 6))
-  ctx.closePath()
-  ctx.fill()
-}
-
-const drawPatrolRange = (
-  ctx: CanvasRenderingContext2D,
-  robotX: number,
-  robotY: number,
-  fillColor: string,
-  strokeColor: string
-) => {
-  if (!props.patrolRadius || props.patrolRadius <= 0) return
-
-  const radius = props.patrolRadius * cellSize
-  ctx.save()
-  ctx.lineWidth = 2
-  ctx.fillStyle = fillColor
-  ctx.beginPath()
-  ctx.arc(robotX, robotY, radius, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.strokeStyle = strokeColor
-  if (typeof ctx.setLineDash === 'function') {
-    ctx.setLineDash([8, 6])
-  }
-  ctx.beginPath()
-  ctx.arc(robotX, robotY, radius, 0, Math.PI * 2)
-  ctx.stroke()
-  if (typeof ctx.setLineDash === 'function') {
-    ctx.setLineDash([])
-  }
-  ctx.restore()
-}
-
-/**
- * Draw charging station icon (battery symbol with lightning bolt)
- */
-const drawChargingStation = (ctx: CanvasRenderingContext2D, stationX: number, stationY: number) => {
-  const size = cellSize * 0.7 // Station size relative to cell
-
-  // Draw background circle (green)
-  ctx.fillStyle = '#67c23a' // Element Plus success color
-  ctx.beginPath()
-  ctx.arc(stationX, stationY, size / 2, 0, Math.PI * 2)
-  ctx.fill()
-
-  // Draw border
-  ctx.strokeStyle = '#fff'
-  ctx.lineWidth = 3
-  ctx.stroke()
-
-  // Draw lightning bolt symbol (⚡)
-  ctx.fillStyle = '#fff'
-  ctx.font = `bold ${size * 0.6}px Arial`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('⚡', stationX, stationY)
+  drawEnvironment(canvas.value, renderData, transform)
 }
 
 // Watch for prop changes and redraw
@@ -505,12 +161,9 @@ watch(
     props.patrolRadius,
     props.chargingStationPosition,
     props.chargingStations,
-    props.chargingStationPosition,
-    props.chargingStations,
-    props.trajectories,
   ],
   () => {
-    drawEnvironment()
+    render()
   },
   { deep: true }
 )
@@ -527,7 +180,7 @@ watch(
 )
 
 onMounted(() => {
-  updateRobotColors()
+  // updateRobotColors() is no longer needed here as colors are handled in composable or defaults
   // Wait for DOM layout
   setTimeout(() => {
     fitToView()
