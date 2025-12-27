@@ -275,11 +275,13 @@ const threatLevelCanvas = threatLevelChart.canvas
 watch(
   () => props.metricsHistory,
   (history) => {
+    console.log('[TrainingMetrics] metricsHistory watcher triggered, length:', history?.length ?? 0)
     if (!history || history.length === 0) return
 
     // Sort by timestep just in case
     const sortedHistory = [...history].sort((a, b) => a.timestep - b.timestep)
     const labels = sortedHistory.map((m) => m.timestep.toString())
+    console.log('[TrainingMetrics] Calling replaceData with', labels.length, 'labels')
 
     // Update Reward Chart
     rewardChart.replaceData(labels, [{ data: sortedHistory.map((m) => m.reward) }])
@@ -300,14 +302,7 @@ watch(
     // Update Threat Level Chart
     threatLevelChart.replaceData(labels, [
       {
-        data: sortedHistory.map((m) => {
-          // Flatten additional_metrics if it exists
-          interface AdditionalMetrics {
-            threat_level_avg?: number
-          }
-          const am = m.additional_metrics as AdditionalMetrics | null
-          return am?.threat_level_avg ?? (null as unknown as number)
-        }),
+        data: sortedHistory.map((m) => m.threat_level_avg ?? (null as unknown as number)),
       },
     ])
   },
@@ -356,11 +351,7 @@ const summaryStats = computed(() => {
       : null
 
   if (!hasRealtime && lastHistory) {
-    interface AdditionalMetrics {
-      threat_level_avg?: number
-    }
-    const am = lastHistory.additional_metrics as AdditionalMetrics | null
-    const threatLevel = am?.threat_level_avg ?? null
+    const threatLevel = lastHistory.threat_level_avg ?? null
 
     return {
       currentTimestep: lastHistory.timestep,

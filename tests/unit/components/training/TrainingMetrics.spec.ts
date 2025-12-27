@@ -235,7 +235,7 @@ describe('TrainingMetrics.vue', () => {
         coverage_ratio: 0.9,
         exploration_score: 0.95,
         threat_level_avg: 0.1,
-        additional_metrics: { threat_level_avg: 0.1 },
+        additional_metrics: null,
         timestamp: '2023-01-01T00:00:00Z',
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-01T00:00:00Z',

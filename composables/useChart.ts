@@ -12,16 +12,26 @@ export const useChart = (config: ChartConfiguration, ChartConstructor: typeof Ch
   const canvas = ref<HTMLCanvasElement | null>(null)
   let chart: Chart | null = null
 
+  // Pending data to be applied once chart is ready
+  let pendingReplaceData: { labels: string[]; datasets: Array<{ data: number[] }> } | null = null
+
   const render = () => {
     if (canvas.value) {
       chart?.destroy()
       chart = new ChartConstructor(canvas.value, config)
+
+      // Apply pending data if any
+      if (pendingReplaceData) {
+        replaceData(pendingReplaceData.labels, pendingReplaceData.datasets)
+        pendingReplaceData = null
+      }
     }
   }
 
   const destroy = () => {
     chart?.destroy()
     chart = null
+    pendingReplaceData = null
   }
 
   /**
@@ -33,6 +43,8 @@ export const useChart = (config: ChartConfiguration, ChartConstructor: typeof Ch
    */
   const updateData = (datasetIndex: number, newData: number, newLabel?: string, maxDataPoints: number = 100) => {
     if (!chart) return
+    // Note: Real-time updates dropped if chart not ready is acceptable for now,
+    // as it's stream data. But replaceData (history) is critical.
 
     // ラベルを追加（指定された場合）
     if (newLabel && chart.data.labels) {
@@ -61,7 +73,11 @@ export const useChart = (config: ChartConfiguration, ChartConstructor: typeof Ch
    * @param datasets - 新しいデータセット配列
    */
   const replaceData = (labels: string[], datasets: Array<{ data: number[] }>) => {
-    if (!chart) return
+    if (!chart) {
+      console.warn('[useChart] Chart not ready, queueing data replacement')
+      pendingReplaceData = { labels, datasets }
+      return
+    }
 
     chart.data.labels = labels
     datasets.forEach((dataset, index) => {
