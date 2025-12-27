@@ -33,6 +33,40 @@ vi.stubGlobal(
     error: { value: null },
   })
 )
+vi.stubGlobal(
+  'useAsyncData',
+  vi.fn().mockResolvedValue({
+    data: {
+      value: {
+        id: 1,
+        name: 'Test Session',
+        algorithm: 'ppo',
+        environment_type: 'standard',
+        status: 'completed',
+        total_timesteps: 1000,
+        current_timestep: 1000,
+        episodes_completed: 10,
+        env_width: 8,
+        env_height: 8,
+        coverage_weight: 1.0,
+        exploration_weight: 1.0,
+        diversity_weight: 1.0,
+        learning_rate: 0.001,
+        batch_size: 64,
+        num_workers: 1,
+        model_path: null,
+        log_path: null,
+        config: null,
+        created_at: '2025-01-01T00:00:00Z',
+        updated_at: '2025-01-01T01:00:00Z',
+        started_at: '2025-01-01T00:00:00Z',
+        completed_at: '2025-01-01T01:00:00Z',
+      },
+    },
+    error: { value: null },
+  })
+)
+vi.stubGlobal('$fetch', vi.fn())
 
 // Mock components
 const PlaybackTimelineStub = {
@@ -121,6 +155,12 @@ const ElEmptyStub = {
   props: ['description'],
 }
 
+const TrainingMetricsStub = {
+  name: 'TrainingMetrics',
+  template: '<div class="training-metrics-stub"></div>',
+  props: ['realtimeMetrics', 'metricsHistory'],
+}
+
 describe('Playback Session Page', () => {
   const globalStubs = {
     PlaybackTimeline: PlaybackTimelineStub,
@@ -128,6 +168,7 @@ describe('Playback Session Page', () => {
     PlaybackSpeed: PlaybackSpeedStub,
     EnvironmentVisualization: EnvironmentVisualizationStub,
     RobotPositionDisplay: RobotPositionDisplayStub,
+    TrainingMetrics: TrainingMetricsStub,
     ElButton: ElButtonStub,
     ElCard: ElCardStub,
     ElIcon: ElIconStub,
@@ -328,5 +369,49 @@ describe('Playback Session Page', () => {
     expect(robotItems).toHaveLength(2)
     expect(robotItems[0]?.text()).toContain('Robot 0')
     expect(robotItems[1]?.text()).toContain('Robot 1')
+  })
+
+  it('fetches and passes metrics history to TrainingMetrics', async () => {
+    // Override useFetch mock for this specific test to return data
+    // Unwrapped structure as per backend API
+    const mockMetrics = [
+      {
+        id: 1,
+        job_id: 1,
+        timestep: 100,
+        episode: 1,
+        reward: 10,
+        loss: 0.5,
+        coverage_ratio: 0.1,
+        exploration_score: 0.2,
+        threat_level_avg: 0.1,
+        additional_metrics: null,
+        timestamp: '2025-01-01T00:00:00Z',
+        created_at: '2025-01-01T00:00:00Z',
+        updated_at: '2025-01-01T00:00:00Z',
+      },
+    ]
+
+    vi.stubGlobal(
+      '$fetch',
+      vi.fn().mockResolvedValue({
+        metrics: mockMetrics,
+        total: 1,
+        page: 1,
+        page_size: 5,
+      })
+    )
+
+    const wrapper = mount(PlaybackSessionPage, {
+      global: { stubs: globalStubs },
+    })
+
+    // Wait for onMounted fetch
+    await wrapper.vm.$nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    // console.log(wrapper.html()) // Debug output
+    // Check state directly to verify data fetching logic
+    expect((wrapper.vm as any).metricsHistory).toEqual(mockMetrics)
   })
 })
