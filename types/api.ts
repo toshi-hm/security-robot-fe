@@ -195,7 +195,14 @@ export interface EnvironmentUpdateMessage extends BaseWebSocketMessage {
   grid_height?: number
   coverage_map?: number[][]
   threat_grid?: number[][]
-  // バッテリーシステム (Session 050)
+  visit_history_map?: number[][]
+
+  // ... (EnvironmentUpdateMessage) ...
+
+  // (Skipping to EnvironmentStateResponseDTO replacement if possible or just fixing duplicated line first)
+  // Wait, I can't skip lines in replace_file_content like that.
+  // I will fix EnvironmentUpdateMessage first.
+
   battery_percentage?: number
   is_charging?: boolean
   distance_to_charging_station?: number
@@ -290,6 +297,7 @@ export interface EnvironmentStateResponseDTO {
   charging_stations?: Array<{ x: number; y: number }> // Multi-Agent Support
   threat_grid: number[][] // Backend: {levels: number[][]} | null, normalized to number[][]
   coverage_map: number[][] | null // Backend: {levels: number[][]} | null, normalized to number[][] | null
+  visit_history_map?: number[][] | null // Cycle 11
   obstacles?: boolean[][] | null // 障害物マップ (ランダムマップ学習) - Backend: {levels: boolean[][]} | null, normalized to boolean[][] | null
   suspicious_objects: Array<{
     id: number
