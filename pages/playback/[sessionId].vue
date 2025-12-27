@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { computed, watch, onMounted, onUnmounted, ref } from 'vue'
 
 import BatteryDisplay from '~/components/environment/BatteryDisplay.vue'
@@ -11,7 +12,7 @@ import TrainingMetrics from '~/components/training/TrainingMetrics.vue'
 import { DEFAULT_PATROL_RADIUS } from '~/configs/constants'
 import type { Position, GridPosition } from '~/libs/domains/common/Position'
 import { usePlaybackStore } from '~/stores/playback'
-import type { TrainingMetricDTO, PaginatedMetricsResponse, ApiResponse } from '~/types/api'
+import type { TrainingMetricDTO, PaginatedMetricsResponse } from '~/types/api'
 import { getChargingStationPosition } from '~/utils/batteryHelpers'
 
 const route = useRoute()
@@ -327,17 +328,17 @@ const gridHeight = computed(() => {
 
 const fetchMetrics = async () => {
   sessionMetricsLoading.value = true
+  console.log('[fetchMetrics] Starting fetch for session:', sessionId.value)
   try {
-    const { data, error } = await useFetch<ApiResponse<PaginatedMetricsResponse>>(
+    const responseData = await $fetch<PaginatedMetricsResponse>(
       `/api/v1/training/sessions/${sessionId.value}/metrics`,
       {
         baseURL: (config.public as unknown as { apiBase: string }).apiBase,
         params: { page: 1, page_size: 10000 },
       }
     )
-    if (error.value) throw error.value
-    const responseData = data.value as unknown as ApiResponse<PaginatedMetricsResponse>
-    metricsHistory.value = responseData?.data?.metrics ?? []
+    console.log('[fetchMetrics] Response received, metrics count:', responseData?.metrics?.length ?? 0)
+    metricsHistory.value = responseData?.metrics ?? []
   } catch (e) {
     console.error('Failed to fetch metrics', e)
   } finally {

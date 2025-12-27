@@ -9,5 +9,7 @@ const onChange = (value: number | number[]) => {
 </script>
 
 <template>
-  <el-slider :model-value="modelValue" :max="max" @change="onChange" />
+  <div style="touch-action: none">
+    <el-slider :model-value="modelValue" :max="max" @change="onChange" />
+  </div>
 </template>
